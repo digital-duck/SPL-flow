@@ -1,0 +1,8 @@
+pocketflow
+streamlit>=1.32
+click>=8.0
+httpx>=0.25
+
+# SPL engine — for local dev use:  pip install -e /home/papagame/projects/digital-duck/SPL
+# For production: pip install spl-llm
+spl-llm
