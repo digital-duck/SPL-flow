@@ -1,21 +1,29 @@
-"""SPL-Flow Click CLI — batch testing and scripting interface.
+"""SPL-Flow Click CLI — thin wrapper over src.api for batch/scripting use.
+
+All business logic lives in src/api.py.  This module handles only:
+  - CLI argument parsing and validation
+  - Reading files / stdin
+  - Formatting and printing output
+  - Saving results to disk
 
 Usage:
     python -m src.cli generate "List 10 Chinese characters with water radical"
     python -m src.cli run "Summarize this article" --context-file article.txt
     python -m src.cli exec query.spl --adapter ollama --param radical=水
+
+    python -m src.cli run "Explain X" --json > result.json
+    python -m src.cli run "Explain X" --quiet --output answer.md
 """
 import sys
 import json
 import time
-import asyncio
 
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
 
 import click
 
-from src.flows.spl_flow import generate_spl_only, run_spl_flow
+from src import api
 
 
 # ── Shared option decorators ───────────────────────────────────────────────────
@@ -45,6 +53,22 @@ def context_file_option(f):
         type=click.Path(exists=True, readable=True),
         default=None,
         help="Path to a reference document to inject as context.document.",
+    )(f)
+
+
+def provider_option(f):
+    return click.option(
+        "--provider",
+        default="",
+        metavar="PROVIDER",
+        type=click.Choice(
+            ["", "anthropic", "google", "meta", "mistral", "alibaba", "deepseek", "openai"],
+            case_sensitive=False,
+        ),
+        help=(
+            "LLM provider preference for USING MODEL auto (openrouter adapter only). "
+            "E.g. --provider anthropic pins every auto-routed PROMPT to the best Anthropic model."
+        ),
     )(f)
 
 
@@ -178,31 +202,34 @@ def generate(query: str, context_file, quiet: bool, spl_output):
     context_text = _read_context(context_file)
 
     if not quiet:
-        click.echo(f"Generating SPL for: {query[:80]}{'...' if len(query) > 80 else ''}", err=True)
+        click.echo(
+            f"Generating SPL for: {query[:80]}{'...' if len(query) > 80 else ''}",
+            err=True,
+        )
 
     t0 = time.perf_counter()
-    result = generate_spl_only(user_input=query, context_text=context_text)
+    result = api.generate(query, context_text=context_text)
     elapsed = time.perf_counter() - t0
 
-    if result.get("error"):
+    if result["error"]:
         click.echo(f"Error: {result['error']}", err=True)
         sys.exit(1)
 
-    spl = result.get("spl_query", "")
+    spl = result["spl_query"]
     if not spl:
         click.echo("Error: No SPL generated — try rephrasing the query.", err=True)
         sys.exit(1)
 
-    # Warnings
-    for w in result.get("spl_warnings", []):
+    for w in result["spl_warnings"]:
         click.echo(f"Warning: {w}", err=True)
 
-    # Print SPL to stdout
     click.echo(spl)
 
     if not quiet:
-        retries = result.get("retry_count", 0)
-        click.echo(f"\n[generated in {elapsed:.2f}s, {retries} LLM call(s)]", err=True)
+        click.echo(
+            f"\n[generated in {elapsed:.2f}s, {result['retry_count']} LLM call(s)]",
+            err=True,
+        )
 
     _save_output(spl_output, spl)
 
@@ -212,6 +239,7 @@ def generate(query: str, context_file, quiet: bool, spl_output):
 @cli.command()
 @click.argument("query", default="-")
 @adapter_option
+@provider_option
 @param_option
 @context_file_option
 @cache_option
@@ -235,7 +263,7 @@ def generate(query: str, context_file, quiet: bool, spl_output):
     default=None,
     help="Also save the generated SPL to this file.",
 )
-def run(query, adapter, param, context_file, cache, output, as_json,
+def run(query, adapter, provider, param, context_file, cache, output, as_json,
         quiet, async_mode, email, spl_output):
     """Run the full SPL-Flow pipeline: NL → SPL → execute → result.
 
@@ -255,53 +283,51 @@ def run(query, adapter, param, context_file, cache, output, as_json,
 
     context_text = _read_context(context_file)
     spl_params = _parse_params(param)
-    if context_text:
-        spl_params.setdefault("document", context_text)
-
     delivery_mode = "async" if async_mode else "sync"
 
     if not quiet:
         click.echo(
             f"Running SPL-Flow pipeline\n"
-            f"  adapter : {adapter}\n"
-            f"  mode    : {delivery_mode}\n"
-            f"  cache   : {'on' if cache else 'off'}\n"
-            f"  query   : {query[:80]}{'...' if len(query) > 80 else ''}",
+            f"  adapter  : {adapter}\n"
+            f"  provider : {provider or '(best-of-breed)'}\n"
+            f"  mode     : {delivery_mode}\n"
+            f"  cache    : {'on' if cache else 'off'}\n"
+            f"  query    : {query[:80]}{'...' if len(query) > 80 else ''}",
             err=True,
         )
 
     t0 = time.perf_counter()
-    result = run_spl_flow(
-        user_input=query,
+    result = api.run(
+        query,
         context_text=context_text,
         adapter=adapter,
         delivery_mode=delivery_mode,
         notify_email=email,
         spl_params=spl_params,
         cache_enabled=cache,
+        provider=provider,
     )
     elapsed = time.perf_counter() - t0
 
     if not quiet:
         click.echo(f"Pipeline finished in {elapsed:.2f}s", err=True)
 
-    # Save generated SPL if requested
-    if spl_output and result.get("spl_query"):
+    if spl_output and result["spl_query"]:
         _save_output(spl_output, result["spl_query"])
 
-    if result.get("error"):
+    if result["error"]:
         click.echo(f"Error: {result['error']}", err=True)
         sys.exit(1)
 
-    primary = result.get("primary_result", "")
-    results = result.get("execution_results", [])
+    primary = result["primary_result"]
+    results = result["execution_results"]
 
     if as_json:
         click.echo(json.dumps({
             "primary_result": primary,
-            "spl_query": result.get("spl_query", ""),
+            "spl_query": result["spl_query"],
             "execution_results": results,
-            "error": result.get("error", ""),
+            "error": result["error"],
             "elapsed_s": round(elapsed, 3),
         }, indent=2, ensure_ascii=False))
     else:
@@ -316,18 +342,13 @@ def run(query, adapter, param, context_file, cache, output, as_json,
 @cli.command("exec")
 @click.argument("spl_file", type=click.Path(exists=True, readable=True))
 @adapter_option
+@provider_option
 @param_option
 @cache_option
 @output_option
 @json_flag
 @quiet_flag
-@click.option(
-    "--async-mode", "async_mode",
-    is_flag=True,
-    default=False,
-    help="Async delivery: save result to /tmp file.",
-)
-def exec_cmd(spl_file, adapter, param, cache, output, as_json, quiet, async_mode):
+def exec_cmd(spl_file, adapter, provider, param, cache, output, as_json, quiet):
     """Execute a pre-written SPL file directly (no Text2SPL step).
 
     Useful for batch testing: write your .spl file once, run it with
@@ -343,75 +364,32 @@ def exec_cmd(spl_file, adapter, param, cache, output, as_json, quiet, async_mode
         spl_query = f.read().strip()
 
     spl_params = _parse_params(param)
-    delivery_mode = "async" if async_mode else "sync"
 
     if not quiet:
         click.echo(
             f"Executing SPL file: {spl_file}\n"
-            f"  adapter : {adapter}\n"
-            f"  mode    : {delivery_mode}\n"
-            f"  cache   : {'on' if cache else 'off'}",
+            f"  adapter  : {adapter}\n"
+            f"  provider : {provider or '(best-of-breed)'}\n"
+            f"  cache    : {'on' if cache else 'off'}",
             err=True,
         )
 
-    # Execute SPL directly via the SPL engine (bypasses Text2SPL)
-    try:
-        from spl import parse
-        from spl.analyzer import Analyzer
-        from spl.optimizer import Optimizer
-        from spl.executor import Executor
-        from spl.ast_nodes import PromptStatement, CreateFunctionStatement
-    except ImportError as e:
-        click.echo(f"Error: SPL engine not available — {e}", err=True)
-        sys.exit(1)
-
     t0 = time.perf_counter()
-    try:
-        ast = parse(spl_query)
-        analysis = Analyzer().analyze(ast)
-        plans = Optimizer().optimize(analysis)
-
-        if not plans:
-            click.echo("Error: No PROMPT statements found in SPL file.", err=True)
-            sys.exit(1)
-
-        executor = Executor(adapter_name=adapter, cache_enabled=cache)
-
-        for s in ast.statements:
-            if isinstance(s, CreateFunctionStatement):
-                executor.functions.register(s)
-
-        results = []
-        for plan in plans:
-            stmt = next(
-                (s for s in ast.statements
-                 if isinstance(s, PromptStatement) and s.name == plan.prompt_name),
-                None,
-            )
-            r = asyncio.run(executor.execute(plan, params=spl_params, stmt=stmt))
-            results.append({
-                "prompt_name": plan.prompt_name,
-                "content": r.content,
-                "model": r.model,
-                "input_tokens": r.input_tokens,
-                "output_tokens": r.output_tokens,
-                "total_tokens": r.total_tokens,
-                "latency_ms": r.latency_ms,
-                "cost_usd": r.cost_usd,
-            })
-
-        executor.close()
-
-    except Exception as e:
-        click.echo(f"Error: {e}", err=True)
-        sys.exit(1)
-
+    result = api.exec_spl(
+        spl_query, adapter=adapter, spl_params=spl_params,
+        cache_enabled=cache, provider=provider,
+    )
     elapsed = time.perf_counter() - t0
 
     if not quiet:
         click.echo(f"Execution finished in {elapsed:.2f}s", err=True)
 
-    primary = results[-1]["content"] if results else ""
+    if result["error"]:
+        click.echo(f"Error: {result['error']}", err=True)
+        sys.exit(1)
+
+    primary = result["primary_result"]
+    results = result["execution_results"]
 
     if as_json:
         click.echo(json.dumps({
@@ -425,6 +403,127 @@ def exec_cmd(spl_file, adapter, param, cache, output, as_json, quiet, async_mode
         _print_metrics(results, quiet)
 
     _save_output(output, primary)
+
+
+# ── benchmark ──────────────────────────────────────────────────────────────────
+
+@cli.command("benchmark")
+@click.argument("spl_file", type=click.Path(exists=True, readable=True))
+@adapter_option
+@provider_option
+@click.option(
+    "--model", "-m",
+    "models",
+    multiple=True,
+    metavar="MODEL_ID",
+    help=(
+        "Model to benchmark against (repeatable). "
+        "Use 'auto' for the model router. "
+        "E.g. --model anthropic/claude-opus-4-6 --model auto"
+    ),
+)
+@param_option
+@cache_option
+@output_option
+@json_flag
+@quiet_flag
+def benchmark_cmd(spl_file, adapter, provider, models, param, cache, output, as_json, quiet):
+    """Benchmark a .spl file against multiple models in parallel.
+
+    Runs the same SPL script once per MODEL, concurrently.  Each run
+    receives an identical patched copy with its USING MODEL clause replaced.
+    Wall-clock time ≈ slowest single model, not N × one model.
+
+    \b
+    Examples:
+      spl-flow benchmark query.spl --model auto --model openai/gpt-4o
+      spl-flow benchmark query.spl --model auto --model anthropic/claude-opus-4-6 \\
+          --adapter openrouter --provider anthropic --json > results.json
+      spl-flow benchmark query.spl --model auto --param doc="$(cat article.txt)"
+    """
+    with open(spl_file, encoding="utf-8") as f:
+        spl_query = f.read().strip()
+
+    model_list = list(models) if models else ["auto"]
+    spl_params = _parse_params(param)
+
+    if not quiet:
+        click.echo(
+            f"Benchmarking SPL file: {spl_file}\n"
+            f"  adapter  : {adapter}\n"
+            f"  provider : {provider or '(best-of-breed)'}\n"
+            f"  models   : {', '.join(model_list)}\n"
+            f"  cache    : {'on' if cache else 'off'}",
+            err=True,
+        )
+
+    t0 = time.perf_counter()
+    result = api.benchmark(
+        spl_query,
+        models=model_list,
+        adapter=adapter,
+        provider=provider,
+        spl_params=spl_params,
+        cache_enabled=cache,
+    )
+    elapsed = time.perf_counter() - t0
+
+    if not quiet:
+        click.echo(f"Benchmark finished in {elapsed:.2f}s", err=True)
+
+    error = result.get("error", "")
+    if error:
+        click.echo(f"Error: {error}", err=True)
+        sys.exit(1)
+
+    runs = result.get("runs", [])
+
+    if as_json:
+        click.echo(
+            __import__("json").dumps(result, indent=2, ensure_ascii=False)
+        )
+    else:
+        # Summary table
+        click.echo(f"\n{'Model':<40} {'Tokens':>8} {'Latency':>9} {'Cost':>10}")
+        click.echo("-" * 72)
+        for run in runs:
+            run_error = run.get("error", "")
+            if run_error:
+                model_label = run["model_id"]
+                if run.get("resolved_model"):
+                    model_label += f" → {run['resolved_model']}"
+                click.echo(f"{model_label:<40} {'ERROR':>8}  {run_error[:28]}")
+            else:
+                model_label = run["model_id"]
+                if run.get("resolved_model"):
+                    model_label += f" → {run['resolved_model'][:20]}"
+                cost = run.get("cost_usd")
+                cost_str = f"${cost:.5f}" if cost is not None else "n/a"
+                click.echo(
+                    f"{model_label:<40}"
+                    f" {run.get('total_tokens', 0):>8,}"
+                    f" {run.get('latency_ms', 0) / 1000:>8.2f}s"
+                    f" {cost_str:>10}"
+                )
+        click.echo()
+
+        # Per-model responses
+        for run in runs:
+            model_label = run["model_id"]
+            if run.get("resolved_model"):
+                model_label += f" → {run['resolved_model']}"
+            click.echo(f"── {model_label} {'─' * max(0, 60 - len(model_label))}")
+            if run.get("error"):
+                click.echo(f"ERROR: {run['error']}\n")
+            else:
+                click.echo(run.get("response", "") + "\n")
+
+    if output:
+        primary = "\n\n".join(
+            f"# {r['model_id']}\n\n{r.get('response', '')}"
+            for r in runs
+        )
+        _save_output(output, primary)
 
 
 # ── entry point ────────────────────────────────────────────────────────────────

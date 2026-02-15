@@ -166,18 +166,38 @@ def get_text2spl_prompt(
     user_input: str,
     context_text: str = "",
     error: str = "",
+    retrieved_examples: list[dict] | None = None,
 ) -> str:
     """Format the complete prompt for Text2SPL translation.
 
     Args:
-        user_input: The user's natural language query.
-        context_text: Optional reference document pasted by the user.
-        error: Previous parse error (populated on retry).
+        user_input:          The user's natural language query.
+        context_text:        Optional reference document pasted by the user.
+        error:               Previous parse error (populated on retry).
+        retrieved_examples:  RAG-retrieved (nl_query, spl_query) dicts, ordered
+                             by semantic similarity.  When provided they are
+                             injected between the static examples and the user
+                             request so the LLM sees task-relevant prior art
+                             before generating new SPL.
 
     Returns:
         Complete formatted prompt string for the LLM.
     """
     parts = [TEXT2SPL_SYSTEM_PROMPT]
+
+    # ── Dynamic few-shot examples from RAG store ──────────────────────────────
+    if retrieved_examples:
+        examples_text = "\n\n---\n\n".join(
+            f"**Similar query:** {ex['nl_query']}\n\n```sql\n{ex['spl_query']}\n```"
+            for ex in retrieved_examples[:5]
+        )
+        parts.append(
+            "## Retrieved Examples (from your query history — highest relevance first)\n\n"
+            "These are real (query, SPL) pairs from previous sessions that are "
+            "semantically similar to the current request. Use them as additional "
+            "style and structure guidance:\n\n"
+            + examples_text
+        )
 
     if error:
         parts.append(

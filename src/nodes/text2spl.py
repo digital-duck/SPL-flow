@@ -25,11 +25,25 @@ class Text2SPLNode(Node):
         }
 
     def exec(self, prep_res):
+        # ── RAG retrieval: fetch similar (query, SPL) pairs as few-shot context
+        retrieved_examples: list[dict] = []
+        try:
+            from src.rag.factory import get_store
+            store = get_store("chroma")
+            records = store.search(prep_res["user_input"], k=5)
+            retrieved_examples = [
+                {"nl_query": r.nl_query, "spl_query": r.spl_query}
+                for r in records
+            ]
+        except Exception:
+            pass  # silently fall back to static examples only
+
         adapter = get_adapter("claude_cli")
         prompt = get_text2spl_prompt(
             prep_res["user_input"],
             prep_res["context_text"],
             prep_res["error"],
+            retrieved_examples=retrieved_examples,
         )
         result = asyncio.run(adapter.generate(
             prompt=prompt,

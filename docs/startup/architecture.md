@@ -349,10 +349,10 @@ Users should not need to know which model is best for their task. SPL should rou
 intelligently based on codified knowledge of the LLM landscape.
 
 ```sql
--- Current (explicit routing):
-USING MODEL "qwen/qwen-2.5-72b-instruct"
+-- Explicit routing (early-bound — model known at parse time):
+USING MODEL 'qwen/qwen-2.5-72b-instruct'
 
--- Future (intelligent auto-routing):
+-- Symbolic auto-routing (late-bound — model resolved at routing-time):
 USING MODEL auto               -- best model for detected task type
 USING MODEL auto(cost=low)     -- optimize for price (use efficient models)
 USING MODEL auto(speed=high)   -- optimize for latency (fastest available)
@@ -360,25 +360,60 @@ USING MODEL auto(privacy=local) -- Ollama only, zero data egress
 USING MODEL auto(quality=max)  -- best quality regardless of cost
 ```
 
+**Grammar design — `auto` as a first-class model-id token:**
+
+`auto` is not a special keyword intercepted post-parse. It is a valid `model_id`
+production in the SPL grammar, treated literally by the parser:
+
+```
+model_id : STRING_LITERAL        -- 'qwen/qwen-2.5-72b-instruct'  early-bound
+         | IDENTIFIER            -- auto                            late-bound
+```
+
+The parse tree stores `stmt.model = "auto"` exactly as it stores `stmt.model = "qwen/..."`.
+The SPL pipeline (parse → analyze → optimize) flows through without branching.
+Resolution happens at **routing-time** — the last step before the LLM adapter is called:
+
+```
+Parse    → stmt.model = "auto"     (literal, no resolution)
+Analyze  → stmt.model = "auto"     (no change)
+Optimize → stmt.model = "auto"     (no change)
+Execute  → if stmt.model == "auto":
+               stmt.model = auto_route(adapter, task_type, provider)
+           call adapter(stmt.model, prompt)   ← concrete model used here
+```
+
+This late-binding design has two practical consequences:
+1. `auto` composes cleanly with every SPL construct — CTEs, multi-PROMPT, nested scripts
+2. BENCHMARK's `USING MODELS` can include `auto` as an equal peer alongside explicit models,
+   because the BENCHMARK processor applies the same uniform patching rule to all entries
+
 **Implementation design:**
 
 ```
-spl/model_router.py
-  └── TaskTypeDetector
-        ├── CJK detector (Unicode range U+4E00–U+9FFF in prompt)
-        ├── Code detector (keywords: def, class, function, import, bug, review)
-        ├── EU language detector (German/French/Spanish keywords)
-        ├── Math detector (equations, symbols, proof keywords)
-        └── Default: general reasoning
+src/utils/model_router.py  (SPL-Flow layer — currently implemented)
+  └── detect_task(system_role, instruction) → task_type
+        ├── CJK: Unicode chars + keyword match
+        ├── code: function/class/debug/review keywords
+        ├── eu_lang: German/French/Spanish/translate keywords
+        ├── math: equation/proof/integral keywords
+        ├── reasoning: analyze/compare/argue/infer keywords
+        └── general: fallback
 
-  └── ModelRegistry (spl/config/model_registry.yaml)
+  └── resolve_model(adapter, task_type, provider="") → model_id
+        ├── openrouter + provider → provider's best for task
+        ├── openrouter + no provider → best-of-breed for task
+        └── claude_cli / ollama → adapter-level best (provider ignored)
+
+  └── auto_route(adapter, system_role, instruction, provider, is_final_prompt) → model_id
+        └── convenience: detect_task() + resolve_model() in one call
+        └── is_final_prompt=True → always routes to "synthesis" task
+
+Future: spl/config/model_registry.yaml  (planned — currently in ROUTING_TABLE dict)
         ├── Source: HuggingFace Open LLM Leaderboard (updated quarterly)
         ├── Source: LMSYS Chatbot Arena Elo scores
-        ├── Per task type: ranked list of models by adapter
+        ├── Per task type: ranked list of models by adapter + provider
         └── Constraints: cost_per_token, avg_latency_ms, context_window
-
-  └── resolve_auto_model(task_type, adapter, constraints) → model_id
-        └── Intercepts model == "auto" in Optimizer before execution
 ```
 
 **Registry format (`spl/config/model_registry.yaml`):**
@@ -504,6 +539,398 @@ Composed result: table + audio pronunciation + visual mnemonic
 
 ---
 
+### Innovation 4 — `BENCHMARK`: Declarative Model Evaluation (Platform Moat)
+
+*Documented: February 15, 2026 | human×AI collaboration session*
+
+**The insight:**
+Every model selection decision today relies on *general* benchmarks — HuggingFace Leaderboard,
+LMSYS Chatbot Arena, HumanEval. These tell you what is best *in aggregate*, not what is best
+*for your specific task, domain, and data*.
+
+BENCHMARK closes this gap: write one SPL script, run it against N models in parallel,
+and get directly comparable results — same prompt, same parameters, different models.
+This is **task-specific, data-specific model evaluation as a first-class SPL primitive**.
+
+**`auto` — a first-class model-id token, not a special case:**
+
+`auto` is a valid `model_id` in the SPL grammar — the parser treats it literally, exactly
+like `'qwen/qwen-2.5-72b-instruct'`. The distinction is purely *when* the value is resolved:
+
+```
+model_id : STRING_LITERAL        -- 'qwen/qwen-2.5-72b-instruct'  resolved at parse-time
+         | 'auto'                -- symbolic placeholder            resolved at routing-time
+```
+
+This is **late binding** — `auto` flows through parse → analyze → optimize as an opaque
+string. Only at the final moment, just before the LLM call, does the executor check:
+*"is this model_id `auto`? if so, call the router."*
+Everything else in the pipeline is uniform — no special branches, no grammar rules for auto.
+
+```sql
+-- All three are equivalent grammar productions for model_id:
+USING MODEL 'anthropic/claude-opus-4-6'   -- explicit, early-bound
+USING MODEL auto                           -- symbolic, late-bound (routing-time)
+USING MODEL auto(cost=low)                 -- future: routing with constraints
+```
+
+**Syntax design — `USING MODELS` as the BENCHMARK-scoped global qualifier:**
+
+`USING MODELS` (plural) is a global override scoped to the BENCHMARK block.
+It iterates the entire script once per listed model, substituting that model-id for every
+`USING MODEL` clause inside — including CTE-level ones.
+Singular vs plural is the only syntactic signal needed. Very SPL-idiomatic.
+
+```sql
+-- Inline BENCHMARK (script embedded verbosely):
+BENCHMARK summarize_quality
+USING MODELS [
+    'anthropic/claude-opus-4-6',
+    'openai/gpt-4o',
+    'deepseek/deepseek-r1',
+    auto                          -- auto is a valid model-id: resolved at routing-time
+]
+USING ADAPTER openrouter
+PROMPT base
+SELECT
+    system_role('You are a precise summarizer.'),
+    GENERATE('Summarize in 3 bullet points: ', context.document)
+USING MODEL 'claude-sonnet-4-5';  -- ← overridden per iteration by USING MODELS above
+```
+
+**Concise reference syntax — `CALL`:**
+
+Embedding the full SPL script inside a BENCHMARK block is verbose for large scripts.
+`CALL` lets BENCHMARK stay minimal — just evaluation config, script by reference:
+
+```sql
+-- CALL with named args:
+BENCHMARK summarize_quality
+USING MODELS ['anthropic/claude-opus-4-6', 'openai/gpt-4o', auto]
+USING ADAPTER openrouter
+CALL summarize.spl (document=context.document, style='concise')
+
+-- CALL with no args (script uses its own params/context):
+BENCHMARK regression_test
+USING MODELS ['anthropic/claude-opus-4-6', 'openai/gpt-4o', auto]
+CALL water_radical_table.spl
+
+-- CALL is consistent with SPL vocabulary: SELECT, GENERATE, PROMPT, CALL
+-- all uppercase English verbs — one syntax, no shorthand aliases
+```
+
+`CALL script(args)` includes the referenced `.spl` at parse time (like `#include`),
+with named args bound to `context.param_name` references inside the script.
+Any existing `.spl` file is instantly benchmarkable — no edits to the script itself.
+
+**Override semantics — how USING MODELS patches each iteration:**
+
+For each `model_i` in the USING MODELS list, the BENCHMARK processor clones the script
+and applies a single uniform rule:
+
+```
+Replace every  USING MODEL <any_model_id>
+with           USING MODEL model_i
+```
+
+This is uniform regardless of what `model_i` is — including `auto`:
+
+```
+BENCHMARK USING MODELS ['claude-opus', 'gpt-4o', auto]
+                   │
+    ┌──────────────┼──────────────┐       (3 parallel executions)
+    ▼              ▼              ▼
+ USING MODEL    USING MODEL    USING MODEL
+ 'claude-opus'  'gpt-4o'       auto           ← auto resolves at routing-time
+                                               ← router picks best model for task
+```
+
+The `auto` entry in USING MODELS therefore means: *"run this script once with the model
+router in charge — compare the router's choice against my explicit picks."*
+
+**Override semantics — multi-CTE (MoM vs single-model benchmark):**
+
+```sql
+BENCHMARK mom_vs_single
+USING MODELS [
+    'anthropic/claude-opus-4-6',   -- does one model beat the specialist mixture?
+    'openai/gpt-4o',
+    auto                            -- what does the model router choose for each CTE?
+]
+USING ADAPTER openrouter
+CALL cjk_german_table.spl (radical=context.radical)
+-- Inside cjk_german_table.spl:
+--   USING MODEL 'qwen/qwen-2.5-72b-instruct'  ← overridden per iteration
+--   USING MODEL 'mistralai/mistral-large-2411' ← overridden per iteration
+--   USING MODEL 'anthropic/claude-opus-4-6'    ← overridden per iteration
+```
+
+This answers: *"Is the specialist MoM mixture better than one powerful model doing
+everything?"* — the benchmark that validates (or challenges) the entire MoM paradigm
+for a specific domain. No other platform can ask this question declaratively.
+
+**`auto` in USING MODELS — benchmarking the router itself:**
+
+`auto` as an entry in the list = "run the script as-written with routing engaged."
+This enables three comparison questions in one benchmark run:
+- *"Does my explicit model choice beat the router?"* → if no, just use `auto`
+- *"Does the router beat my choice?"* → trust the routing table; no manual model-id to maintain
+- *"Does my choice beat the router?"* → store as domain preference; personalize future routing
+
+**API / CLI:**
+```bash
+# Run a .spl file as a benchmark — same script, N models in parallel
+python -m src.cli exec summarize.spl \
+    --benchmark "anthropic/claude-opus-4-6,openai/gpt-4o,deepseek/deepseek-r1,auto" \
+    --adapter openrouter \
+    --param document="$(cat article.txt)" \
+    --json > benchmark_results.json
+
+# --benchmark flag is equivalent to wrapping the SPL in a BENCHMARK block with
+# USING MODELS [...] — no SPL edit required, any existing .spl becomes benchmarkable
+```
+
+**Output format — JSON (machine-readable, fully reproducible):**
+
+Each run captures the *patched* `input_spl` sent to that model — so any individual run
+can be re-executed in isolation, audited, or diffed against another run.
+
+```json
+{
+  "benchmark_name": "summarize_quality",
+  "adapter": "openrouter",
+  "timestamp": "2026-02-15T10:30:00Z",
+  "spl_hash": "3f7a2c1b...",
+  "params": { "document": "The 2024 Nobel Prize in Physics..." },
+  "winner": null,
+  "runs": [
+    {
+      "model_id": "anthropic/claude-opus-4-6",
+      "resolved_from": "explicit",
+      "input_spl": "PROMPT base\nSELECT\n    system_role('You are a precise summarizer.'),\n    GENERATE('Summarize in 3 bullet points: ', context.document)\nUSING MODEL 'anthropic/claude-opus-4-6';",
+      "response": "• Hinton and Hopfield awarded for foundational work in neural networks...",
+      "input_tokens": 450,
+      "output_tokens": 120,
+      "total_tokens": 570,
+      "latency_ms": 2310,
+      "cost_usd": 0.00620
+    },
+    {
+      "model_id": "openai/gpt-4o",
+      "resolved_from": "explicit",
+      "input_spl": "PROMPT base\nSELECT\n    system_role('You are a precise summarizer.'),\n    GENERATE('Summarize in 3 bullet points: ', context.document)\nUSING MODEL 'openai/gpt-4o';",
+      "response": "• The Nobel Prize in Physics 2024 recognized...",
+      "input_tokens": 448,
+      "output_tokens": 115,
+      "total_tokens": 563,
+      "latency_ms": 1820,
+      "cost_usd": 0.00590
+    },
+    {
+      "model_id": "deepseek/deepseek-r1",
+      "resolved_from": "explicit",
+      "input_spl": "PROMPT base\n...\nUSING MODEL 'deepseek/deepseek-r1';",
+      "response": "• Physics Nobel 2024: awarded to...",
+      "input_tokens": 450,
+      "output_tokens": 130,
+      "total_tokens": 580,
+      "latency_ms": 4120,
+      "cost_usd": 0.00210
+    },
+    {
+      "model_id": "auto",
+      "resolved_from": "auto",
+      "resolved_model": "anthropic/claude-sonnet-4-5-20250929",
+      "input_spl": "PROMPT base\n...\nUSING MODEL 'anthropic/claude-sonnet-4-5-20250929';",
+      "response": "• The 2024 Nobel in Physics honoured...",
+      "input_tokens": 449,
+      "output_tokens": 118,
+      "total_tokens": 567,
+      "latency_ms": 1200,
+      "cost_usd": 0.00094
+    }
+  ]
+}
+```
+
+**Multi-CTE JSON — `prompt_results` captures per-CTE breakdown:**
+
+For multi-CTE benchmarks the top-level `response` is the final PROMPT output (synthesis);
+`prompt_results` contains every intermediate CTE result for full traceability.
+
+```json
+{
+  "benchmark_name": "mom_vs_single",
+  "runs": [
+    {
+      "model_id": "anthropic/claude-opus-4-6",
+      "resolved_from": "explicit",
+      "input_spl": "PROMPT final_table\nWITH chars AS (\n    PROMPT cjk_analysis USING MODEL 'anthropic/claude-opus-4-6'\n),\ngerman AS (\n    PROMPT german_trans USING MODEL 'anthropic/claude-opus-4-6'\n)\nSELECT GENERATE(...) USING MODEL 'anthropic/claude-opus-4-6';",
+      "response": "| 水 | water | Wasser | ... |",
+      "total_tokens": 2840,
+      "latency_ms": 5200,
+      "cost_usd": 0.01420,
+      "prompt_results": [
+        {
+          "prompt_name": "cjk_analysis",
+          "model_id": "anthropic/claude-opus-4-6",
+          "response": "水(shuǐ) — water, river, liquid...",
+          "input_tokens": 380, "output_tokens": 420, "latency_ms": 1800, "cost_usd": 0.00400
+        },
+        {
+          "prompt_name": "german_trans",
+          "model_id": "anthropic/claude-opus-4-6",
+          "response": "Wasser, Fluss, Flüssigkeit...",
+          "input_tokens": 420, "output_tokens": 380, "latency_ms": 1700, "cost_usd": 0.00400
+        },
+        {
+          "prompt_name": "final_table",
+          "model_id": "anthropic/claude-opus-4-6",
+          "response": "| 水 | water | Wasser | ... |",
+          "input_tokens": 800, "output_tokens": 840, "latency_ms": 1700, "cost_usd": 0.00620
+        }
+      ]
+    }
+  ]
+}
+```
+
+**`winner` field lifecycle:**
+```json
+"winner": null                               // initial state — awaiting human review
+"winner": "anthropic/claude-opus-4-6"        // after human marks preferred run
+"winner": "auto → anthropic/claude-sonnet"   // auto won — reinforces routing table
+```
+
+**Implementation design:**
+
+```
+BenchmarkNode (new PocketFlow node)
+  │
+  ├── parse BENCHMARK block:
+  │     extract USING MODELS list → [model_1, model_2, ..., "auto"]
+  │     extract inner SPL script (everything after USING MODELS clause)
+  │
+  ├── for each model_i in USING MODELS:
+  │     patch_spl = clone inner SPL (or load CALL/@ referenced file + bind args)
+  │                 replace every "USING MODEL <any>" with "USING MODEL model_i"
+  │                 (uniform rule — auto is substituted just like any explicit model-id)
+  │     run.input_spl = patch_spl            ← record exact patched SPL per run
+  │     run.resolved_from = "auto" if model_i == auto else "explicit"
+  │     dispatch ExecuteSPLNode(patch_spl)   ← all N via asyncio.gather (parallel)
+  │     note: if patch contains USING MODEL auto, executor resolves it at routing-time
+  │           (late binding — auto_route() called just before LLM dispatch, not here)
+  │
+  ├── collect runs[] → serialise to JSON
+  │
+  ├── render: Streamlit side-by-side tabs / CLI summary + full JSON file
+  │
+  └── accept: user marks winner model_id
+              → set runs.winner
+              → store BenchmarkResult to benchmark store
+              → update routing store: (user_id, task_type) → winner_model
+```
+
+**The LOOP concept — a new SPL language primitive:**
+
+`BENCHMARK USING MODELS` introduces iteration into SPL for the first time.
+SPL already had *spatial* parallelism (multiple CTEs dispatched simultaneously).
+This adds *temporal* iteration — the same script executed N times with a varying parameter.
+
+```
+Spatial parallelism (existing):          Temporal iteration (BENCHMARK):
+  CTE_a ─┐                               Script × model_1  ─┐
+  CTE_b ─┼─► asyncio.gather              Script × model_2  ─┼─► asyncio.gather
+  CTE_c ─┘                               Script × model_3  ─┘
+  (same execution, parallel prompts)     (same script, parallel model runs)
+```
+
+This generalises naturally to a full **grid search** primitive:
+
+```sql
+BENCHMARK grid_search
+USING MODELS ['anthropic/claude-opus-4-6', 'openai/gpt-4o', auto]
+USING PARAMS [
+    { 'temperature': 0.0, 'style': 'concise'  },
+    { 'temperature': 0.7, 'style': 'detailed' },
+    { 'temperature': 1.2, 'style': 'creative' }
+]
+-- 3 models × 3 param sets = 9 parallel runs → full evaluation matrix
+```
+
+This is a declarative `itertools.product` for LLM evaluation — no Python eval harness,
+no MLflow boilerplate, no manual scripting. One SPL block produces the complete matrix.
+The LOOP concept makes BENCHMARK the foundation of a full **LLM experiment platform**
+built on top of the existing MoM + Model Zoo infrastructure.
+
+**The flywheel — BENCHMARK feeds back into USING MODEL auto:**
+
+```
+Step 1: User runs BENCHMARK on their domain task
+        "For legal contract review, which model is best?"
+        → claude-opus-4-6, gpt-4o, deepseek-r1 all run in parallel
+        → User reviews outputs, marks claude-opus as winner
+
+Step 2: BenchmarkResult saved to routing store
+        task="legal_contract_review", winner="anthropic/claude-opus-4-6"
+
+Step 3: Next time USING MODEL auto runs on a similar task:
+        detect_task() classifies "contract review" → "reasoning"
+        routing store lookup: user has a domain preference for "reasoning" → anthropic
+        → resolve_model() returns "anthropic/claude-opus-4-6"
+
+Result: USING MODEL auto is now *personalized* to this user's validated preferences
+        General leaderboard → user-validated domain routing → personal digital twin routing
+```
+
+**Why BENCHMARK is a genuine platform moat:**
+
+| Dimension | Without BENCHMARK | With BENCHMARK |
+|-----------|------------------|----------------|
+| Model selection | Based on general leaderboards | Based on your specific task and data |
+| Evaluation effort | Separate Python eval harness, MLflow | One CLI command, same SPL script |
+| Results format | Metrics in spreadsheets | Structured JSON + Streamlit side-by-side |
+| Routing feedback | Manual — user updates YAML | Automatic — winner feeds into auto routing |
+| Personalization | None — same model for everyone | Per-user, per-domain routing preferences |
+| Iteration cycle | Days (run eval harness, update config) | Minutes (benchmark → mark winner → deploy) |
+
+**Strategic positioning:**
+
+No other declarative LLM platform today enables:
+1. Write one script → run against the entire Model Zoo in parallel
+2. Compare outputs side-by-side on the actual task
+3. Mark the winner → automatically influences future `USING MODEL auto` routing
+
+This makes the SPL-Flow Model Zoo self-improving: the global leaderboard-based routing table
+is the prior; BENCHMARK results from real usage are the updates. Over time, the platform
+accumulates **domain-specific, user-validated routing intelligence** that no competitor can
+replicate without the same usage data.
+
+**The evaluation-routing virtuous cycle:**
+
+```
+General routing table (leaderboard prior)
+         │
+         ▼
+BENCHMARK runs on real user tasks + data
+         │
+         ▼
+User marks winner (human label, gold standard)
+         │
+         ▼
+BenchmarkResult stored in routing store
+         │
+         ▼
+USING MODEL auto reads domain-specific preference
+         │
+         ▼
+Better outputs → more usage → more benchmarks → tighter preferences
+         │
+         └──► Digital twin: routing table becomes personal to each user's domain
+```
+
+---
+
 ### Innovation Summary
 
 | Innovation | Level | Partner/Technology | Timeline |
@@ -511,6 +938,7 @@ Composed result: table + audio pronunciation + visual mnemonic
 | **MoM — Mixture-of-Models** | Conceptual paradigm | SPL engine (proven Feb 14 2026) | Now — document in arXiv |
 | **`USING MODEL auto`** | Implementation excellence | HuggingFace Leaderboard + LMSYS Arena | Next sprint |
 | **Text2SPL LFM fine-tune** | Research + product | Liquid AI (LFM 1.3B) | After SPL-Flow MVP |
+| **`BENCHMARK` keyword** | Platform moat | Model Zoo + RAG store + routing flywheel | v0.2–v0.3 |
 
 **Strategic note — Liquid AI relationship:**
 

@@ -70,6 +70,7 @@ def run_spl_flow(
     notify_email: str = "",
     spl_params: dict = None,
     cache_enabled: bool = False,
+    provider: str = "",
 ) -> dict:
     """Run the complete SPL-Flow pipeline (generate → validate → execute → deliver).
 
@@ -86,6 +87,7 @@ def run_spl_flow(
         "notify_email": notify_email,
         "spl_params": spl_params or {},
         "cache_enabled": cache_enabled,
+        "provider": provider,
         # Pipeline state (populated by nodes)
         "spl_query": "",
         "spl_ast": None,
