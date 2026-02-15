@@ -22,6 +22,9 @@ from spl.ast_nodes import (
 )
 
 from src.utils.model_router import auto_route
+from src.utils.logging_config import get_logger
+
+_log = get_logger("nodes.execute")
 
 
 class ExecuteSPLNode(Node):
@@ -60,7 +63,13 @@ class ExecuteSPLNode(Node):
         plans    = Optimizer().optimize(analysis)
 
         if not plans:
+            _log.error("no PROMPT statements found in SPL query")
             return {"error": "No PROMPT statements found in SPL query"}
+
+        _log.info(
+            "execute start  adapter=%s  provider=%s  prompts=%d  cache=%s",
+            adapter_name, provider or "(best-of-breed)", len(plans), cache_enabled,
+        )
 
         executor = Executor(adapter_name=adapter_name, cache_enabled=cache_enabled)
 
@@ -83,8 +92,16 @@ class ExecuteSPLNode(Node):
                     provider=provider,
                     is_final_prompt=is_final,
                 )
+                _log.info("[%s] USING MODEL auto → %s", plan.prompt_name, stmt.model)
 
             result = asyncio.run(executor.execute(plan, params=params, stmt=stmt))
+            cost_str = f"${result.cost_usd:.5f}" if result.cost_usd is not None else "—"
+            _log.info(
+                "[%s] done  model=%s  tokens=%d+%d=%d  latency=%.0fms  cost=%s",
+                plan.prompt_name, result.model,
+                result.input_tokens, result.output_tokens, result.total_tokens,
+                result.latency_ms, cost_str,
+            )
             results.append({
                 "prompt_name":  plan.prompt_name,
                 "content":      result.content,
@@ -97,6 +114,13 @@ class ExecuteSPLNode(Node):
             })
 
         executor.close()
+        total_tokens  = sum(r["total_tokens"] for r in results)
+        total_latency = sum(r["latency_ms"] for r in results)
+        total_cost    = sum(r["cost_usd"] for r in results if r["cost_usd"] is not None)
+        _log.info(
+            "execute done  total_tokens=%d  total_latency=%.0fms  total_cost=$%.5f",
+            total_tokens, total_latency, total_cost,
+        )
         return {"results": results}
 
     def post(self, shared, prep_res, exec_res):

@@ -6,6 +6,9 @@ sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
 from pocketflow import Node
 from spl.adapters import get_adapter
 from src.utils.spl_templates import get_text2spl_prompt
+from src.utils.logging_config import get_logger
+
+_log = get_logger("nodes.text2spl")
 
 
 class Text2SPLNode(Node):
@@ -25,6 +28,17 @@ class Text2SPLNode(Node):
         }
 
     def exec(self, prep_res):
+        attempt = prep_res["retry_count"] + 1
+        _log.info(
+            "Text2SPL attempt=%d  query_len=%d  context_len=%d  has_error=%s",
+            attempt,
+            len(prep_res["user_input"]),
+            len(prep_res["context_text"]),
+            bool(prep_res["error"]),
+        )
+        if prep_res["error"]:
+            _log.debug("retry context (parse error): %s", prep_res["error"])
+
         # ── RAG retrieval: fetch similar (query, SPL) pairs as few-shot context
         retrieved_examples: list[dict] = []
         try:
@@ -35,8 +49,9 @@ class Text2SPLNode(Node):
                 {"nl_query": r.nl_query, "spl_query": r.spl_query}
                 for r in records
             ]
+            _log.info("RAG retrieval  hits=%d", len(retrieved_examples))
         except Exception:
-            pass  # silently fall back to static examples only
+            _log.debug("RAG retrieval unavailable — using static examples only")
 
         adapter = get_adapter("claude_cli")
         prompt = get_text2spl_prompt(
@@ -45,6 +60,7 @@ class Text2SPLNode(Node):
             prep_res["error"],
             retrieved_examples=retrieved_examples,
         )
+        _log.debug("Text2SPL prompt length: %d chars", len(prompt))
         result = asyncio.run(adapter.generate(
             prompt=prompt,
             model="",
@@ -55,6 +71,7 @@ class Text2SPLNode(Node):
                 "Output ONLY valid SPL code, no explanation, no markdown code fences."
             ),
         ))
+        _log.debug("Text2SPL raw output:\n%s", result.content)
         return result.content.strip()
 
     def post(self, shared, prep_res, exec_res):
@@ -66,4 +83,6 @@ class Text2SPLNode(Node):
             spl = "\n".join(lines[1:end])
         shared["spl_query"] = spl.strip()
         shared["retry_count"] = prep_res["retry_count"] + 1
+        _log.info("Text2SPL done  spl_lines=%d  total_attempts=%d",
+                  len(spl.strip().splitlines()), shared["retry_count"])
         return "validate"

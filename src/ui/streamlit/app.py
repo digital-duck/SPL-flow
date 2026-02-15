@@ -1,7 +1,7 @@
-"""SPL-Flow — Home page.
+"""SPL-Flow — Home page (Streamlit UI).
 
 Run:
-    streamlit run src/app.py
+    streamlit run src/ui/streamlit/app.py
 """
 import sys
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")

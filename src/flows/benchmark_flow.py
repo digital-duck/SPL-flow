@@ -5,6 +5,9 @@ sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
 
 from pocketflow import Flow
 from src.nodes.benchmark import BenchmarkNode
+from src.utils.logging_config import get_logger
+
+_log = get_logger("flows.benchmark")
 
 
 def build_benchmark_flow() -> Flow:
@@ -58,5 +61,16 @@ def run_benchmark_flow(
         "error":            "",
     }
 
+    _log.info(
+        "benchmark_flow start  name=%s  models=%d  adapter=%s",
+        benchmark_name, len(models or ["auto"]), adapter,
+    )
     flow.run(shared)
+    if shared.get("error"):
+        _log.error("benchmark_flow error: %s", shared["error"])
+    else:
+        runs = shared.get("benchmark_result", {}).get("runs", [])
+        ok   = sum(1 for r in runs if not r.get("error"))
+        _log.info("benchmark_flow done  runs=%d  ok=%d  failed=%d",
+                  len(runs), ok, len(runs) - ok)
     return shared

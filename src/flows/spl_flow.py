@@ -4,6 +4,9 @@ from src.nodes.text2spl import Text2SPLNode
 from src.nodes.validate_spl import ValidateSPLNode
 from src.nodes.execute_spl import ExecuteSPLNode
 from src.nodes.deliver import SyncDeliverNode, AsyncDeliverNode
+from src.utils.logging_config import get_logger
+
+_log = get_logger("flows")
 
 
 def build_spl_flow() -> Flow:
@@ -102,7 +105,19 @@ def run_spl_flow(
         "error": "",
     }
 
+    _log.info(
+        "spl_flow start  adapter=%s  provider=%s  delivery=%s  cache=%s",
+        adapter, provider or "(best-of-breed)", delivery_mode, cache_enabled,
+    )
     flow.run(shared)
+    if shared.get("error"):
+        _log.error("spl_flow error: %s", shared["error"])
+    else:
+        _log.info(
+            "spl_flow done  spl_warnings=%d  result_chars=%d",
+            len(shared.get("spl_warnings", [])),
+            len(shared.get("primary_result", "")),
+        )
     return shared
 
 

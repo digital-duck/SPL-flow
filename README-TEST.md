@@ -562,7 +562,7 @@ EOF
 Start the app and verify each page manually:
 
 ```bash
-streamlit run src/app.py
+streamlit run src/ui/streamlit/app.py
 ```
 
 ### 8.1 Home page
@@ -727,6 +727,293 @@ EOF
 
 ---
 
+## Section 11 — BENCHMARK
+
+### 11.1 Unit test: parse_benchmark_block (inline SPL)
+
+```bash
+python - << 'EOF'
+import sys
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
+from src.nodes.benchmark import parse_benchmark_block
+
+text = """BENCHMARK my_test
+USING MODELS ['anthropic/claude-opus-4-6', "openai/gpt-4o", auto]
+PROMPT p SELECT GENERATE('hello') USING MODEL auto;"""
+
+b = parse_benchmark_block(text)
+assert b["name"] == "my_test", f"name: {b['name']}"
+assert b["models"] == ["anthropic/claude-opus-4-6", "openai/gpt-4o", "auto"], f"models: {b['models']}"
+assert b["call_file"] is None
+assert b["inline_spl"] is not None and "PROMPT" in b["inline_spl"]
+print("✓ parse_benchmark_block (inline) OK")
+print("  models:", b["models"])
+print("  inline_spl:", b["inline_spl"][:60])
+EOF
+```
+
+### 11.2 Unit test: parse_benchmark_block (CALL variant)
+
+```bash
+python - << 'EOF'
+import sys
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
+from src.nodes.benchmark import parse_benchmark_block
+
+text = """BENCHMARK summarize_test
+USING MODELS [auto]
+USING ADAPTER openrouter
+CALL summarize.spl(document=my_doc, lang=en)"""
+
+b = parse_benchmark_block(text)
+assert b["name"] == "summarize_test"
+assert b["adapter"] == "openrouter"
+assert b["call_file"] == "summarize.spl"
+assert b["call_args"] == {"document": "my_doc", "lang": "en"}, f"call_args: {b['call_args']}"
+assert b["inline_spl"] is None
+print("✓ parse_benchmark_block (CALL) OK")
+print("  call_file:", b["call_file"])
+print("  call_args:", b["call_args"])
+EOF
+```
+
+### 11.3 Unit test: patch_model
+
+```bash
+python - << 'EOF'
+import sys
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
+from src.nodes.benchmark import patch_model
+
+base_spl = """PROMPT p1 SELECT GENERATE('hi') USING MODEL 'old-model';
+PROMPT p2 SELECT GENERATE('bye') USING MODEL auto;"""
+
+# Replace with explicit model
+patched = patch_model(base_spl, "openai/gpt-4o")
+assert "openai/gpt-4o" in patched, "explicit model should appear"
+assert "old-model" not in patched, "old model should be gone"
+assert "auto" not in patched.split("USING MODEL")[1], "auto should be replaced"
+print("✓ patch_model (explicit) OK")
+
+# Replace with auto — stays unquoted
+patched_auto = patch_model(base_spl, "auto")
+assert "USING MODEL auto" in patched_auto, "auto should be unquoted"
+assert "old-model" not in patched_auto
+print("✓ patch_model (auto) OK")
+
+# Multi-CTE: all clauses replaced
+spl3 = "USING MODEL 'a';\nUSING MODEL 'b';\nUSING MODEL auto;"
+patched3 = patch_model(spl3, "new-model")
+assert patched3.count("new-model") == 3, f"expected 3 replacements, got: {patched3.count('new-model')}"
+print("✓ patch_model (multi-CTE) OK")
+EOF
+```
+
+### 11.4 API test: api.benchmark (single model)
+
+```bash
+python - << 'EOF'
+import sys
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
+from src import api
+
+spl = """PROMPT greeting
+SELECT
+    GENERATE('Say hello in exactly one word.')
+USING MODEL auto;"""
+
+result = api.benchmark(spl, models=["auto"], adapter="claude_cli")
+
+assert "runs" in result, f"No 'runs' key: {result}"
+assert len(result["runs"]) == 1, f"Expected 1 run, got {len(result['runs'])}"
+
+run = result["runs"][0]
+assert run["model_id"] == "auto"
+assert run["resolved_from"] == "auto"
+assert run["error"] == "", f"Run error: {run['error']}"
+assert run["response"] != "", "Response should not be empty"
+assert run["total_tokens"] > 0, "Should have token count"
+assert run["latency_ms"] > 0, "Should have latency"
+assert "input_spl" in run, "input_spl should be present"
+
+print("✓ api.benchmark (single model) OK")
+print(f"  model_id:       {run['model_id']}")
+print(f"  resolved_model: {run.get('resolved_model', '(none)')}")
+print(f"  response:       {run['response'][:60]}")
+print(f"  total_tokens:   {run['total_tokens']}")
+print(f"  latency_ms:     {run['latency_ms']:.0f}")
+EOF
+```
+
+### 11.5 API test: api.benchmark (multi-model parallel)
+
+```bash
+python - << 'EOF'
+import sys, time
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
+from src import api
+
+spl = """PROMPT test
+SELECT
+    GENERATE('Name one planet in our solar system.')
+USING MODEL auto;"""
+
+# Run single model to get baseline
+t0 = time.monotonic()
+single = api.benchmark(spl, models=["auto"], adapter="claude_cli")
+single_time = time.monotonic() - t0
+
+# Run two models in parallel
+t1 = time.monotonic()
+multi = api.benchmark(spl, models=["auto", "auto"], adapter="claude_cli")
+multi_time = time.monotonic() - t1
+
+assert len(multi["runs"]) == 2, f"Expected 2 runs, got {len(multi['runs'])}"
+for run in multi["runs"]:
+    assert run["error"] == "", f"Run error: {run['error']}"
+
+# Parallel should be significantly faster than 2x single
+# (allow 1.8x as generous threshold for CI variance)
+print(f"  single-model wall-clock: {single_time:.2f}s")
+print(f"  two-model  wall-clock:   {multi_time:.2f}s")
+if multi_time < single_time * 1.8:
+    print("✓ api.benchmark parallel timing OK (< 1.8× single)")
+else:
+    print(f"⚠ Parallel was slower than expected ({multi_time:.2f}s vs {single_time:.2f}s × 1.8)")
+    print("  (may be normal under load — not a hard failure)")
+EOF
+```
+
+### 11.6 API test: BenchmarkResult JSON schema
+
+```bash
+python - << 'EOF'
+import sys
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
+from src import api
+
+spl = "PROMPT t SELECT GENERATE('One word: yes or no?') USING MODEL auto;"
+result = api.benchmark(spl, models=["auto"], adapter="claude_cli")
+
+# Top-level schema
+for key in ("benchmark_name", "adapter", "timestamp", "spl_hash", "params", "winner", "runs"):
+    assert key in result, f"Missing key: {key}"
+
+# Run schema
+run = result["runs"][0]
+for key in ("model_id", "resolved_from", "input_spl", "response",
+            "input_tokens", "output_tokens", "total_tokens",
+            "latency_ms", "error", "prompt_results"):
+    assert key in run, f"Run missing key: {key}"
+
+assert isinstance(run["prompt_results"], list)
+assert len(run["prompt_results"]) >= 1
+
+pr = run["prompt_results"][0]
+for key in ("prompt_name", "model_id", "response", "input_tokens",
+            "output_tokens", "total_tokens", "latency_ms"):
+    assert key in pr, f"prompt_result missing key: {key}"
+
+print("✓ BenchmarkResult JSON schema OK")
+print(f"  benchmark_name: {result['benchmark_name']}")
+print(f"  spl_hash:       {result['spl_hash']}")
+print(f"  prompt_results: {len(run['prompt_results'])} CTE(s)")
+EOF
+```
+
+### 11.7 CLI test: benchmark command (summary output)
+
+```bash
+cat > /tmp/bench_test.spl << 'EOF'
+PROMPT greeting
+SELECT
+    GENERATE('Say hello in one word.')
+USING MODEL auto;
+EOF
+
+python -m src.cli benchmark /tmp/bench_test.spl --model auto --adapter claude_cli
+```
+
+Expected:
+- Header banner with adapter, models
+- Summary table showing model, tokens, latency, cost
+- Response text under a separator
+- No Python traceback
+
+### 11.8 CLI test: benchmark command (JSON output)
+
+```bash
+python -m src.cli benchmark /tmp/bench_test.spl \
+    --model auto \
+    --adapter claude_cli \
+    --json 2>/dev/null | python -m json.tool | head -30
+```
+
+Expected:
+- Valid JSON with `benchmark_name`, `adapter`, `timestamp`, `spl_hash`, `runs`
+- `runs[0]` has `model_id`, `response`, `total_tokens`, `latency_ms`, `input_spl`
+
+### 11.9 CLI test: multiple --model flags
+
+```bash
+python -m src.cli benchmark /tmp/bench_test.spl \
+    --model auto \
+    --model auto \
+    --adapter claude_cli \
+    --json 2>/dev/null | python -c "
+import sys, json
+d = json.load(sys.stdin)
+assert len(d['runs']) == 2, f\"Expected 2 runs, got {len(d['runs'])}\"
+print('✓ Two runs in JSON OK')
+"
+```
+
+### 11.10 Error handling: invalid SPL in benchmark
+
+```bash
+python - << 'EOF'
+import sys
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
+from src import api
+
+result = api.benchmark("THIS IS NOT VALID SPL", models=["auto"], adapter="claude_cli")
+assert "runs" in result
+run = result["runs"][0]
+assert run["error"] != "", "Should have error for invalid SPL"
+assert run["total_tokens"] == 0
+print(f"✓ Invalid SPL error handled: {run['error'][:80]}")
+EOF
+```
+
+### 11.11 Streamlit Benchmark page (manual)
+
+```bash
+streamlit run src/ui/streamlit/app.py
+```
+
+Navigate to **📊 Benchmark** (page 3):
+
+- [ ] Page loads without errors
+- [ ] Sidebar shows adapter, provider, params (same as Pipeline page)
+- [ ] Step 1: "Inline SPL" / "Load .spl file" toggle works
+- [ ] Step 2: Model multiselect pre-populated with `auto` and models from routing table
+- [ ] Custom model ID text input + **Add** button adds to selection
+- [ ] "Will run N model(s): `auto`" caption updates as selection changes
+- [ ] **Run Benchmark** button is disabled when SPL input is empty
+- [ ] Enter SPL, select 2 models, click **Run Benchmark** — spinner appears
+- [ ] Step 3 summary table shows one row per model with tokens, latency, cost, status
+- [ ] One tab per model — each shows response text + metric tiles
+- [ ] CTE breakdown expander visible for multi-CTE scripts
+- [ ] "Input SPL (patched for this model)" expander shows patched SPL
+- [ ] **Mark as winner** button marks a tab with 🏆 and shows success message
+- [ ] **Download full benchmark JSON** button downloads valid JSON file
+
+---
+
 ## Full Pass Checklist
 
 After completing all sections:
@@ -741,3 +1028,4 @@ After completing all sections:
 - [ ] Section 8: Streamlit UI (manual, 4 subsections)
 - [ ] Section 9: RAG auto-capture integration
 - [ ] Section 10: Edge cases (4 tests)
+- [ ] Section 11: BENCHMARK (11 tests + manual UI checklist)

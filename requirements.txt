@@ -4,6 +4,10 @@ click>=8.0
 httpx>=0.25
 chromadb>=0.4
 
+# Shared logging helpers — for local dev: pip install -e /home/papagame/projects/digital-duck/dd-logging
+# For production: pip install dd-logging
+dd-logging
+
 # SPL engine — for local dev use:  pip install -e /home/papagame/projects/digital-duck/SPL
 # For production: pip install spl-llm
 spl-llm

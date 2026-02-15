@@ -24,6 +24,7 @@ sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
 import click
 
 from src import api
+from src.utils.logging_config import setup_logging, disable_logging
 
 
 # ── Shared option decorators ───────────────────────────────────────────────────
@@ -108,6 +109,24 @@ def quiet_flag(f):
     )(f)
 
 
+def log_options(f):
+    """Attach --log/--no-log and --log-level options (mirrors the spl-llm CLI)."""
+    f = click.option(
+        "--log/--no-log",
+        default=True,
+        show_default=True,
+        help="Write a timestamped log file to logs/ (default: on).",
+    )(f)
+    f = click.option(
+        "--log-level",
+        default="info",
+        show_default=True,
+        type=click.Choice(["debug", "info", "warning", "error"], case_sensitive=False),
+        help="Log verbosity level.",
+    )(f)
+    return f
+
+
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def _parse_params(param_tuples: tuple) -> dict:
@@ -177,13 +196,14 @@ def cli():
 @click.argument("query", default="-")
 @context_file_option
 @quiet_flag
+@log_options
 @click.option(
     "--spl-output",
     type=click.Path(writable=True),
     default=None,
     help="Save generated SPL to this file.",
 )
-def generate(query: str, context_file, quiet: bool, spl_output):
+def generate(query: str, context_file, quiet: bool, log: bool, log_level: str, spl_output):
     """Translate QUERY to SPL (Text2SPL + Validate, no execution).
 
     QUERY can be a string or '-' to read from stdin.
@@ -194,6 +214,13 @@ def generate(query: str, context_file, quiet: bool, spl_output):
       echo "Summarize this doc" | spl-flow generate -
       spl-flow generate "Code review" --spl-output review.spl
     """
+    if log:
+        log_path = setup_logging("generate", log_level=log_level)
+        if not quiet:
+            click.echo(f"Logging to: {log_path}  (level={log_level})", err=True)
+    else:
+        disable_logging()
+
     if query == "-":
         query = click.get_text_stream("stdin").read().strip()
     if not query:
@@ -246,6 +273,7 @@ def generate(query: str, context_file, quiet: bool, spl_output):
 @output_option
 @json_flag
 @quiet_flag
+@log_options
 @click.option(
     "--async-mode", "async_mode",
     is_flag=True,
@@ -264,7 +292,7 @@ def generate(query: str, context_file, quiet: bool, spl_output):
     help="Also save the generated SPL to this file.",
 )
 def run(query, adapter, provider, param, context_file, cache, output, as_json,
-        quiet, async_mode, email, spl_output):
+        quiet, log, log_level, async_mode, email, spl_output):
     """Run the full SPL-Flow pipeline: NL → SPL → execute → result.
 
     QUERY can be a string or '-' to read from stdin.
@@ -276,6 +304,13 @@ def run(query, adapter, provider, param, context_file, cache, output, as_json,
       spl-flow run "Code review" --adapter ollama --param code="$(cat myfile.py)"
       echo "Translate to German" | spl-flow run - --adapter openrouter
     """
+    if log:
+        log_path = setup_logging("run", adapter=adapter, log_level=log_level)
+        if not quiet:
+            click.echo(f"Logging to: {log_path}  (level={log_level})", err=True)
+    else:
+        disable_logging()
+
     if query == "-":
         query = click.get_text_stream("stdin").read().strip()
     if not query:
@@ -348,7 +383,8 @@ def run(query, adapter, provider, param, context_file, cache, output, as_json,
 @output_option
 @json_flag
 @quiet_flag
-def exec_cmd(spl_file, adapter, provider, param, cache, output, as_json, quiet):
+@log_options
+def exec_cmd(spl_file, adapter, provider, param, cache, output, as_json, quiet, log, log_level):
     """Execute a pre-written SPL file directly (no Text2SPL step).
 
     Useful for batch testing: write your .spl file once, run it with
@@ -360,6 +396,13 @@ def exec_cmd(spl_file, adapter, provider, param, cache, output, as_json, quiet):
       spl-flow exec query.spl --adapter openrouter --json > result.json
       spl-flow exec query.spl --output result.md --quiet
     """
+    if log:
+        log_path = setup_logging("exec", adapter=adapter, log_level=log_level)
+        if not quiet:
+            click.echo(f"Logging to: {log_path}  (level={log_level})", err=True)
+    else:
+        disable_logging()
+
     with open(spl_file, encoding="utf-8") as f:
         spl_query = f.read().strip()
 
@@ -427,7 +470,9 @@ def exec_cmd(spl_file, adapter, provider, param, cache, output, as_json, quiet):
 @output_option
 @json_flag
 @quiet_flag
-def benchmark_cmd(spl_file, adapter, provider, models, param, cache, output, as_json, quiet):
+@log_options
+def benchmark_cmd(spl_file, adapter, provider, models, param, cache, output, as_json, quiet,
+                  log, log_level):
     """Benchmark a .spl file against multiple models in parallel.
 
     Runs the same SPL script once per MODEL, concurrently.  Each run
@@ -441,6 +486,13 @@ def benchmark_cmd(spl_file, adapter, provider, models, param, cache, output, as_
           --adapter openrouter --provider anthropic --json > results.json
       spl-flow benchmark query.spl --model auto --param doc="$(cat article.txt)"
     """
+    if log:
+        log_path = setup_logging("benchmark", adapter=adapter, log_level=log_level)
+        if not quiet:
+            click.echo(f"Logging to: {log_path}  (level={log_level})", err=True)
+    else:
+        disable_logging()
+
     with open(spl_file, encoding="utf-8") as f:
         spl_query = f.read().strip()
 

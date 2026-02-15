@@ -52,6 +52,9 @@ sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
 
 from src.flows.spl_flow import generate_spl_only, run_spl_flow
+from src.utils.logging_config import get_logger
+
+_log = get_logger("api")
 
 
 # ── RAG store singleton ────────────────────────────────────────────────────────
@@ -150,9 +153,18 @@ def generate(
     -------
     GenerateResult dict
     """
+    _log.info("api.generate  query_len=%d  context_len=%d  save_to_rag=%s",
+              len(query), len(context_text), save_to_rag)
     result = generate_spl_only(user_input=query, context_text=context_text)
     spl = result.get("spl_query", "")
     error = result.get("error", "")
+
+    if error:
+        _log.error("api.generate error: %s", error)
+    else:
+        _log.info("api.generate done  spl_lines=%d  retries=%d  warnings=%d",
+                  len(spl.splitlines()), result.get("retry_count", 0),
+                  len(result.get("spl_warnings", [])))
 
     if save_to_rag and spl and not error:
         _capture(
@@ -212,6 +224,10 @@ def run(
     if context_text:
         params.setdefault("document", context_text)
 
+    _log.info(
+        "api.run  adapter=%s  provider=%s  delivery=%s  cache=%s  query_len=%d",
+        adapter, provider or "(best-of-breed)", delivery_mode, cache_enabled, len(query),
+    )
     result = run_spl_flow(
         user_input=query,
         context_text=context_text,
@@ -225,6 +241,16 @@ def run(
 
     spl = result.get("spl_query", "")
     error = result.get("error", "")
+
+    if error:
+        _log.error("api.run error: %s", error)
+    else:
+        exec_results = result.get("execution_results", [])
+        total_tokens = sum(r.get("total_tokens", 0) for r in exec_results)
+        _log.info(
+            "api.run done  prompts=%d  total_tokens=%d  delivered=%s",
+            len(exec_results), total_tokens, result.get("delivered", False),
+        )
 
     if save_to_rag and spl and not error:
         _capture(
@@ -309,6 +335,11 @@ def benchmark(
     """
     from src.flows.benchmark_flow import run_benchmark_flow
 
+    _log.info(
+        "api.benchmark  models=%d  adapter=%s  provider=%s  cache=%s  spl_len=%d",
+        len(models or ["auto"]), adapter, provider or "(best-of-breed)",
+        cache_enabled, len(spl_query),
+    )
     result = run_benchmark_flow(
         spl_query=spl_query,
         benchmark_name=benchmark_name or _record_id(spl_query)[:8],
@@ -320,13 +351,18 @@ def benchmark(
     )
 
     if result.get("error"):
+        _log.error("api.benchmark error: %s", result["error"])
         return {"benchmark_name": benchmark_name, "runs": [], "error": result["error"]}
 
-    return result.get("benchmark_result", {
+    bench = result.get("benchmark_result", {})
+    runs  = bench.get("runs", [])
+    ok    = sum(1 for r in runs if not r.get("error"))
+    _log.info("api.benchmark done  runs=%d  ok=%d  failed=%d", len(runs), ok, len(runs) - ok)
+    return bench or {
         "benchmark_name": benchmark_name,
         "runs": [],
         "error": "Benchmark produced no result",
-    })
+    }
 
 
 def exec_spl(

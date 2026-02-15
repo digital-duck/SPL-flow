@@ -21,6 +21,9 @@ sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
 
 from pocketflow import Node
+from src.utils.logging_config import get_logger
+
+_log = get_logger("nodes.benchmark")
 
 
 # ── BENCHMARK block parser ────────────────────────────────────────────────────
@@ -316,6 +319,13 @@ class BenchmarkNode(Node):
         params  = prep_res["params"]
         cache   = prep_res["cache"]
 
+        _log.info(
+            "benchmark start  name=%s  models=%d  adapter=%s  provider=%s",
+            prep_res["benchmark_name"], len(models), adapter,
+            provider or "(best-of-breed)",
+        )
+        _log.info("benchmark models: %s", ", ".join(models))
+
         patches = [
             (
                 model_id,
@@ -324,6 +334,8 @@ class BenchmarkNode(Node):
             )
             for model_id in models
         ]
+
+        t_start = __import__("time").monotonic()
 
         async def run_all():
             tasks = [
@@ -334,13 +346,34 @@ class BenchmarkNode(Node):
 
         raw = asyncio.run(run_all())
 
+        wall_ms = (__import__("time").monotonic() - t_start) * 1000
+
         runs = []
         for (model_id, resolved_from, patched_spl), result in zip(patches, raw):
             if isinstance(result, Exception):
+                _log.error("[%s] run failed: %s", model_id, result)
                 runs.append(_error_run(model_id, resolved_from, patched_spl, str(result)))
             else:
-                runs.append(result)
+                run = result
+                if run.get("error"):
+                    _log.error("[%s] run error: %s", model_id, run["error"])
+                else:
+                    cost_str = (f"${run['cost_usd']:.5f}"
+                                if run.get("cost_usd") is not None else "—")
+                    _log.info(
+                        "[%s] ok  resolved=%s  tokens=%d  latency=%.0fms  cost=%s",
+                        model_id,
+                        run.get("resolved_model") or resolved_from,
+                        run.get("total_tokens", 0),
+                        run.get("latency_ms", 0),
+                        cost_str,
+                    )
+                runs.append(run)
 
+        _log.info(
+            "benchmark done  runs=%d  wall_clock=%.0fms",
+            len(runs), wall_ms,
+        )
         return {"runs": runs}
 
     def post(self, shared, prep_res, exec_res):

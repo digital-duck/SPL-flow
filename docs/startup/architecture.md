@@ -1,6 +1,6 @@
-# SPL-Flow Architecture Design
+# SPL-flow Architecture Design
 
-*February 2026 | SPL-Flow v0.1 MVP*
+*February 2026 | SPL-flow v0.1 MVP*
 
 ---
 
@@ -19,9 +19,9 @@ The SPL engine's internal pipeline (`parse → analyze → optimize → execute`
 | `Executor.execute` single PROMPT | No | Deterministic, one code path |
 | `cli._cmd_execute` loop | No | Simple iteration over plans |
 
-**Where PocketFlow adds real value — the SPL-Flow orchestration layer:**
+**Where PocketFlow adds real value — the SPL-flow orchestration layer:**
 
-| SPL-Flow Component | PocketFlow? | Why Yes |
+| SPL-flow Component | PocketFlow? | Why Yes |
 |-------------------|-------------|---------|
 | `text → SPL` translation | **Yes** | Needs retry on parse failure, error context |
 | `validate → retry → validate` loop | **Yes** | Natural conditional branching |
@@ -31,7 +31,7 @@ The SPL engine's internal pipeline (`parse → analyze → optimize → execute`
 
 ---
 
-## 2. SPL-Flow Architecture
+## 2. SPL-flow Architecture
 
 ### Pipeline Overview
 
@@ -40,31 +40,31 @@ User (Streamlit)
       │
       │ free-form text + optional context doc
       ▼
-┌─────────────────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────────────────┐
 │                    PocketFlow Orchestration                      │
 │                                                                  │
-│  Text2SPLNode ──► ValidateSPLNode ──► ExecuteSPLNode           │
+│  Text2SPLNode ──► ValidateSPLNode ──► ExecuteSPLNode             │
 │       ▲                │                    │                    │
 │       └── retry ───────┘ (up to 3x)         │                    │
 │                         └─ "execute"        ▼                    │
-│                                   ┌─────────────────┐           │
-│                                   │  delivery_mode  │           │
-│                                   └─────────────────┘           │
+│                                   ┌─────────────────┐            │
+│                                   │  delivery_mode  │            │
+│                                   └─────────────────┘            │
 │                                      │           │               │
 │                              "sync"  │           │ "async"       │
 │                                      ▼           ▼               │
 │                              SyncDeliver   AsyncDeliver          │
 │                              (show in app) (save + email)        │
-└─────────────────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────────────────┘
       │
       ▼
 SPL Engine (spl-llm package)
   Lexer → Parser → Analyzer → Optimizer → Executor
-                                              │
-                    ┌─────────────────────────┤
+                                               │
+                    ┌──────────────────────────┤
                     │ CTE sub-plans (parallel) │
                     │  asyncio.gather()        │
-                    └─────────────────────────┘
+                    └──────────────────────────┘
                               │
               ┌───────────────┴────────────────┐
               ▼               ▼                ▼
@@ -173,32 +173,32 @@ ValidateSPLNode: parse() succeeds → proceed
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
-│  SPL-Flow  ⚡ Declarative LLM Orchestration                    │
+│  SPL-flow  ⚡ Declarative LLM Orchestration                     │
 ├──────────┬─────────────────────────────────────────────────────┤
-│ SIDEBAR  │  MAIN CONTENT                                        │
-│          │                                                       │
+│ SIDEBAR  │  MAIN CONTENT                                       │
+│          │                                                     │
 │ Adapter: │  ┌── Step 1: Query ──────────────────────────────┐  │
 │ [▼ cli]  │  │  What do you want to generate?                │  │
 │          │  │  ┌─────────────────────────────────────────┐  │  │
 │ Mode:    │  │  │ [text area for user query]              │  │  │
 │ ● Sync   │  │  └─────────────────────────────────────────┘  │  │
 │ ○ Async  │  │  [Optional: paste reference document]         │  │
-│          │  │                  [🔄 Generate SPL]             │  │
+│          │  │                  [🔄 Generate SPL]            │  │
 │ Email:   │  └───────────────────────────────────────────────┘  │
-│ [input]  │                                                       │
+│ [input]  │                                                     │
 │          │  ┌── Step 2: SPL Preview ────────────────────────┐  │
-│ Context: │  │  -- Generated SPL --                           │  │
-│ [doc]    │  │  PROMPT water_kanji_table                      │  │
-│          │  │  WITH BUDGET 8000 tokens                       │  │
-│ ☐ Cache  │  │  ...                                           │  │
+│ Context: │  │  -- Generated SPL --                          │  │
+│ [doc]    │  │  PROMPT water_kanji_table                     │  │
+│          │  │  WITH BUDGET 8000 tokens                      │  │
+│ ☐ Cache  │  │  ...                                          │  │
 │          │  │  [Edit SPL]  [📊 EXPLAIN Plan]  [▶ Execute]   │  │
 │ [Params] │  └───────────────────────────────────────────────┘  │
-│          │                                                       │
+│          │                                                     │
 │          │  ┌── Step 3: Result ─────────────────────────────┐  │
-│          │  │  [Markdown result rendered here]               │  │
-│          │  │  Model: qwen2.5+mistral+claude | $0.014        │  │
-│          │  │  [📥 Download] [🔁 Re-run] [✏️ Edit query]   │  │
-│          │  └───────────────────────────────────────────────┘  │
+│          │  │  [Markdown result rendered here]              │  │
+│          │  │  Model: qwen2.5+mistral+claude | $0.014       │  │
+│          │  │  [📥 Download] [🔁 Re-run] [✏️ Edit query]    │  │
+│          │  └───────────────────────────────────────────── ─┘  │
 └──────────┴─────────────────────────────────────────────────────┘
 ```
 
@@ -236,7 +236,7 @@ For v0.4 Platform Alpha:
 ## 7. Files
 
 ```
-SPL-Flow/
+SPL-flow/
 ├── requirements.txt
 ├── README.md
 ├── docs/
@@ -245,26 +245,50 @@ SPL-Flow/
 │       ├── architecture.md        (this file)
 │       └── claude-chat-20260214.md
 ├── src/
-│   ├── app.py                     (Streamlit entrypoint)
+│   ├── api.py                     (★ public API — first-class interface)
+│   ├── cli.py                     (Click CLI: generate / run / exec / benchmark)
 │   ├── flows/
 │   │   ├── __init__.py
-│   │   └── spl_flow.py            (PocketFlow graph assembly)
+│   │   ├── spl_flow.py            (PocketFlow graph assembly)
+│   │   └── benchmark_flow.py      (single-node benchmark flow)
 │   ├── nodes/
 │   │   ├── __init__.py
 │   │   ├── text2spl.py            (LLM translation node)
 │   │   ├── validate_spl.py        (parse/validate + retry)
-│   │   ├── execute_spl.py         (SPL engine execution)
-│   │   └── deliver.py             (sync/async delivery)
+│   │   ├── execute_spl.py         (SPL engine execution + auto routing)
+│   │   ├── deliver.py             (sync/async delivery)
+│   │   └── benchmark.py           (BenchmarkNode + patch_model + _run_one)
+│   ├── ui/
+│   │   └── streamlit/             (Streamlit UI — MVP / POC layer)
+│   │       ├── __init__.py
+│   │       ├── app.py             (Home page)
+│   │       └── pages/
+│   │           ├── 1_Pipeline.py  (three-step pipeline page)
+│   │           ├── 2_RAG_Store.py (RAG curation page)
+│   │           └── 3_Benchmark.py (multi-model benchmark page)
+│   ├── rag/
+│   │   ├── store.py               (RAGRecord + VectorStore ABC)
+│   │   ├── chroma_store.py        (ChromaDB backend)
+│   │   ├── faiss_store.py         (FAISS backend)
+│   │   └── factory.py             (get_store() factory)
 │   └── utils/
 │       ├── __init__.py
+│       ├── model_router.py        (ROUTING_TABLE + detect_task + auto_route)
+│       ├── page_helpers.py        (shared sidebar, session state, RAG cache)
 │       └── spl_templates.py       (few-shot examples + prompts)
 └── tests/
-    └── test_flows.py              (unit tests for each node)
+    └── test_flows.py              (unit tests — planned)
 ```
+
+**UI layer strategy:**
+`src/ui/streamlit/` is the MVP UI layer — great for rapid prototyping and internal tooling.
+For the SPL-flow platform (v1.0+), a production JS framework (Vue.js or React) will be added
+as a peer directory: `src/ui/vue/` or `src/ui/react/`. The API (`src/api.py`) and CLI
+(`src/cli.py`) are the stable interfaces that any UI layer consumes — they are UI-agnostic.
 
 ---
 
-## 8. Three Core Innovations — Intellectual Property of Digital-Duck LLC
+## 8. Four Core Innovations — Intellectual Property of Digital-Duck LLC
 
 *Documented: February 14, 2026 | human×AI collaboration session*
 
@@ -322,10 +346,10 @@ SPL Script (explicit MoM routing — declarative, auditable, editable)
      ▼
 ┌────────────────────────────────────────┐
 │  MoM Execution (parallel CTE dispatch) │
-│  ┌──────────┐ ┌─────────┐ ┌─────────┐ │
-│  │ qwen2.5  │ │ mistral │ │ llama3.1│ │  ← specialists
-│  │ (CJK)   │ │ (EU)    │ │ (facts) │ │
-│  └──────────┘ └─────────┘ └─────────┘ │
+│  ┌──────────┐ ┌─────────┐ ┌─────────┐  │
+│  │ qwen2.5  │ │ mistral │ │ llama3.1│  │  ← specialists
+│  │ (CJK)    │ │ (EU)    │ │ (facts) │  │
+│  └──────────┘ └─────────┘ └─────────┘  │
 └────────────────────────────────────────┘
      │
      ▼
@@ -391,7 +415,7 @@ This late-binding design has two practical consequences:
 **Implementation design:**
 
 ```
-src/utils/model_router.py  (SPL-Flow layer — currently implemented)
+src/utils/model_router.py  (SPL-flow layer — currently implemented)
   └── detect_task(system_role, instruction) → task_type
         ├── CJK: Unicode chars + keyword match
         ├── code: function/class/debug/review keywords
@@ -416,32 +440,109 @@ Future: spl/config/model_registry.yaml  (planned — currently in ROUTING_TABLE 
         └── Constraints: cost_per_token, avg_latency_ms, context_window
 ```
 
-**Registry format (`spl/config/model_registry.yaml`):**
+**Registry format (`src/utils/model_router.py` — `ROUTING_TABLE` dict, as implemented):**
 
-```yaml
-# Updated from HuggingFace Leaderboard + LMSYS Arena Elo
-# Last updated: 2026-02-14
-routing:
-  cjk:
-    openrouter: ["qwen/qwen-2.5-72b-instruct", "qwen/qwen-2.5-7b-instruct"]
-    ollama:     ["qwen2.5", "qwen2.5:3b"]
-    default:    "anthropic/claude-sonnet-4-5"
-  code:
-    openrouter: ["deepseek/deepseek-coder-v2", "qwen/qwen-2.5-coder-32b"]
-    ollama:     ["qwen2.5-coder", "deepseek-coder-v2"]
-    default:    "anthropic/claude-sonnet-4-5"
-  eu_language:
-    openrouter: ["mistralai/mistral-large", "mistralai/mistral-7b-instruct"]
-    ollama:     ["mistral", "mistral-nemo"]
-    default:    "anthropic/claude-sonnet-4-5"
-  reasoning:
-    openrouter: ["anthropic/claude-sonnet-4-5", "deepseek/deepseek-r1"]
-    ollama:     ["deepseek-r1", "qwen3"]
-    default:    "anthropic/claude-sonnet-4-5"
-  general:
-    openrouter: ["anthropic/claude-sonnet-4-5", "google/gemini-2.0-flash"]
-    ollama:     ["qwen2.5", "llama3.1"]
-    default:    "anthropic/claude-sonnet-4-5"
+The table has three orthogonal key dimensions per task:
+- **7 provider keys** (`anthropic`, `google`, `meta`, `mistral`, `alibaba`, `deepseek`, `openai`) — used when `adapter == "openrouter"` and a provider preference is set
+- **3 adapter keys** (`openrouter`, `ollama`, `claude_cli`) — used when no provider preference is set (best-of-breed for that adapter)
+
+```python
+ROUTING_TABLE = {
+  # task      provider/adapter  → single concrete model name
+  "cjk": {
+    "anthropic":  "anthropic/claude-sonnet-4-5-20250929",
+    "google":     "google/gemini-2.0-flash-001",
+    "meta":       "meta-llama/llama-3.1-70b-instruct",
+    "mistral":    "mistralai/mistral-large-2411",
+    "alibaba":    "qwen/qwen-2.5-72b-instruct",        # best-of-breed for CJK
+    "deepseek":   "deepseek/deepseek-v3",
+    "openai":     "openai/gpt-4o",
+    "openrouter": "qwen/qwen-2.5-72b-instruct",        # adapter-level best (no provider)
+    "ollama":     "qwen2.5",
+    "claude_cli": "claude-sonnet-4-5",
+  },
+  "code": {
+    "anthropic":  "anthropic/claude-sonnet-4-5-20250929",
+    "google":     "google/gemini-2.0-flash-001",
+    "meta":       "meta-llama/llama-3.1-70b-instruct",
+    "mistral":    "mistralai/codestral-2501",
+    "alibaba":    "qwen/qwen-2.5-coder-32b-instruct",
+    "deepseek":   "deepseek/deepseek-coder-v2",        # best-of-breed for code
+    "openai":     "openai/gpt-4o",
+    "openrouter": "deepseek/deepseek-coder-v2",
+    "ollama":     "deepseek-coder",
+    "claude_cli": "claude-sonnet-4-5",
+  },
+  "eu_lang": {                                         # German / French / Spanish …
+    "anthropic":  "anthropic/claude-sonnet-4-5-20250929",
+    "google":     "google/gemini-2.0-flash-001",
+    "meta":       "meta-llama/llama-3.1-70b-instruct",
+    "mistral":    "mistralai/mistral-large-2411",      # best-of-breed for EU
+    "alibaba":    "qwen/qwen-2.5-72b-instruct",
+    "deepseek":   "deepseek/deepseek-v3",
+    "openai":     "openai/gpt-4o",
+    "openrouter": "mistralai/mistral-large-2411",
+    "ollama":     "mistral",
+    "claude_cli": "claude-sonnet-4-5",
+  },
+  "math": {                                            # proofs / equations / AIME
+    "anthropic":  "anthropic/claude-sonnet-4-5-20250929",
+    "google":     "google/gemini-2.0-flash-thinking-exp",
+    "meta":       "meta-llama/llama-3.1-70b-instruct",
+    "mistral":    "mistralai/mistral-large-2411",
+    "alibaba":    "qwen/qwen-2.5-72b-instruct",
+    "deepseek":   "deepseek/deepseek-r1",              # best-of-breed for math
+    "openai":     "openai/o3-mini",
+    "openrouter": "deepseek/deepseek-r1",
+    "ollama":     "deepseek-r1",
+    "claude_cli": "claude-sonnet-4-5",
+  },
+  "reasoning": {                                       # analysis / multi-step Q&A
+    "anthropic":  "anthropic/claude-opus-4-6",         # best Anthropic for reasoning
+    "google":     "google/gemini-2.0-pro-exp",
+    "meta":       "meta-llama/llama-3.3-70b-instruct",
+    "mistral":    "mistralai/mistral-large-2411",
+    "alibaba":    "qwen/qwen-2.5-72b-instruct",
+    "deepseek":   "deepseek/deepseek-r1",
+    "openai":     "openai/o1",
+    "openrouter": "anthropic/claude-opus-4-6",
+    "ollama":     "llama3.2",
+    "claude_cli": "claude-opus-4-6",
+  },
+  "synthesis": {                                       # final PROMPT / composition
+    "anthropic":  "anthropic/claude-opus-4-6",
+    "google":     "google/gemini-1.5-pro",
+    "meta":       "meta-llama/llama-3.3-70b-instruct",
+    "mistral":    "mistralai/mistral-large-2411",
+    "alibaba":    "qwen/qwen-2.5-72b-instruct",
+    "deepseek":   "deepseek/deepseek-v3",
+    "openai":     "openai/gpt-4o",
+    "openrouter": "anthropic/claude-opus-4-6",
+    "ollama":     "llama3.2",
+    "claude_cli": "claude-opus-4-6",
+  },
+  "general": {                                         # fallback
+    "anthropic":  "anthropic/claude-sonnet-4-5-20250929",
+    "google":     "google/gemini-2.0-flash-001",
+    "meta":       "meta-llama/llama-3.3-70b-instruct",
+    "mistral":    "mistralai/mistral-large-2411",
+    "alibaba":    "qwen/qwen-2.5-72b-instruct",
+    "deepseek":   "deepseek/deepseek-v3",
+    "openai":     "openai/gpt-4o",
+    "openrouter": "anthropic/claude-sonnet-4-5-20250929",
+    "ollama":     "llama3.2",
+    "claude_cli": "claude-sonnet-4-5",
+  },
+}
+
+PROVIDERS = ["anthropic", "google", "meta", "mistral", "alibaba", "deepseek", "openai"]
+```
+
+Resolution priority (implemented in `resolve_model(adapter, task, provider="")`):
+```
+1. provider set + openrouter adapter  → ROUTING_TABLE[task][provider]
+2. provider set + other adapter       → ROUTING_TABLE[task][adapter]  (provider ignored)
+3. no provider + any adapter          → ROUTING_TABLE[task][adapter]
 ```
 
 **Why this matters:**
@@ -473,7 +574,7 @@ Zero cloud dependency for the translation step.
 - Demonstrates LFM utility beyond chat — specialized translation task
 - On-device NL→structured-query is a massive market (NL→SQL has $1B+ tooling market)
 - NL→SPL is a new category: NL→LLM-orchestration-script
-- Ramin Hasani connection: reach out once SPL-Flow MVP is solid
+- Ramin Hasani connection: reach out once SPL-flow MVP is solid
 
 **Training data strategy:**
 
@@ -532,7 +633,7 @@ Composed result: table + audio pronunciation + visual mnemonic
 
 **Why this makes ZiNets Chinese Learning Platform unique and unreplicable:**
 - Every competitor uses one model for everything
-- SPL-Flow routes each sub-task to the world's best specialist model
+- SPL-flow routes each sub-task to the world's best specialist model
 - The orchestration is invisible to the learner — they see one beautiful result
 - As better models appear, the YAML registry updates — the platform gets smarter automatically
 - Text2SPL LFM makes this accessible to non-engineers via plain English
@@ -680,14 +781,32 @@ This enables three comparison questions in one benchmark run:
 **API / CLI:**
 ```bash
 # Run a .spl file as a benchmark — same script, N models in parallel
-python -m src.cli exec summarize.spl \
-    --benchmark "anthropic/claude-opus-4-6,openai/gpt-4o,deepseek/deepseek-r1,auto" \
+python -m src.cli benchmark summarize.spl \
+    --model "anthropic/claude-opus-4-6" \
+    --model "openai/gpt-4o" \
+    --model "deepseek/deepseek-r1" \
+    --model auto \
     --adapter openrouter \
     --param document="$(cat article.txt)" \
     --json > benchmark_results.json
 
-# --benchmark flag is equivalent to wrapping the SPL in a BENCHMARK block with
-# USING MODELS [...] — no SPL edit required, any existing .spl becomes benchmarkable
+# --model is repeatable; defaults to ["auto"] if omitted
+# any existing .spl file is instantly benchmarkable — no edits to the script itself
+```
+
+**Python API:**
+```python
+from src import api
+
+result = api.benchmark(
+    spl_query,
+    models=["anthropic/claude-opus-4-6", "openai/gpt-4o", "auto"],
+    adapter="openrouter",
+    provider="",          # "" = best-of-breed; "anthropic" = pin to Anthropic
+    spl_params={"document": article_text},
+)
+# result["runs"] — list of run dicts, one per model
+# result["runs"][i]["input_spl"] — patched SPL sent to that model (reproducible)
 ```
 
 **Output format — JSON (machine-readable, fully reproducible):**
@@ -901,7 +1020,7 @@ No other declarative LLM platform today enables:
 2. Compare outputs side-by-side on the actual task
 3. Mark the winner → automatically influences future `USING MODEL auto` routing
 
-This makes the SPL-Flow Model Zoo self-improving: the global leaderboard-based routing table
+This makes the SPL-flow Model Zoo self-improving: the global leaderboard-based routing table
 is the prior; BENCHMARK results from real usage are the updates. Over time, the platform
 accumulates **domain-specific, user-validated routing intelligence** that no competitor can
 replicate without the same usage data.
@@ -937,13 +1056,13 @@ Better outputs → more usage → more benchmarks → tighter preferences
 |------------|-------|-------------------|----------|
 | **MoM — Mixture-of-Models** | Conceptual paradigm | SPL engine (proven Feb 14 2026) | Now — document in arXiv |
 | **`USING MODEL auto`** | Implementation excellence | HuggingFace Leaderboard + LMSYS Arena | Next sprint |
-| **Text2SPL LFM fine-tune** | Research + product | Liquid AI (LFM 1.3B) | After SPL-Flow MVP |
+| **Text2SPL LFM fine-tune** | Research + product | Liquid AI (LFM 1.3B) | After SPL-flow MVP |
 | **`BENCHMARK` keyword** | Platform moat | Model Zoo + RAG store + routing flywheel | v0.2–v0.3 |
 
 **Strategic note — Liquid AI relationship:**
 
 - **Ramin Hasani (CEO)**: Former colleague — warm relationship, not a cold pitch.
-  He left to co-found Liquid AI; maintain the connection and approach when SPL-Flow MVP is solid.
+  He left to co-found Liquid AI; maintain the connection and approach when SPL-flow MVP is solid.
 - **Alexander Amini (Chief Scientist)**: Met at MIT Sloan Tech Summit, Feb 2026.
   Second entry point — technical co-founder, can champion internally.
 
@@ -954,11 +1073,11 @@ Better outputs → more usage → more benchmarks → tighter preferences
 | ZiNets Chinese Learning App | On-device pronunciation + conversational tutoring (LFM audio/vision) | Consumer EdTech |
 | Text2SPL Translator | LFM 1.3B fine-tuned for NL→SPL structured translation | B2B Developer Tooling |
 
-Together: **LFM as the edge inference layer for the entire SPL-Flow platform** —
+Together: **LFM as the edge inference layer for the entire SPL-flow platform** —
 translation at the front (Text2SPL), tutoring at the consumer surface (ZiNets).
 Both demonstrate LFM beyond chat: specialized, structured, on-device, privacy-first.
 
-Timing: reach out after SPL-Flow MVP demonstrates the Chinese Learning use case end-to-end
+Timing: reach out after SPL-flow MVP demonstrates the Chinese Learning use case end-to-end
 with multi-modal output (table + audio + image). That is the demo that makes the pitch
 self-evident.
 
@@ -966,5 +1085,5 @@ self-evident.
 
 *© 2026 Digital-Duck LLC — All rights reserved*
 *Author: Wen Gong | human×AI collaboration (Claude Sonnet 4.5)*
-*SPL-Flow — The declarative orchestration platform for the LLM economy*
+*SPL-flow — The declarative orchestration platform for the LLM economy*
 *"Not just a tool — a new inference paradigm."*

@@ -10,7 +10,7 @@ SPL-Flow is a Streamlit-based MVP that translates free-form natural language que
 
 ### Run the Streamlit UI
 ```bash
-streamlit run src/app.py
+streamlit run src/ui/streamlit/app.py
 ```
 
 ### CLI usage
@@ -48,7 +48,7 @@ pip install -e /home/papagame/projects/digital-duck/SPL
 ## Architecture
 
 ### sys.path Dependency
-`app.py`, `cli.py`, and some nodes insert hardcoded paths at startup:
+`src/ui/streamlit/app.py`, `cli.py`, and some nodes insert hardcoded paths at startup:
 ```python
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")

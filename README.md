@@ -61,6 +61,30 @@ api.run(query, adapter="openrouter", provider="anthropic")
 
 Provider preference only takes effect with `openrouter` (which can reach all providers). With `claude_cli` or `ollama`, the adapter-level best is used regardless.
 
+### BENCHMARK — Model Evaluation Loop
+Write one SPL script and run it against N models **in parallel**. Every model receives an identical patched copy with its `USING MODEL` clause replaced. Wall-clock time ≈ slowest single model, not N × one model.
+
+```
+BENCHMARK compare_models
+USING MODELS ['anthropic/claude-opus-4-6', 'openai/gpt-4o', auto]
+PROMPT analysis
+SELECT
+    system_role('You are an expert analyst.'),
+    GENERATE('Explain the CAP theorem in 3 bullet points.')
+USING MODEL auto;
+```
+
+Or use `CALL` to reference an existing `.spl` file and keep the BENCHMARK block minimal:
+
+```
+BENCHMARK summarize_test
+USING MODELS ['anthropic/claude-opus-4-6', 'openai/gpt-4o', auto]
+USING ADAPTER openrouter
+CALL summarize.spl(document=context.document)
+```
+
+Results include per-model: response, token counts, latency, cost, and a `prompt_results[]` breakdown for multi-CTE scripts. `auto` is a valid entry — the router resolves it at execution time, letting you validate your explicit choices against the router's recommendation.
+
 ### Multi-Page Streamlit UI
 The app now uses Streamlit's `pages/` multi-page pattern:
 
@@ -69,6 +93,7 @@ The app now uses Streamlit's `pages/` multi-page pattern:
 | `app.py` (Home) | Architecture overview, RAG stats, recent captures |
 | `1_Pipeline.py` | Three-step pipeline: generate → review → execute |
 | `2_RAG_Store.py` | Review, curate, and manage the RAG context store |
+| `3_Benchmark.py` | Run one SPL script against N models in parallel; compare responses, tokens, latency, cost; mark winner |
 
 ---
 
@@ -136,7 +161,7 @@ pip install -e /home/papagame/projects/digital-duck/SPL
 ### 2. Run the Streamlit UI
 
 ```bash
-streamlit run src/app.py
+streamlit run src/ui/streamlit/app.py
 ```
 
 ### 3. Use the CLI
@@ -165,6 +190,14 @@ python -m src.cli run "Explain X" --quiet --output answer.md
 
 # Pipe from stdin
 echo "Summarize the top 3 points" | python -m src.cli run -
+
+# Benchmark one SPL script against multiple models in parallel
+python -m src.cli benchmark query.spl \
+    --model "anthropic/claude-opus-4-6" \
+    --model "openai/gpt-4o" \
+    --model auto \
+    --adapter openrouter \
+    --json > results.json
 ```
 
 ---
@@ -261,18 +294,23 @@ SPL-Flow/
 │   └── rag/
 ├── src/
 │   ├── api.py                 # ★ Public API (first-class interface)
-│   ├── app.py                 # Streamlit Home page
-│   ├── cli.py                 # Click CLI (generate / run / exec)
+│   ├── cli.py                 # Click CLI (generate / run / exec / benchmark)
 │   ├── flows/
-│   │   └── spl_flow.py        # PocketFlow graph builder
+│   │   ├── spl_flow.py        # PocketFlow graph builder
+│   │   └── benchmark_flow.py  # Single-node benchmark flow
 │   ├── nodes/
 │   │   ├── text2spl.py        # NL → SPL (+ RAG few-shot retrieval)
 │   │   ├── validate_spl.py    # Parse + semantic validation
 │   │   ├── execute_spl.py     # SPL engine execution + model auto-routing
-│   │   └── deliver.py         # Sync + Async delivery
-│   ├── pages/
-│   │   ├── 1_Pipeline.py      # Three-step pipeline page
-│   │   └── 2_RAG_Store.py     # RAG context store curation page
+│   │   ├── deliver.py         # Sync + Async delivery
+│   │   └── benchmark.py       # BENCHMARK node + patch_model + _run_one
+│   ├── ui/
+│   │   └── streamlit/         # Streamlit UI (MVP / POC layer)
+│   │       ├── app.py         # Home page
+│   │       └── pages/
+│   │           ├── 1_Pipeline.py   # Three-step pipeline page
+│   │           ├── 2_RAG_Store.py  # RAG context store curation page
+│   │           └── 3_Benchmark.py  # Multi-model benchmark page
 │   ├── rag/
 │   │   ├── store.py           # RAGRecord dataclass + VectorStore ABC
 │   │   ├── chroma_store.py    # ChromaDB backend (default)
@@ -281,7 +319,7 @@ SPL-Flow/
 │   └── utils/
 │       ├── model_router.py    # ROUTING_TABLE + detect_task + auto_route
 │       ├── page_helpers.py    # Shared sidebar, session state, RAG cache
-│       └── spl_templates.py  # Text2SPL few-shot prompt builder
+│       └── spl_templates.py   # Text2SPL few-shot prompt builder
 └── tests/                     # (planned — see README-TEST.md)
 ```
 
@@ -345,6 +383,40 @@ Each `execution_results` entry:
 }
 ```
 
+### `api.benchmark(spl_query, *, models, adapter, provider, spl_params, cache_enabled) → BenchmarkResult`
+
+Run one SPL script against each model in `models` in parallel. All N copies execute concurrently.
+
+```python
+{
+    "benchmark_name": str,
+    "adapter":        str,
+    "timestamp":      str,        # ISO 8601 UTC
+    "spl_hash":       str,        # sha256[:32] of spl_query
+    "params":         dict,
+    "winner":         str | None, # set after human review
+    "runs": [
+        {
+            "model_id":       str,
+            "resolved_from":  "explicit" | "auto",
+            "resolved_model": str | None,   # concrete model when auto
+            "input_spl":      str,          # patched SPL actually sent
+            "response":       str,          # final PROMPT output
+            "input_tokens":   int,
+            "output_tokens":  int,
+            "total_tokens":   int,
+            "latency_ms":     float,
+            "cost_usd":       float | None,
+            "prompt_results": list[dict],   # per-CTE breakdown
+            "error":          str,
+        },
+        ...
+    ],
+}
+```
+
+`input_spl` makes every run independently reproducible: `api.exec_spl(run["input_spl"])` replays any single run exactly.
+
 ---
 
 ## Delivery Modes
@@ -374,8 +446,8 @@ SPL-Flow is modeled after **Data Copilot** (a RAG app for data professionals), g
 
 | Version | Focus |
 |---------|-------|
-| **v0.1 MVP** | API-first, Text2SPL+RAG, MoM routing, multi-page UI (current) |
-| **v0.2** | SMTP email delivery, result history, OpenRouter cost tracking |
-| **v0.3** | Multi-turn conversation, SPL template library, user accounts |
+| **v0.1 MVP** | API-first, Text2SPL+RAG, MoM routing, BENCHMARK, multi-page UI (current) |
+| **v0.2** | SMTP email delivery, routing-store winner persistence, OpenRouter cost tracking |
+| **v0.3** | Multi-turn conversation, SPL template library, `USING PARAMS` grid search |
 | **v0.4** | Team workspaces, scheduled jobs, API gateway, digital twin profiles |
 | **Platform** | Per-user RAG collections, fine-tuned Text2SPL, SPL marketplace |

@@ -1,6 +1,9 @@
 """Deliver Node: sync and async result delivery."""
 import time
 from pocketflow import Node
+from src.utils.logging_config import get_logger
+
+_log = get_logger("nodes.deliver")
 
 
 class SyncDeliverNode(Node):
@@ -22,6 +25,11 @@ class SyncDeliverNode(Node):
     def post(self, shared, prep_res, exec_res):
         shared["delivered"] = True
         shared["delivery_time"] = time.time()
+        if shared.get("error"):
+            _log.error("pipeline terminated with error: %s", shared["error"])
+        else:
+            result_len = len(shared.get("primary_result", ""))
+            _log.info("sync deliver done  result_chars=%d", result_len)
         return "done"
 
 
@@ -66,4 +74,9 @@ class AsyncDeliverNode(Node):
         shared["output_file"] = exec_res["filename"]
         shared["email_sent"] = exec_res["email_sent"]
         shared["delivered"] = True
+        _log.info("async deliver done  file=%s  email_sent=%s",
+                  exec_res["filename"], exec_res["email_sent"])
+        if exec_res["email"] and not exec_res["email_sent"]:
+            _log.warning("email requested (%s) but SMTP not configured (v0.2)",
+                         exec_res["email"])
         return "done"
