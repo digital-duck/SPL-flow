@@ -16,6 +16,7 @@ Usage:
 """
 import sys
 import json
+import re
 import time
 
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
@@ -200,6 +201,60 @@ def _print_metrics(results: list, quiet: bool) -> None:
         click.echo(f"  sub-prompts: {len(results) - 1} CTE(s) executed", err=True)
 
 
+def _patch_model(spl: str, model_id: str) -> str:
+    """Replace every USING MODEL '...' / USING MODEL auto with *model_id*."""
+    if model_id.lower() == "auto":
+        replacement = "USING MODEL auto"
+    else:
+        replacement = f"USING MODEL '{model_id}'"
+    return re.sub(
+        r"USING\s+MODEL\s+(?:'[^']*'|\"[^\"]*\"|auto)",
+        replacement,
+        spl,
+        flags=re.IGNORECASE,
+    )
+
+
+def _analyze_runs(runs: list[dict]) -> dict:
+    """Return {metric: (model_id, value)} for successful runs only.
+
+    Metrics:
+        latency  — lowest latency_ms          (always available)
+        tokens   — lowest total_tokens        (always available)
+        cost     — lowest cost_usd            (only when not null)
+        value    — best tokens-per-dollar     (only when cost > 0)
+    """
+    valid = [r for r in runs if not r.get("error") and r.get("total_tokens", 0) > 0]
+    if not valid:
+        return {}
+
+    results: dict[str, tuple[str, float]] = {}
+
+    best_latency = min(valid, key=lambda r: r.get("latency_ms", float("inf")))
+    results["latency"] = (best_latency["model_id"], best_latency["latency_ms"] / 1000)
+
+    best_tokens = min(valid, key=lambda r: r.get("total_tokens", float("inf")))
+    results["tokens"] = (best_tokens["model_id"], float(best_tokens["total_tokens"]))
+
+    costed = [r for r in valid if r.get("cost_usd") is not None]
+    if costed:
+        best_cost = min(costed, key=lambda r: r["cost_usd"])
+        results["cost"] = (best_cost["model_id"], best_cost["cost_usd"])
+
+        positive_cost = [r for r in costed if r["cost_usd"] > 0]
+        if positive_cost:
+            best_value = max(
+                positive_cost,
+                key=lambda r: r["total_tokens"] / r["cost_usd"],
+            )
+            results["value"] = (
+                best_value["model_id"],
+                best_value["total_tokens"] / best_value["cost_usd"],
+            )
+
+    return results
+
+
 def _save_output(path: str | None, content: str) -> None:
     if path:
         with open(path, "w", encoding="utf-8") as f:
@@ -219,6 +274,9 @@ def cli():
       generate   Translate a query to SPL (no LLM execution)
       run        Full pipeline: NL → SPL → execute → result
       exec       Execute a pre-written .spl file directly
+      benchmark  Run a .spl file against multiple models in parallel
+      winner     Analyse a benchmark result and pick the best model
+      models     Search available OpenRouter models by keyword
     """
 
 
@@ -597,6 +655,279 @@ def benchmark_cmd(spl_file, adapter, provider, models, params, cache, output, qu
                 for r in runs
             )
             _save_output(output, primary)
+
+
+# ── winner ─────────────────────────────────────────────────────────────────────
+
+_METRIC_LABELS = {
+    "latency": ("Fastest",          lambda v: f"{v:.2f}s"),
+    "tokens":  ("Most token-efficient", lambda v: f"{int(v):,} tokens"),
+    "cost":    ("Cheapest",         lambda v: f"${v:.5f}"),
+    "value":   ("Best value",       lambda v: f"{v:,.0f} tok/$"),
+}
+
+
+@cli.command("winner")
+@click.argument("benchmark_json", type=click.Path(exists=True, readable=True))
+@click.option(
+    "--by", "metric",
+    type=click.Choice(["latency", "cost", "tokens", "value", "all"], case_sensitive=False),
+    default="all", show_default=True,
+    help=(
+        "Metric to optimise: latency (fastest), cost (cheapest), "
+        "tokens (most efficient), value (tokens per dollar), all (summary table)."
+    ),
+)
+@click.option(
+    "--mark", "mark_model",
+    default=None, metavar="MODEL_ID",
+    help="Record MODEL_ID as the human-chosen winner in the benchmark JSON (updates 'winner' field in-place).",
+)
+@click.option(
+    "--patch", "patch_file",
+    type=click.Path(readable=True), default=None,
+    help="SPL file to patch: replaces every USING MODEL clause with the winning model.",
+)
+@click.option(
+    "--out", "out_file",
+    type=click.Path(writable=True), default=None,
+    help="Write patched SPL here. Defaults to stdout when --patch is given.",
+)
+@quiet_flag
+def winner_cmd(
+    benchmark_json: str,
+    metric: str,
+    mark_model: str | None,
+    patch_file: str | None,
+    out_file: str | None,
+    quiet: bool,
+) -> None:
+    """Analyse a benchmark result and pick the best model for production.
+
+    BENCHMARK_JSON is the .json file produced by `splflow benchmark`.
+
+    \b
+    Examples:
+      # Summary table — winners for every metric
+      splflow winner results/spl_benchmark-v2.json
+
+      # Pick the fastest model
+      splflow winner results/spl_benchmark-v2.json --by latency
+
+      # Shell scripting: emit only the model ID
+      splflow winner results/spl_benchmark-v2.json --by latency --quiet
+      BEST=$(splflow winner result.json --by latency --quiet)
+
+      # Record the human-chosen winner back into the JSON
+      splflow winner results/spl_benchmark-v2.json --mark anthropic/claude-opus-4.6
+
+      # Patch a .spl file with the fastest model and save it
+      splflow winner results/spl_benchmark-v2.json --by latency \\
+          --patch query.spl --out query-fast.spl
+    """
+    with open(benchmark_json, encoding="utf-8") as f:
+        data = json.load(f)
+
+    runs: list[dict] = data.get("runs", [])
+    if not runs:
+        raise click.ClickException("No runs found in benchmark JSON.")
+
+    # ── --mark: write human winner back to JSON ──────────────────────────────
+    if mark_model:
+        data["winner"] = mark_model
+        with open(benchmark_json, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        if not quiet:
+            click.echo(f"Winner recorded: {mark_model}  →  {benchmark_json}", err=True)
+
+    # ── analyse runs ─────────────────────────────────────────────────────────
+    analysis = _analyze_runs(runs)
+    valid_runs = [r for r in runs if not r.get("error") and r.get("total_tokens", 0) > 0]
+    failed_runs = [r for r in runs if r.get("error") or r.get("total_tokens", 0) == 0]
+
+    # Determine the winning model for the requested metric
+    if metric != "all":
+        if metric not in analysis:
+            raise click.ClickException(
+                f"No data for metric '{metric}' "
+                f"(cost/value require cost_usd in the benchmark results)."
+            )
+        winning_model, winning_value = analysis[metric]
+
+        if quiet:
+            click.echo(winning_model)
+        else:
+            label, fmt = _METRIC_LABELS[metric]
+            click.echo(f"{winning_model}  ({label}: {fmt(winning_value)})")
+
+    else:
+        # Full summary table
+        if not quiet:
+            name = data.get("benchmark_name", Path(benchmark_json).stem)
+            timestamp = data.get("timestamp", "")[:10]
+            click.echo(
+                f"\n  Benchmark : {name}  ({timestamp})\n"
+                f"  File      : {benchmark_json}\n"
+                f"  Runs      : {len(valid_runs)} successful, {len(failed_runs)} failed\n"
+            )
+
+            # Per-model stats table
+            W = 44
+            click.echo(f"  {'Model':<{W}} {'Tokens':>8} {'Latency':>9} {'Cost':>10}")
+            click.echo("  " + "-" * (W + 31))
+
+            # highlight columns
+            winner_lat  = analysis.get("latency", (None,))[0]
+            winner_tok  = analysis.get("tokens",  (None,))[0]
+            winner_cost = analysis.get("cost",    (None,))[0]
+
+            for run in runs:
+                mid = run["model_id"]
+                err = run.get("error", "")
+                if err:
+                    click.echo(f"  {mid:<{W}} {'—ERROR—':>8}  {err[:28]}")
+                    continue
+                tokens  = run.get("total_tokens", 0)
+                latency = run.get("latency_ms", 0) / 1000
+                cost    = run.get("cost_usd")
+                cost_s  = f"${cost:.5f}" if cost is not None else "n/a"
+
+                lat_mark  = " ★" if mid == winner_lat  else "  "
+                tok_mark  = " ★" if mid == winner_tok  else "  "
+                cost_mark = " ★" if mid == winner_cost else "  "
+
+                click.echo(
+                    f"  {mid:<{W}}"
+                    f" {tokens:>7,}{tok_mark}"
+                    f" {latency:>7.1f}s{lat_mark}"
+                    f" {cost_s:>10}{cost_mark}"
+                )
+
+            # Winners summary
+            click.echo(f"\n  {'─' * 58}")
+            click.echo("  Winners (★ = best in column):\n")
+            for m, (label, fmt) in _METRIC_LABELS.items():
+                if m in analysis:
+                    mid, val = analysis[m]
+                    click.echo(f"    {label:<22}  {mid:<44}  {fmt(val)}")
+                else:
+                    click.echo(f"    {label:<22}  n/a (cost_usd not reported by this adapter)")
+            if data.get("winner"):
+                click.echo(f"\n    Human choice          :  {data['winner']}")
+            click.echo()
+
+        # --quiet + --by all: print all winners one per line
+        else:
+            for m in ("latency", "tokens", "cost", "value"):
+                if m in analysis:
+                    click.echo(f"{m}\t{analysis[m][0]}")
+
+    # ── --patch: rewrite .spl with winning model ─────────────────────────────
+    if patch_file:
+        if metric == "all" and not mark_model:
+            raise click.UsageError(
+                "Specify --by <metric> or --mark <model_id> to select a model for --patch."
+            )
+        patch_model_id = mark_model if mark_model else winning_model  # type: ignore[possibly-undefined]
+        with open(patch_file, encoding="utf-8") as f:
+            original_spl = f.read()
+        patched_spl = _patch_model(original_spl, patch_model_id)
+        if out_file:
+            with open(out_file, "w", encoding="utf-8") as f:
+                f.write(patched_spl)
+            if not quiet:
+                click.echo(f"Patched SPL written to: {out_file}", err=True)
+        else:
+            click.echo(patched_spl)
+
+
+# ── models ─────────────────────────────────────────────────────────────────────
+
+_OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"
+
+
+@cli.command("models")
+@click.argument("keyword", default="", required=False)
+@click.option(
+    "--top", default=20, show_default=True, metavar="N",
+    help="Maximum number of results to display.",
+)
+@output_option
+def models_cmd(keyword: str, top: int, output: str | None):
+    """Search available OpenRouter models by KEYWORD.
+
+    KEYWORD is matched case-insensitively against model id, name, and
+    description.  Omit KEYWORD to list the first N models alphabetically.
+
+    \b
+    Examples:
+      splflow models claude
+      splflow models gemini
+      splflow models "mistral 7b"
+      splflow models sonnet --top 5
+      splflow models claude --output models.json
+    """
+    import httpx
+
+    try:
+        resp = httpx.get(_OPENROUTER_MODELS_URL, timeout=15)
+        resp.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise click.ClickException(f"OpenRouter API error: {exc}")
+
+    all_models: list[dict] = resp.json().get("data", [])
+
+    if keyword:
+        kw = keyword.lower()
+        filtered = [
+            m for m in all_models
+            if kw in m.get("id", "").lower()
+            or kw in m.get("name", "").lower()
+            or kw in (m.get("description") or "").lower()
+        ]
+    else:
+        filtered = list(all_models)
+
+    filtered.sort(key=lambda m: m.get("id", ""))
+    shown = filtered[:top]
+
+    if not shown:
+        click.echo(f"No models found matching: {keyword!r}")
+        return
+
+    # JSON output
+    if output and Path(output).suffix.lower() == ".json":
+        _save_output(output, json.dumps(shown, indent=2, ensure_ascii=False))
+        return
+
+    # Human-readable table
+    W_ID, W_NAME = 48, 32
+    click.echo(
+        f"\n  {'Model ID':<{W_ID}} {'Name':<{W_NAME}} {'Input $/M':>10} {'Output $/M':>11}"
+    )
+    click.echo("  " + "-" * (W_ID + W_NAME + 24))
+    for m in shown:
+        mid = m.get("id", "")
+        name = (m.get("name") or "")[:W_NAME]
+        pricing = m.get("pricing") or {}
+        try:
+            inp = float(pricing.get("prompt", 0)) * 1_000_000
+            out = float(pricing.get("completion", 0)) * 1_000_000
+            inp_str = f"${inp:.2f}" if inp > 0 else "free"
+            out_str = f"${out:.2f}" if out > 0 else "free"
+        except (ValueError, TypeError):
+            inp_str = out_str = "n/a"
+        click.echo(
+            f"  {mid:<{W_ID}} {name:<{W_NAME}} {inp_str:>10} {out_str:>11}"
+        )
+
+    total = len(filtered)
+    suffix = f"  ({total - top} more — use --top {total} to see all)" if total > top else ""
+    click.echo(f"\n  {len(shown)} of {total} model(s) shown{suffix}\n")
+
+    if output:
+        # plain text: just the IDs, one per line (useful for shell scripting)
+        _save_output(output, "\n".join(m["id"] for m in shown))
 
 
 # ── entry point ────────────────────────────────────────────────────────────────
