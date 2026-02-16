@@ -18,6 +18,7 @@ import sys
 import json
 import re
 import time
+import asyncio
 
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
@@ -252,7 +253,59 @@ def _analyze_runs(runs: list[dict]) -> dict:
                 best_value["total_tokens"] / best_value["cost_usd"],
             )
 
+    scored = [r for r in valid if r.get("eval", {}).get("score") is not None]
+    if scored:
+        best_acc = max(scored, key=lambda r: r["eval"]["score"])
+        results["accuracy"] = (best_acc["model_id"], float(best_acc["eval"]["score"]))
+
     return results
+
+
+async def _judge_response(
+    response_text: str,
+    rubric: str,
+    judge_model: str,
+    adapter_name: str,
+) -> dict:
+    """Call judge LLM; return {"score": float, "reasoning": str}."""
+    from spl.adapters import get_adapter
+
+    judge_prompt = (
+        "You are an expert evaluator. Score the following AI response on a scale "
+        "of 0 to 10 according to the rubric below.\n\n"
+        f"Rubric: {rubric}\n\n"
+        "Response to evaluate:\n"
+        f"{response_text}\n\n"
+        'Return ONLY a JSON object with exactly two keys:\n'
+        '{"score": <number 0-10>, "reasoning": "<brief explanation>"}\n'
+        "No other text, no markdown fences."
+    )
+
+    adapter = get_adapter(adapter_name)
+    result = await adapter.generate(
+        prompt=judge_prompt,
+        model=judge_model,
+        max_tokens=300,
+        temperature=0.0,
+    )
+    text = result.content.strip()
+
+    # Strip optional markdown fences
+    fenced = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if fenced:
+        text = fenced.group(1)
+
+    try:
+        parsed = json.loads(text)
+        return {
+            "score":     float(parsed.get("score", 0)),
+            "reasoning": str(parsed.get("reasoning", "")),
+        }
+    except (json.JSONDecodeError, ValueError):
+        # Fallback: pull first number out of the text
+        m = re.search(r"\b(10|[0-9](?:\.[0-9]+)?)\b", text)
+        score = float(m.group(1)) if m else 0.0
+        return {"score": score, "reasoning": text[:300]}
 
 
 def _save_output(path: str | None, content: str) -> None:
@@ -267,17 +320,7 @@ def _save_output(path: str | None, content: str) -> None:
 @click.group()
 @click.version_option("0.1.0", prog_name="spl-flow")
 def cli():
-    """SPL-Flow: Declarative LLM orchestration via Structured Prompt Language.
-
-    \b
-    Commands:
-      generate   Translate a query to SPL (no LLM execution)
-      run        Full pipeline: NL → SPL → execute → result
-      exec       Execute a pre-written .spl file directly
-      benchmark  Run a .spl file against multiple models in parallel
-      winner     Analyse a benchmark result and pick the best model
-      models     Search available OpenRouter models by keyword
-    """
+    """SPL-Flow: Declarative LLM orchestration via Structured Prompt Language."""
 
 
 # ── generate ───────────────────────────────────────────────────────────────────
@@ -660,10 +703,11 @@ def benchmark_cmd(spl_file, adapter, provider, models, params, cache, output, qu
 # ── winner ─────────────────────────────────────────────────────────────────────
 
 _METRIC_LABELS = {
-    "latency": ("Fastest",          lambda v: f"{v:.2f}s"),
-    "tokens":  ("Most token-efficient", lambda v: f"{int(v):,} tokens"),
-    "cost":    ("Cheapest",         lambda v: f"${v:.5f}"),
-    "value":   ("Best value",       lambda v: f"{v:,.0f} tok/$"),
+    "latency":  ("Fastest",             lambda v: f"{v:.2f}s"),
+    "tokens":   ("Most token-efficient", lambda v: f"{int(v):,} tokens"),
+    "cost":     ("Cheapest",            lambda v: f"${v:.5f}"),
+    "value":    ("Best value",          lambda v: f"{v:,.0f} tok/$"),
+    "accuracy": ("Most accurate",       lambda v: f"{v:.1f}/10"),
 }
 
 
@@ -671,7 +715,7 @@ _METRIC_LABELS = {
 @click.argument("benchmark_json", type=click.Path(exists=True, readable=True))
 @click.option(
     "--by", "metric",
-    type=click.Choice(["latency", "cost", "tokens", "value", "all"], case_sensitive=False),
+    type=click.Choice(["latency", "cost", "tokens", "value", "accuracy", "all"], case_sensitive=False),
     default="all", show_default=True,
     help=(
         "Metric to optimise: latency (fastest), cost (cheapest), "
@@ -748,10 +792,13 @@ def winner_cmd(
     # Determine the winning model for the requested metric
     if metric != "all":
         if metric not in analysis:
-            raise click.ClickException(
-                f"No data for metric '{metric}' "
-                f"(cost/value require cost_usd in the benchmark results)."
-            )
+            hints = {
+                "cost":     "cost/value require cost_usd in the benchmark results",
+                "value":    "cost/value require cost_usd in the benchmark results",
+                "accuracy": "accuracy requires eval scores — run `splflow eval` first",
+            }
+            hint = hints.get(metric, f"no {metric} data in the benchmark results")
+            raise click.ClickException(f"No data for metric '{metric}': {hint}.")
         winning_model, winning_value = analysis[metric]
 
         if quiet:
@@ -839,6 +886,475 @@ def winner_cmd(
                 click.echo(f"Patched SPL written to: {out_file}", err=True)
         else:
             click.echo(patched_spl)
+
+
+# ── eval ───────────────────────────────────────────────────────────────────────
+
+@cli.command("eval")
+@click.argument("benchmark_json", type=click.Path(exists=True, readable=True))
+@click.option(
+    "--rubric", "rubric_text",
+    default="",
+    help="Evaluation rubric for the judge LLM (plain text).",
+)
+@click.option(
+    "--rubric-file",
+    type=click.Path(exists=True, readable=True),
+    default=None,
+    help="Read rubric from a file instead of --rubric.",
+)
+@click.option(
+    "--judge",
+    default="anthropic/claude-opus-4.6",
+    show_default=True,
+    metavar="MODEL_ID",
+    help="Model ID to use as the judge.",
+)
+@adapter_option
+@quiet_flag
+def eval_cmd(benchmark_json, rubric_text, rubric_file, judge, adapter, quiet):
+    """Score benchmark responses using a judge LLM (0–10 scale).
+
+    Reads BENCHMARK_JSON and asks a judge model to score each successful run
+    according to the supplied rubric.  Scores are written back into the JSON
+    file under each run's ``eval`` key, enabling ``splflow winner --by accuracy``.
+
+    \b
+    Examples:
+      splflow eval results/benchmark.json \\
+          --rubric "Citation accuracy: correct year, prize, paper title" \\
+          --judge anthropic/claude-opus-4.6 --adapter openrouter
+
+      splflow eval results/benchmark.json --rubric-file rubric.txt \\
+          --judge openai/gpt-4o --adapter openrouter
+    """
+    if rubric_file:
+        with open(rubric_file, encoding="utf-8") as f:
+            rubric = f.read().strip()
+    else:
+        rubric = rubric_text.strip()
+
+    if not rubric:
+        raise click.UsageError("Provide a rubric via --rubric TEXT or --rubric-file FILE.")
+
+    with open(benchmark_json, encoding="utf-8") as f:
+        data = json.load(f)
+
+    runs = data.get("runs", [])
+    if not runs:
+        raise click.ClickException("No runs found in benchmark JSON.")
+
+    valid_runs = [r for r in runs if not r.get("error") and r.get("response")]
+    if not valid_runs:
+        raise click.ClickException("No successful runs with responses to evaluate.")
+
+    if not quiet:
+        click.echo(
+            f"Evaluating {len(valid_runs)} run(s)  judge={judge}  adapter={adapter}",
+            err=True,
+        )
+
+    async def run_evals():
+        tasks = [
+            _judge_response(r["response"], rubric, judge, adapter)
+            for r in valid_runs
+        ]
+        return await asyncio.gather(*tasks, return_exceptions=True)
+
+    raw_results = asyncio.run(run_evals())
+
+    # Write scores back to runs
+    eval_idx = 0
+    for run in runs:
+        if run.get("error") or not run.get("response"):
+            continue
+        result = raw_results[eval_idx]
+        eval_idx += 1
+        if not isinstance(result, dict):
+            if not quiet:
+                click.echo(f"  {run['model_id']}: ERROR — {result}", err=True)
+            run["eval"] = {"score": None, "reasoning": str(result), "judge": judge}
+        else:
+            run["eval"] = {
+                "score":     result["score"],
+                "reasoning": result["reasoning"],
+                "judge":     judge,
+            }
+            if not quiet:
+                score_val = result["score"]
+                click.echo(f"  {run['model_id']}: {score_val:.1f}/10", err=True)
+
+    with open(benchmark_json, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    if not quiet:
+        click.echo(f"\nEval scores written to: {benchmark_json}", err=True)
+
+    # Summary table (sorted by score desc)
+    if not quiet:
+        click.echo(f"\n  {'Model':<44} {'Score':>7}")
+        click.echo("  " + "─" * 55)
+        for run in sorted(
+            runs,
+            key=lambda r: (r.get("eval", {}).get("score") or -1),
+            reverse=True,
+        ):
+            ev = run.get("eval", {})
+            score = ev.get("score")
+            score_s = f"{score:.1f}/10" if score is not None else "n/a"
+            click.echo(f"  {run['model_id']:<44} {score_s:>7}")
+        click.echo()
+
+
+# ── report ─────────────────────────────────────────────────────────────────────
+
+@cli.command("report")
+@click.argument("benchmark_json", type=click.Path(exists=True, readable=True))
+@click.option(
+    "--format", "fmt",
+    type=click.Choice(["markdown", "csv"], case_sensitive=False),
+    default="markdown", show_default=True,
+    help="Output format.",
+)
+@output_option
+def report_cmd(benchmark_json, fmt, output):
+    """Generate a publication-ready report from a benchmark JSON.
+
+    Produces a table suitable for pasting into a paper, blog post, or README.
+    If ``splflow eval`` has been run first, an Accuracy column is included.
+
+    \b
+    Examples:
+      splflow report results/benchmark.json
+      splflow report results/benchmark.json --format csv --output benchmark.csv
+      splflow report results/benchmark.json --output benchmark-table.md
+    """
+    with open(benchmark_json, encoding="utf-8") as f:
+        data = json.load(f)
+
+    runs     = data.get("runs", [])
+    name     = data.get("benchmark_name", Path(benchmark_json).stem)
+    ts       = data.get("timestamp", "")[:10]
+    adapter  = data.get("adapter", "")
+    has_cost = any(r.get("cost_usd") is not None for r in runs if not r.get("error"))
+    has_eval = any(r.get("eval", {}).get("score") is not None for r in runs)
+
+    if fmt == "markdown":
+        lines = []
+        lines.append(f"## Benchmark: {name}")
+        if ts:
+            lines.append(f"**Date**: {ts}  |  **Adapter**: {adapter}")
+        lines.append("")
+
+        headers = ["Model", "Tokens", "Latency"]
+        if has_cost:
+            headers.append("Cost")
+        if has_eval:
+            headers.append("Accuracy")
+        headers.append("Status")
+
+        sep = "|" + "|".join(":---" if i == 0 else "---:" for i in range(len(headers))) + "|"
+        lines.append("| " + " | ".join(headers) + " |")
+        lines.append(sep)
+
+        for run in runs:
+            mid = run["model_id"]
+            if run.get("resolved_model"):
+                mid += f" → {run['resolved_model']}"
+            if run.get("error"):
+                row = [f"`{mid}`", "—", "—"]
+                if has_cost:
+                    row.append("—")
+                if has_eval:
+                    row.append("—")
+                row.append(f"❌ `{run['error'][:50]}`")
+            else:
+                tokens  = f"{run.get('total_tokens', 0):,}"
+                latency = f"{run.get('latency_ms', 0) / 1000:.1f}s"
+                row     = [f"`{mid}`", tokens, latency]
+                if has_cost:
+                    cost = run.get("cost_usd")
+                    row.append(f"${cost:.4f}" if cost is not None else "n/a")
+                if has_eval:
+                    ev    = run.get("eval", {})
+                    score = ev.get("score")
+                    row.append(f"{score:.1f}/10" if score is not None else "—")
+                row.append("✅")
+            lines.append("| " + " | ".join(row) + " |")
+
+        lines.append("")
+
+        # Winners footer
+        analysis = _analyze_runs(runs)
+        if analysis:
+            lines.append("**Winners:**")
+            for metric, (label, fmt_fn) in _METRIC_LABELS.items():
+                if metric in analysis:
+                    mid, val = analysis[metric]
+                    lines.append(f"- {label}: `{mid}` ({fmt_fn(val)})")
+            lines.append("")
+
+        report_text = "\n".join(lines)
+
+    else:  # csv
+        import csv as _csv
+        import io
+        buf = io.StringIO()
+        fieldnames = ["model_id", "tokens", "latency_s", "cost_usd"]
+        if has_eval:
+            fieldnames.append("accuracy_score")
+        fieldnames.append("error")
+        writer = _csv.DictWriter(buf, fieldnames=fieldnames)
+        writer.writeheader()
+        for run in runs:
+            row = {
+                "model_id":  run["model_id"],
+                "tokens":    run.get("total_tokens", 0),
+                "latency_s": round(run.get("latency_ms", 0) / 1000, 2),
+                "cost_usd":  run.get("cost_usd", ""),
+                "error":     run.get("error", ""),
+            }
+            if has_eval:
+                row["accuracy_score"] = (run.get("eval") or {}).get("score", "")
+            writer.writerow(row)
+        report_text = buf.getvalue()
+
+    if output:
+        _save_output(output, report_text)
+    else:
+        click.echo(report_text)
+
+
+# ── rerun ──────────────────────────────────────────────────────────────────────
+
+@cli.command("rerun")
+@click.argument("benchmark_json", type=click.Path(exists=True, readable=True))
+@click.option(
+    "--model", "model_id",
+    required=True,
+    metavar="MODEL_ID",
+    help=(
+        "Model ID to run.  If already in the benchmark JSON, retries it. "
+        "If new, patches the existing SPL and appends a new run entry."
+    ),
+)
+@adapter_option
+@provider_option
+@quiet_flag
+def rerun_cmd(benchmark_json, model_id, adapter, provider, quiet):
+    """Re-run or add a single model in a benchmark JSON.
+
+    Two modes:
+      Retry   — model already in the JSON: re-executes with the same patched
+                SPL and replaces the existing entry (useful after a bug fix).
+      Add new — model not yet in the JSON: patches the SPL from an existing
+                run's template and appends a fresh entry (useful for testing
+                a new model against the same benchmark task).
+
+    \b
+    Examples:
+      # Retry a failed run after the GLM control-char fix
+      splflow rerun results/benchmark.json --model z-ai/glm-4.6 --adapter openrouter
+
+      # Add GLM-5 to an existing benchmark without re-running all models
+      splflow rerun results/benchmark.json --model z-ai/glm-5 --adapter openrouter
+    """
+    from src.nodes.benchmark import _run_one, patch_model as _patch_model_node
+
+    with open(benchmark_json, encoding="utf-8") as f:
+        data = json.load(f)
+
+    runs = data.get("runs", [])
+    if not runs:
+        raise click.ClickException("No runs found in benchmark JSON.")
+
+    # Locate an existing entry for this model (may be None for a new model)
+    existing_run = None
+    existing_idx = None
+    for i, r in enumerate(runs):
+        if r["model_id"] == model_id:
+            existing_run = r
+            existing_idx = i
+            break
+
+    resolved_from = "auto" if model_id.lower() == "auto" else "explicit"
+
+    if existing_run is not None:
+        # ── Retry mode ────────────────────────────────────────────────────────
+        input_spl = existing_run.get("input_spl", "")
+        if not input_spl:
+            raise click.ClickException(
+                f"No input_spl stored for '{model_id}'. "
+                "Cannot re-run without the original patched SPL."
+            )
+        resolved_from = existing_run.get("resolved_from", resolved_from)
+        mode_label = f"retry  (previous: {'FAILED' if existing_run.get('error') else 'ok'})"
+    else:
+        # ── Add-new mode ──────────────────────────────────────────────────────
+        # Grab template SPL from the first run that has one
+        template_run = next((r for r in runs if r.get("input_spl")), None)
+        if template_run is None:
+            raise click.ClickException(
+                "No run in the benchmark JSON has an input_spl to use as template."
+            )
+        input_spl = _patch_model_node(template_run["input_spl"], model_id)
+        mode_label = f"new model  (patched from template: {template_run['model_id']})"
+
+    if not quiet:
+        click.echo(
+            f"Running {model_id}  [{mode_label}]  adapter={adapter}",
+            err=True,
+        )
+
+    t0 = time.perf_counter()
+    new_run = asyncio.run(
+        _run_one(
+            model_id=model_id,
+            resolved_from=resolved_from,
+            patched_spl=input_spl,
+            adapter=adapter,
+            provider=provider,
+            params=data.get("params", {}),
+            cache_enabled=False,
+        )
+    )
+    elapsed = time.perf_counter() - t0
+
+    if new_run.get("error"):
+        click.echo(f"ERROR: {new_run['error']}", err=True)
+    else:
+        if not quiet:
+            cost_s = (f"${new_run['cost_usd']:.5f}"
+                      if new_run.get("cost_usd") is not None else "n/a")
+            click.echo(
+                f"  tokens={new_run.get('total_tokens', 0):,}  "
+                f"latency={new_run.get('latency_ms', 0) / 1000:.1f}s  "
+                f"cost={cost_s}  wall={elapsed:.1f}s",
+                err=True,
+            )
+        click.echo(new_run.get("response", ""))
+
+    # Replace existing entry or append new one
+    if existing_idx is not None:
+        runs[existing_idx] = new_run
+    else:
+        runs.append(new_run)
+    data["runs"] = runs
+
+    with open(benchmark_json, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    if not quiet:
+        action = "replaced" if existing_idx is not None else "appended"
+        click.echo(f"\n{action.capitalize()} run in: {benchmark_json}", err=True)
+
+
+# ── cost ───────────────────────────────────────────────────────────────────────
+
+@cli.command("cost")
+@click.argument("spl_file", type=click.Path(exists=True, readable=True))
+@click.option(
+    "--models", "-m",
+    default="auto",
+    metavar="M1,M2,...",
+    help="Comma-separated model IDs to estimate costs for.",
+)
+@click.option(
+    "--input-tokens", "input_tokens_override",
+    default=0, type=int, metavar="N",
+    help="Override the estimated input token count (default: count SPL file tokens).",
+)
+@click.option(
+    "--output-tokens", "output_tokens",
+    default=2000, show_default=True, type=int, metavar="N",
+    help="Expected output tokens per run.",
+)
+@quiet_flag
+def cost_cmd(spl_file, models, input_tokens_override, output_tokens, quiet):
+    """Estimate benchmark cost before running.
+
+    Fetches live pricing from the OpenRouter API and projects cost per model
+    based on the SPL file's token count plus expected output tokens.
+
+    \b
+    Examples:
+      splflow cost query.spl --models "anthropic/claude-opus-4.6,openai/gpt-4o"
+      splflow cost query.spl --models "claude-opus,gpt-4o,z-ai/glm-4.6" \\
+          --input-tokens 3000 --output-tokens 2000
+    """
+    import httpx as _httpx
+
+    with open(spl_file, encoding="utf-8") as f:
+        spl_text = f.read()
+
+    model_list = [m.strip() for m in models.replace(",", " ").split() if m.strip()] or ["auto"]
+
+    # Estimate input tokens
+    if input_tokens_override > 0:
+        est_input = input_tokens_override
+    else:
+        try:
+            from spl.token_counter import TokenCounter
+            est_input = TokenCounter("gpt-4").count(spl_text)
+        except Exception:
+            est_input = max(1, len(spl_text) // 4)  # ~4 chars/token fallback
+
+    # Fetch live pricing from OpenRouter
+    pricing: dict[str, tuple[float, float]] = {}
+    try:
+        resp = _httpx.get(_OPENROUTER_MODELS_URL, timeout=15)
+        resp.raise_for_status()
+        for m in resp.json().get("data", []):
+            mid = m.get("id", "")
+            p   = m.get("pricing") or {}
+            try:
+                inp = float(p.get("prompt", 0)) * 1_000_000
+                out = float(p.get("completion", 0)) * 1_000_000
+                pricing[mid] = (inp, out)
+            except (ValueError, TypeError):
+                pass
+    except Exception as exc:
+        if not quiet:
+            click.echo(f"Warning: could not fetch OpenRouter pricing: {exc}", err=True)
+
+    if not quiet:
+        click.echo(
+            f"\n  SPL file      : {spl_file}\n"
+            f"  Input tokens  : ~{est_input:,}  (prompt estimate)\n"
+            f"  Output tokens : ~{output_tokens:,}  (your estimate)\n"
+        )
+
+    W = 44
+    click.echo(f"  {'Model':<{W}} {'Input $/M':>10} {'Output $/M':>11} {'Est. Cost':>12}")
+    click.echo("  " + "─" * (W + 37))
+
+    total_cost   = 0.0
+    has_pricing  = False
+
+    for mid in model_list:
+        if mid.lower() == "auto":
+            click.echo(f"  {'openrouter/auto':<{W}} {'routed':>10} {'routed':>11} {'variable':>12}")
+            continue
+
+        if mid in pricing:
+            inp_pm, out_pm = pricing[mid]
+            if inp_pm == 0.0 and out_pm == 0.0:
+                cost_str = "free"
+                est      = 0.0
+            else:
+                est      = (est_input / 1_000_000 * inp_pm) + (output_tokens / 1_000_000 * out_pm)
+                cost_str = f"${est:.5f}"
+                total_cost  += est
+                has_pricing  = True
+            inp_s = f"${inp_pm:.2f}" if inp_pm > 0 else "free"
+            out_s = f"${out_pm:.2f}" if out_pm > 0 else "free"
+            click.echo(f"  {mid:<{W}} {inp_s:>10} {out_s:>11} {cost_str:>12}")
+        else:
+            click.echo(f"  {mid:<{W}} {'n/a':>10} {'n/a':>11} {'n/a (not on OpenRouter)':>24}")
+
+    if has_pricing:
+        click.echo(f"\n  Total estimated cost (excluding free/auto): ${total_cost:.5f}")
+    click.echo()
 
 
 # ── models ─────────────────────────────────────────────────────────────────────
