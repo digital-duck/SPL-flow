@@ -23,8 +23,35 @@ sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
 
 import click
 
+from pathlib import Path
+
 from src import api
-from src.utils.logging_config import setup_logging, disable_logging
+from src.utils.logging_config import setup_logging
+
+
+# ── Helpers ────────────────────────────────────────────────────────────────────
+
+def _init_logging(
+    run_name: str,
+    *,
+    log_file: str | None,
+    adapter: str = "",
+    log_level: str = "info",
+) -> Path:
+    """Configure dd_logging and return the path of the created log file.
+
+    If *log_file* is given its stem becomes the run_name and its parent the
+    log_dir, so the auto-timestamped file lands where the user expects.
+    """
+    if log_file:
+        p = Path(log_file)
+        return setup_logging(
+            p.stem,
+            adapter=adapter,
+            log_level=log_level,
+            log_dir=p.parent if str(p.parent) not in (".", "") else None,
+        )
+    return setup_logging(run_name, adapter=adapter, log_level=log_level)
 
 
 # ── Shared option decorators ───────────────────────────────────────────────────
@@ -41,10 +68,14 @@ def adapter_option(f):
 
 def param_option(f):
     return click.option(
-        "--param", "-p",
-        multiple=True,
-        metavar="KEY=VALUE",
-        help="SPL context params (repeatable). E.g. --param radical=水 --param topic=AI",
+        "--params", "-p",
+        default="",
+        metavar="K=V,...",
+        help=(
+            "SPL context params as comma-separated key=value pairs. "
+            "E.g. --params 'radical=水,topic=AI'  "
+            "Both comma and space delimiters are accepted."
+        ),
     )(f)
 
 
@@ -87,17 +118,10 @@ def output_option(f):
         "--output", "-o",
         type=click.Path(writable=True),
         default=None,
-        help="Save primary result to this file (markdown).",
+        help="Save result to this file. Format inferred from extension: "
+             ".json → full JSON, anything else → markdown.",
     )(f)
 
-
-def json_flag(f):
-    return click.option(
-        "--json", "as_json",
-        is_flag=True,
-        default=False,
-        help="Output full result as JSON (includes tokens, latency, cost).",
-    )(f)
 
 
 def quiet_flag(f):
@@ -110,12 +134,17 @@ def quiet_flag(f):
 
 
 def log_options(f):
-    """Attach --log/--no-log and --log-level options (mirrors the spl-llm CLI)."""
+    """Attach --log and --log-level options."""
     f = click.option(
-        "--log/--no-log",
-        default=True,
-        show_default=True,
-        help="Write a timestamped log file to logs/ (default: on).",
+        "--log",
+        "log_file",
+        default=None,
+        metavar="FILE",
+        help=(
+            "Log file path — stem used as run label, timestamped file created. "
+            "Omit to auto-generate under logs/. "
+            "E.g. --log ./runs/benchmark.log"
+        ),
     )(f)
     f = click.option(
         "--log-level",
@@ -129,15 +158,18 @@ def log_options(f):
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
-def _parse_params(param_tuples: tuple) -> dict:
-    """Parse ('key=value', ...) tuples into a dict."""
-    result = {}
-    for p in param_tuples:
-        if "=" not in p:
+def _parse_params(params_str: str) -> dict:
+    """Parse ``'k1=v1,k2=v2,...'`` (comma *or* space delimited) into a dict."""
+    if not params_str:
+        return {}
+    result: dict[str, str] = {}
+    parts = [p.strip() for p in params_str.replace(",", " ").split() if p.strip()]
+    for part in parts:
+        if "=" not in part:
             raise click.BadParameter(
-                f"Params must be KEY=VALUE format, got: {p!r}", param_hint="--param"
+                f"Expected key=value pair, got: {part!r}", param_hint="--params"
             )
-        k, _, v = p.partition("=")
+        k, _, v = part.partition("=")
         result[k.strip()] = v.strip()
     return result
 
@@ -203,23 +235,20 @@ def cli():
     default=None,
     help="Save generated SPL to this file.",
 )
-def generate(query: str, context_file, quiet: bool, log: bool, log_level: str, spl_output):
+def generate(query: str, context_file, quiet: bool, log_file: str | None, log_level: str, spl_output: str | None):
     """Translate QUERY to SPL (Text2SPL + Validate, no execution).
 
     QUERY can be a string or '-' to read from stdin.
 
     \b
     Examples:
-      spl-flow generate "List 10 Chinese characters with water radical"
-      echo "Summarize this doc" | spl-flow generate -
-      spl-flow generate "Code review" --spl-output review.spl
+      splflow generate "List 10 Chinese characters with water radical"
+      echo "Summarize this doc" | splflow generate -
+      splflow generate "Code review" --spl-output review.spl
     """
-    if log:
-        log_path = setup_logging("generate", log_level=log_level)
-        if not quiet:
-            click.echo(f"Logging to: {log_path}  (level={log_level})", err=True)
-    else:
-        disable_logging()
+    log_path = _init_logging("generate", log_file=log_file, log_level=log_level)
+    if not quiet:
+        click.echo(f"Logging to: {log_path}  (level={log_level})", err=True)
 
     if query == "-":
         query = click.get_text_stream("stdin").read().strip()
@@ -271,7 +300,6 @@ def generate(query: str, context_file, quiet: bool, log: bool, log_level: str, s
 @context_file_option
 @cache_option
 @output_option
-@json_flag
 @quiet_flag
 @log_options
 @click.option(
@@ -291,25 +319,22 @@ def generate(query: str, context_file, quiet: bool, log: bool, log_level: str, s
     default=None,
     help="Also save the generated SPL to this file.",
 )
-def run(query, adapter, provider, param, context_file, cache, output, as_json,
-        quiet, log, log_level, async_mode, email, spl_output):
+def run(query, adapter, provider, params, context_file, cache, output,
+        quiet, log_file, log_level, async_mode, email, spl_output):
     """Run the full SPL-Flow pipeline: NL → SPL → execute → result.
 
     QUERY can be a string or '-' to read from stdin.
 
     \b
     Examples:
-      spl-flow run "List 10 Chinese characters with water radical" --param radical=水
-      spl-flow run "Summarize" --context-file article.txt --output result.md
-      spl-flow run "Code review" --adapter ollama --param code="$(cat myfile.py)"
-      echo "Translate to German" | spl-flow run - --adapter openrouter
+      splflow run "List 10 Chinese characters with water radical" --params "radical=水"
+      splflow run "Summarize" --context-file article.txt --output result.md
+      splflow run "Code review" --adapter ollama --params "code=$(cat myfile.py)"
+      echo "Translate to German" | splflow run - --adapter openrouter
     """
-    if log:
-        log_path = setup_logging("run", adapter=adapter, log_level=log_level)
-        if not quiet:
-            click.echo(f"Logging to: {log_path}  (level={log_level})", err=True)
-    else:
-        disable_logging()
+    log_path = _init_logging("run", log_file=log_file, adapter=adapter, log_level=log_level)
+    if not quiet:
+        click.echo(f"Logging to: {log_path}  (level={log_level})", err=True)
 
     if query == "-":
         query = click.get_text_stream("stdin").read().strip()
@@ -317,7 +342,7 @@ def run(query, adapter, provider, param, context_file, cache, output, as_json,
         raise click.UsageError("Query cannot be empty.")
 
     context_text = _read_context(context_file)
-    spl_params = _parse_params(param)
+    spl_params = _parse_params(params)
     delivery_mode = "async" if async_mode else "sync"
 
     if not quiet:
@@ -357,19 +382,21 @@ def run(query, adapter, provider, param, context_file, cache, output, as_json,
     primary = result["primary_result"]
     results = result["execution_results"]
 
-    if as_json:
-        click.echo(json.dumps({
-            "primary_result": primary,
-            "spl_query": result["spl_query"],
-            "execution_results": results,
-            "error": result["error"],
-            "elapsed_s": round(elapsed, 3),
-        }, indent=2, ensure_ascii=False))
-    else:
-        click.echo(primary)
-        _print_metrics(results, quiet)
+    click.echo(primary)
+    _print_metrics(results, quiet)
 
-    _save_output(output, primary)
+    if output:
+        ext = Path(output).suffix.lower()
+        if ext == ".json":
+            _save_output(output, json.dumps({
+                "primary_result": primary,
+                "spl_query": result["spl_query"],
+                "execution_results": results,
+                "error": result["error"],
+                "elapsed_s": round(elapsed, 3),
+            }, indent=2, ensure_ascii=False))
+        else:
+            _save_output(output, primary)
 
 
 # ── exec ───────────────────────────────────────────────────────────────────────
@@ -381,10 +408,9 @@ def run(query, adapter, provider, param, context_file, cache, output, as_json,
 @param_option
 @cache_option
 @output_option
-@json_flag
 @quiet_flag
 @log_options
-def exec_cmd(spl_file, adapter, provider, param, cache, output, as_json, quiet, log, log_level):
+def exec_cmd(spl_file, adapter, provider, params, cache, output, quiet, log_file, log_level):
     """Execute a pre-written SPL file directly (no Text2SPL step).
 
     Useful for batch testing: write your .spl file once, run it with
@@ -392,21 +418,18 @@ def exec_cmd(spl_file, adapter, provider, param, cache, output, as_json, quiet, 
 
     \b
     Examples:
-      spl-flow exec query.spl --adapter ollama --param radical=水
-      spl-flow exec query.spl --adapter openrouter --json > result.json
-      spl-flow exec query.spl --output result.md --quiet
+      splflow exec query.spl --adapter ollama --params "radical=水"
+      splflow exec query.spl --adapter openrouter --output result.json
+      splflow exec query.spl --output result.md --quiet
     """
-    if log:
-        log_path = setup_logging("exec", adapter=adapter, log_level=log_level)
-        if not quiet:
-            click.echo(f"Logging to: {log_path}  (level={log_level})", err=True)
-    else:
-        disable_logging()
+    log_path = _init_logging("exec", log_file=log_file, adapter=adapter, log_level=log_level)
+    if not quiet:
+        click.echo(f"Logging to: {log_path}  (level={log_level})", err=True)
 
     with open(spl_file, encoding="utf-8") as f:
         spl_query = f.read().strip()
 
-    spl_params = _parse_params(param)
+    spl_params = _parse_params(params)
 
     if not quiet:
         click.echo(
@@ -434,18 +457,20 @@ def exec_cmd(spl_file, adapter, provider, param, cache, output, as_json, quiet, 
     primary = result["primary_result"]
     results = result["execution_results"]
 
-    if as_json:
-        click.echo(json.dumps({
-            "spl_file": spl_file,
-            "primary_result": primary,
-            "execution_results": results,
-            "elapsed_s": round(elapsed, 3),
-        }, indent=2, ensure_ascii=False))
-    else:
-        click.echo(primary)
-        _print_metrics(results, quiet)
+    click.echo(primary)
+    _print_metrics(results, quiet)
 
-    _save_output(output, primary)
+    if output:
+        ext = Path(output).suffix.lower()
+        if ext == ".json":
+            _save_output(output, json.dumps({
+                "spl_file": spl_file,
+                "primary_result": primary,
+                "execution_results": results,
+                "elapsed_s": round(elapsed, 3),
+            }, indent=2, ensure_ascii=False))
+        else:
+            _save_output(output, primary)
 
 
 # ── benchmark ──────────────────────────────────────────────────────────────────
@@ -455,24 +480,22 @@ def exec_cmd(spl_file, adapter, provider, param, cache, output, as_json, quiet, 
 @adapter_option
 @provider_option
 @click.option(
-    "--model", "-m",
-    "models",
-    multiple=True,
-    metavar="MODEL_ID",
+    "--models", "-m",
+    default="auto",
+    metavar="M1,M2,...",
     help=(
-        "Model to benchmark against (repeatable). "
+        "Comma-separated list of model IDs to benchmark against. "
         "Use 'auto' for the model router. "
-        "E.g. --model anthropic/claude-opus-4-6 --model auto"
+        "E.g. --models 'anthropic/claude-opus-4-6,openai/gpt-4o,auto'"
     ),
 )
 @param_option
 @cache_option
 @output_option
-@json_flag
 @quiet_flag
 @log_options
-def benchmark_cmd(spl_file, adapter, provider, models, param, cache, output, as_json, quiet,
-                  log, log_level):
+def benchmark_cmd(spl_file, adapter, provider, models, params, cache, output, quiet,
+                  log_file, log_level):
     """Benchmark a .spl file against multiple models in parallel.
 
     Runs the same SPL script once per MODEL, concurrently.  Each run
@@ -481,23 +504,20 @@ def benchmark_cmd(spl_file, adapter, provider, models, param, cache, output, as_
 
     \b
     Examples:
-      spl-flow benchmark query.spl --model auto --model openai/gpt-4o
-      spl-flow benchmark query.spl --model auto --model anthropic/claude-opus-4-6 \\
-          --adapter openrouter --provider anthropic --json > results.json
-      spl-flow benchmark query.spl --model auto --param doc="$(cat article.txt)"
+      splflow benchmark query.spl --models "auto,openai/gpt-4o"
+      splflow benchmark query.spl --models "auto,anthropic/claude-opus-4-6" \\
+          --adapter openrouter --output results.json
+      splflow benchmark query.spl --models auto --params "doc=$(cat article.txt)"
     """
-    if log:
-        log_path = setup_logging("benchmark", adapter=adapter, log_level=log_level)
-        if not quiet:
-            click.echo(f"Logging to: {log_path}  (level={log_level})", err=True)
-    else:
-        disable_logging()
+    log_path = _init_logging("benchmark", log_file=log_file, adapter=adapter, log_level=log_level)
+    if not quiet:
+        click.echo(f"Logging to: {log_path}  (level={log_level})", err=True)
 
     with open(spl_file, encoding="utf-8") as f:
         spl_query = f.read().strip()
 
-    model_list = list(models) if models else ["auto"]
-    spl_params = _parse_params(param)
+    model_list = [m.strip() for m in models.replace(",", " ").split() if m.strip()] or ["auto"]
+    spl_params = _parse_params(params)
 
     if not quiet:
         click.echo(
@@ -530,52 +550,53 @@ def benchmark_cmd(spl_file, adapter, provider, models, param, cache, output, as_
 
     runs = result.get("runs", [])
 
-    if as_json:
-        click.echo(
-            __import__("json").dumps(result, indent=2, ensure_ascii=False)
-        )
-    else:
-        # Summary table
-        click.echo(f"\n{'Model':<40} {'Tokens':>8} {'Latency':>9} {'Cost':>10}")
-        click.echo("-" * 72)
-        for run in runs:
-            run_error = run.get("error", "")
-            if run_error:
-                model_label = run["model_id"]
-                if run.get("resolved_model"):
-                    model_label += f" → {run['resolved_model']}"
-                click.echo(f"{model_label:<40} {'ERROR':>8}  {run_error[:28]}")
-            else:
-                model_label = run["model_id"]
-                if run.get("resolved_model"):
-                    model_label += f" → {run['resolved_model'][:20]}"
-                cost = run.get("cost_usd")
-                cost_str = f"${cost:.5f}" if cost is not None else "n/a"
-                click.echo(
-                    f"{model_label:<40}"
-                    f" {run.get('total_tokens', 0):>8,}"
-                    f" {run.get('latency_ms', 0) / 1000:>8.2f}s"
-                    f" {cost_str:>10}"
-                )
-        click.echo()
-
-        # Per-model responses
-        for run in runs:
+    # Summary table
+    click.echo(f"\n{'Model':<40} {'Tokens':>8} {'Latency':>9} {'Cost':>10}")
+    click.echo("-" * 72)
+    for run in runs:
+        run_error = run.get("error", "")
+        if run_error:
             model_label = run["model_id"]
             if run.get("resolved_model"):
                 model_label += f" → {run['resolved_model']}"
-            click.echo(f"── {model_label} {'─' * max(0, 60 - len(model_label))}")
-            if run.get("error"):
-                click.echo(f"ERROR: {run['error']}\n")
-            else:
-                click.echo(run.get("response", "") + "\n")
+            click.echo(f"{model_label:<40} {'ERROR':>8}  {run_error[:28]}")
+        else:
+            model_label = run["model_id"]
+            if run.get("resolved_model"):
+                model_label += f" → {run['resolved_model'][:20]}"
+            cost = run.get("cost_usd")
+            cost_str = f"${cost:.5f}" if cost is not None else "n/a"
+            click.echo(
+                f"{model_label:<40}"
+                f" {run.get('total_tokens', 0):>8,}"
+                f" {run.get('latency_ms', 0) / 1000:>8.2f}s"
+                f" {cost_str:>10}"
+            )
+    click.echo()
+
+    # Per-model responses
+    for run in runs:
+        model_label = run["model_id"]
+        if run.get("resolved_model"):
+            model_label += f" → {run['resolved_model']}"
+        click.echo(f"── {model_label} {'─' * max(0, 60 - len(model_label))}")
+        if run.get("error"):
+            click.echo(f"ERROR: {run['error']}\n")
+        else:
+            click.echo(run.get("response", "") + "\n")
 
     if output:
-        primary = "\n\n".join(
-            f"# {r['model_id']}\n\n{r.get('response', '')}"
-            for r in runs
-        )
-        _save_output(output, primary)
+        ext = Path(output).suffix.lower()
+        if ext == ".json":
+            import json as _json
+            _save_output(output, _json.dumps(result, indent=2, ensure_ascii=False))
+        else:
+            # markdown: one section per model
+            primary = "\n\n".join(
+                f"# {r['model_id']}\n\n{r.get('response', '')}"
+                for r in runs
+            )
+            _save_output(output, primary)
 
 
 # ── entry point ────────────────────────────────────────────────────────────────

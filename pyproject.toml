@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spl-flow"
+version = "0.1.0"
+description = "SPL-Flow — Declarative LLM orchestration via Structured Prompt Language"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    {name = "Wen Gong", email = "wen.gong.research@gmail.com"},
+]
+keywords = ["llm", "prompt-engineering", "spl", "declarative", "orchestration", "mixture-of-models"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "spl-llm>=0.1.0",
+    "pocketflow",
+    "streamlit>=1.32",
+    "click>=8.0",
+    "httpx>=0.25",
+    "dd-logging>=0.1.0",
+]
+
+[project.optional-dependencies]
+chroma = [
+    "chromadb>=0.4",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+]
+
+[project.scripts]
+splflow = "src.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/digital-duck/SPL-flow"
+Repository = "https://github.com/digital-duck/SPL-flow"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
