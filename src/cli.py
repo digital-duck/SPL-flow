@@ -28,7 +28,7 @@ import click
 from pathlib import Path
 
 from src import api
-from src.utils.logging_config import setup_logging
+from src.utils.logging_config import setup_logging, bridge_spl_logger
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -38,22 +38,34 @@ def _init_logging(
     *,
     log_file: str | None,
     adapter: str = "",
-    log_level: str = "info",
+    log_level: str = "debug",
 ) -> Path:
     """Configure dd_logging and return the path of the created log file.
+
+    Configures both the spl_flow.* logger hierarchy (SPL-Flow orchestration)
+    AND the spl.* hierarchy (SPL engine / adapters) so that adapter-level
+    debug output (e.g. raw HTTP responses) lands in the same log file.
 
     If *log_file* is given its stem becomes the run_name and its parent the
     log_dir, so the auto-timestamped file lands where the user expects.
     """
     if log_file:
         p = Path(log_file)
-        return setup_logging(
+        log_path = setup_logging(
             p.stem,
             adapter=adapter,
             log_level=log_level,
             log_dir=p.parent if str(p.parent) not in (".", "") else None,
         )
-    return setup_logging(run_name, adapter=adapter, log_level=log_level)
+    else:
+        log_path = setup_logging(run_name, adapter=adapter, log_level=log_level)
+
+    # Bridge the spl.* logger (SPL engine + adapters) to the same file handler.
+    # setup_logging() configures spl_flow.* only; openrouter.py logs to
+    # spl.adapters.openrouter which is a different hierarchy and would otherwise
+    # go nowhere.
+    bridge_spl_logger(log_path, log_level)
+    return log_path
 
 
 # ── Shared option decorators ───────────────────────────────────────────────────
@@ -150,7 +162,7 @@ def log_options(f):
     )(f)
     f = click.option(
         "--log-level",
-        default="info",
+        default="debug",
         show_default=True,
         type=click.Choice(["debug", "info", "warning", "error"], case_sensitive=False),
         help="Log verbosity level.",
@@ -1138,10 +1150,21 @@ def report_cmd(benchmark_json, fmt, output):
         "If new, patches the existing SPL and appends a new run entry."
     ),
 )
+@click.option(
+    "--output", "-o",
+    default=None,
+    metavar="FILE",
+    help=(
+        "Write updated benchmark JSON to FILE instead of overwriting "
+        "BENCHMARK_JSON in-place.  Useful for keeping the original intact."
+    ),
+)
 @adapter_option
 @provider_option
 @quiet_flag
-def rerun_cmd(benchmark_json, model_id, adapter, provider, quiet):
+@log_options
+def rerun_cmd(benchmark_json, model_id, output, adapter, provider, quiet,
+              log_file, log_level):
     """Re-run or add a single model in a benchmark JSON.
 
     Two modes:
@@ -1159,6 +1182,8 @@ def rerun_cmd(benchmark_json, model_id, adapter, provider, quiet):
       # Add GLM-5 to an existing benchmark without re-running all models
       splflow rerun results/benchmark.json --model z-ai/glm-5 --adapter openrouter
     """
+    _init_logging("rerun", log_file=log_file, adapter=adapter, log_level=log_level)
+
     from src.nodes.benchmark import _run_one, patch_model as _patch_model_node
 
     with open(benchmark_json, encoding="utf-8") as f:
@@ -1241,12 +1266,13 @@ def rerun_cmd(benchmark_json, model_id, adapter, provider, quiet):
         runs.append(new_run)
     data["runs"] = runs
 
-    with open(benchmark_json, "w", encoding="utf-8") as f:
+    dest = output or benchmark_json
+    with open(dest, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
     if not quiet:
         action = "replaced" if existing_idx is not None else "appended"
-        click.echo(f"\n{action.capitalize()} run in: {benchmark_json}", err=True)
+        click.echo(f"\n{action.capitalize()} run in: {dest}", err=True)
 
 
 # ── cost ───────────────────────────────────────────────────────────────────────

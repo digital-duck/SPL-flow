@@ -1,0 +1,1 @@
+List 10 chinese characters that contains water radicals and list their decomposition formula, pinyin, meaning in English, and German

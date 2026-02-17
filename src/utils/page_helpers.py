@@ -11,6 +11,36 @@ sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
 import streamlit as st
 
 
+# ── Logging — one session log file per server process ─────────────────────────
+
+@st.cache_resource
+def _init_streamlit_logging():
+    """Set up logging once per Streamlit server process.
+
+    Writes to logs/streamlit/<timestamp>.log (absolute path, never relative).
+    Both spl_flow.* (orchestration) and spl.* (engine / adapters) are routed
+    to the same file so raw HTTP responses and adapter debug output are visible.
+
+    @st.cache_resource ensures this runs exactly once — Streamlit re-runs the
+    page script on every interaction, but the cached resource persists.
+    """
+    from src.utils.logging_config import (
+        setup_logging, bridge_spl_logger, STREAMLIT_LOG_DIR,
+    )
+    STREAMLIT_LOG_DIR.mkdir(parents=True, exist_ok=True)
+    log_path = setup_logging(
+        "streamlit",
+        log_level="debug",
+        log_dir=STREAMLIT_LOG_DIR,
+    )
+    bridge_spl_logger(log_path, log_level="debug")
+    return str(log_path)
+
+
+# Trigger logging setup as soon as any page imports page_helpers.
+_streamlit_log_path: str = _init_streamlit_logging()
+
+
 # ── RAG store — one ChromaDB client per server process ────────────────────────
 
 @st.cache_resource
@@ -25,10 +55,12 @@ def get_rag_store():
 _PIPELINE_DEFAULTS = {
     "spl_generated": False,
     "spl_query": "",
+    "spl_editor": "",
     "execution_results": [],
     "flow_state": {},
     "executed": False,
     "user_input_saved": "",
+    "saved_spls": [],   # list of {label, query, spl, ts} saved for Benchmark
 }
 
 
@@ -97,10 +129,9 @@ def render_sidebar() -> dict:
 
         notify_email = ""
         if delivery_mode == "async":
-            notify_email = st.text_input(
-                "Notification Email",
-                placeholder="you@example.com",
-                help="Result saved to file; email delivery configured in v0.2",
+            st.caption(
+                "📧 Email will be provided automatically via SSO login (planned for v0.2). "
+                "Result is saved to file in the meantime."
             )
 
         st.divider()
@@ -146,3 +177,51 @@ def render_sidebar() -> dict:
         "cache_enabled": cache_enabled,
         "spl_params": spl_params,
     }
+
+
+# ── Footer ────────────────────────────────────────────────────────────────────
+
+_FOOTER_HTML = """
+<style>
+.splflow-footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: white;
+    border-top: 1px solid #e8e8e8;
+    padding: 8px 0 6px;
+    text-align: center;
+    font-size: 0.78rem;
+    color: #6b6b6b;
+    z-index: 999;
+    line-height: 1.6;
+}
+.splflow-footer a {
+    color: #1a73e8;
+    text-decoration: none;
+}
+.splflow-footer a:hover {
+    text-decoration: underline;
+}
+/* prevent last page element from hiding behind the fixed footer */
+.main .block-container {
+    padding-bottom: 72px;
+}
+</style>
+<div class="splflow-footer">
+  <strong>SPL-Flow</strong> &mdash;
+  <a href="https://github.com/digital-duck/SPL" target="_blank">SPL engine</a> &middot;
+  <a href="https://github.com/The-Pocket/PocketFlow" target="_blank">PocketFlow</a> &middot;
+  Apache 2.0<br>
+  Built with ❤️ by
+  <a href="https://claude.ai/code" target="_blank">Claude</a> and
+  <a href="https://github.com/digital-duck" target="_blank">Digital-Duck</a>
+  &mdash; Human x AI
+</div>
+"""
+
+
+def render_footer() -> None:
+    """Render the fixed SPL-Flow footer on every page."""
+    st.markdown(_FOOTER_HTML, unsafe_allow_html=True)

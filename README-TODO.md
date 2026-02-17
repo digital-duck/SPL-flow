@@ -274,3 +274,35 @@ response body and retries `json.loads()` once. Only raises a clear
 **Use case**: `openrouter/auto` is best for **routing benchmarks** (cheapest adequate model),
 not quality benchmarks. For the prize-papers task it routed to an honest-but-incomplete
 model — which is actually the correct failure mode: better to return less than to hallucinate.
+
+---
+
+## Planned Features
+
+### Google SSO — User Login
+
+**Context**: Sessions and benchmark runs are now persisted to SQLite (`data/splflow.db`).
+The `sessions` table already records `created_at`, `model`, and all metrics.
+Adding per-user identity is a single schema change:
+
+```sql
+ALTER TABLE sessions ADD COLUMN user_id TEXT;
+ALTER TABLE benchmark_runs ADD COLUMN user_id TEXT;
+```
+
+**Approach options**:
+
+| Option | Pros | Cons |
+|--------|------|------|
+| `streamlit-google-oauth` | Drop-in Streamlit component, minimal boilerplate | Less control over token handling |
+| Thin FastAPI auth layer in front of Streamlit | Full control, reusable for future API | More infrastructure |
+
+**Recommended path (v0.2)**:
+1. Add `streamlit-google-oauth` for quick MVP login
+2. Migrate to FastAPI OAuth proxy when multi-tenant isolation is needed
+
+**Impact on existing code**: All pages import `page_helpers.render_sidebar()` —
+user identity can be injected there once and passed down to every `save_session()` /
+`save_benchmark()` call. No page-level changes needed beyond reading `user_id` from sidebar context.
+
+**Status**: 📋 Planned — SQLite schema ready for `user_id` column when SSO is wired up.

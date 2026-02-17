@@ -124,11 +124,17 @@ def run_spl_flow(
 def generate_spl_only(
     user_input: str,
     context_text: str = "",
+    adapter: str = "claude_cli",
 ) -> dict:
     """Run only the Text2SPL + Validate pipeline (no LLM execution).
 
     Used for the preview step — user reviews and optionally edits the
     generated SPL before triggering execution.
+
+    The *adapter* here controls which model IDs appear in the routing
+    table injected into the Text2SPL prompt — it must match the adapter
+    the user intends to use for execution so the generated model names
+    are valid for that adapter.
 
     Returns the shared store with spl_query populated.
     """
@@ -137,6 +143,7 @@ def generate_spl_only(
     shared = {
         "user_input": user_input,
         "context_text": context_text,
+        "adapter": adapter,
         "spl_query": "",
         "spl_ast": None,
         "spl_warnings": [],

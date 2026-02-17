@@ -1,13 +1,17 @@
 """SPL-Flow — Home page (Streamlit UI).
 
 Run:
-    streamlit run src/ui/streamlit/app.py
+    streamlit run src/ui/streamlit/⚡SPL_Flow_App.py
 """
 import sys
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
 
 import streamlit as st
+
+# Initialise logging once for the whole Streamlit server process.
+# page_helpers sets up both spl_flow.* and spl.* → logs/streamlit/<timestamp>.log
+from src.utils.page_helpers import _init_streamlit_logging, _streamlit_log_path, render_footer  # noqa: F401
 
 st.set_page_config(
     page_title="SPL-Flow",
@@ -16,7 +20,7 @@ st.set_page_config(
 )
 
 st.title("⚡ SPL-Flow")
-st.caption("Declarative LLM Orchestration — MVP Prototype")
+st.caption("Declarative LLM Orchestration")
 st.markdown(
     "Translate any natural language query into "
     "[SPL](https://github.com/digital-duck/SPL) (Structured Prompt Language), "
@@ -51,8 +55,10 @@ SPL-Flow is a **Mixture-of-Models (MoM)** orchestration platform that:
         """
 | Step | Page | Action |
 |------|------|--------|
-| 1 | **⚡ Pipeline** | Enter a query → Generate SPL → Review → Execute |
-| 2 | **🗄 RAG Store** | Review captured pairs · Deactivate noise · Delete errors |
+| 1 | **💬 Chat** | Enter a query → Generate SPL → Review → Execute |
+| 2 | **📋 Review** | Browse sessions · SPL & result side by side · Curate RAG pairs |
+| 3 | **📊 Benchmark** | Run one SPL against N models in parallel · Compare tokens, latency, cost |
+| 4 | **⚙️ Settings** | Enable/disable models per adapter · Adapter setup & API keys |
         """
     )
 
@@ -120,10 +126,4 @@ try:
 except Exception as e:
     st.warning(f"RAG Store unavailable: {e}  —  `pip install chromadb`")
 
-# ── Footer ────────────────────────────────────────────────────────────────────
-st.divider()
-st.caption(
-    "**SPL-Flow MVP** — Built on [SPL engine](https://github.com/digital-duck/SPL) "
-    "with [PocketFlow](https://github.com/The-Pocket/PocketFlow) orchestration | "
-    "Apache 2.0 | human×AI"
-)
+render_footer()

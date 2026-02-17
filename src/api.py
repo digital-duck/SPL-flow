@@ -130,6 +130,7 @@ def generate(
     query: str,
     context_text: str = "",
     *,
+    adapter: str = "claude_cli",
     save_to_rag: bool = True,
     user_id: str = "",
 ) -> dict:
@@ -146,6 +147,10 @@ def generate(
     ----------
     query        : free-form natural language query
     context_text : optional reference document injected into the Text2SPL prompt
+    adapter      : execution adapter the user intends to use — controls which
+                   model IDs appear in the routing table ("claude_cli" |
+                   "openrouter" | "ollama").  Text2SPL itself always runs
+                   on claude_cli; this only shapes the generated SPL.
     save_to_rag  : persist the (query, SPL) pair to the RAG store on success
     user_id      : scope the RAG record to a specific user ("" = shared store)
 
@@ -153,9 +158,9 @@ def generate(
     -------
     GenerateResult dict
     """
-    _log.info("api.generate  query_len=%d  context_len=%d  save_to_rag=%s",
-              len(query), len(context_text), save_to_rag)
-    result = generate_spl_only(user_input=query, context_text=context_text)
+    _log.info("api.generate  adapter=%s  query_len=%d  context_len=%d  save_to_rag=%s",
+              adapter, len(query), len(context_text), save_to_rag)
+    result = generate_spl_only(user_input=query, context_text=context_text, adapter=adapter)
     spl = result.get("spl_query", "")
     error = result.get("error", "")
 

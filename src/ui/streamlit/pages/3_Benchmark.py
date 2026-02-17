@@ -28,8 +28,9 @@ st.set_page_config(
 )
 
 from src import api
-from src.utils.page_helpers import render_sidebar
-from src.utils.model_router import ROUTING_TABLE
+from src.db.sqlite_store import save_benchmark
+from src.utils.model_catalog import get_models, get_notes
+from src.utils.page_helpers import render_footer, render_sidebar
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 settings = render_sidebar()
@@ -50,9 +51,12 @@ st.divider()
 # ── Step 1: SPL Input ─────────────────────────────────────────────────────────
 st.subheader("Step 1 — SPL script")
 
+_saved_spls = st.session_state.get("saved_spls", [])
+_mode_options = ["Inline SPL", "Load .spl file", "Load from Chat session"]
+
 input_mode = st.radio(
     "Input mode",
-    ["Inline SPL", "Load .spl file"],
+    _mode_options,
     horizontal=True,
     label_visibility="collapsed",
 )
@@ -72,32 +76,52 @@ if input_mode == "Inline SPL":
         ),
         key="bench_spl_input",
     )
-else:
+
+elif input_mode == "Load .spl file":
     uploaded = st.file_uploader("Upload .spl file", type=["spl", "sql", "txt"])
     if uploaded:
         spl_query = uploaded.read().decode("utf-8")
         st.code(spl_query, language="sql")
+
+else:  # Load from Chat session
+    if not _saved_spls:
+        st.info(
+            "No SPL scripts pinned yet. "
+            "Go to the **💬 Chat** page, generate an SPL, then click **📌 Save to Benchmark**."
+        )
+    else:
+        # Build display labels showing the full query
+        _options = {
+            f"[{e['ts']}]  {e['query'] or e['label']}": e
+            for e in reversed(_saved_spls)
+        }
+        _chosen_label = st.selectbox(
+            "Pick a saved SPL script",
+            options=list(_options.keys()),
+        )
+        _chosen = _options[_chosen_label]
+
+        # Show original query prominently
+        st.markdown(f"**Original query:** {_chosen['query'] or '—'}")
+        st.write("")
+        st.code(_chosen["spl"], language="sql")
+        spl_query = _chosen["spl"]
 
 st.divider()
 
 # ── Step 2: Model selection ───────────────────────────────────────────────────
 st.subheader("Step 2 — Models to benchmark")
 
-# Build suggested model list from ROUTING_TABLE (unique values) + auto
-_suggested: list[str] = ["auto"]
-_seen: set = set()
-for _task_routes in ROUTING_TABLE.values():
-    for _key in ("openrouter", "ollama", "claude_cli"):
-        _m = _task_routes.get(_key, "")
-        if _m and _m not in _seen:
-            _suggested.append(_m)
-            _seen.add(_m)
+# Build Model Zoo from catalog — only stable + experimental models for the
+# current adapter.  Deprecated/blocked models are excluded automatically.
+_catalog_models = get_models(adapter, include_statuses=("stable", "experimental"))
+_suggested: list[str] = ["auto"] + list(_catalog_models.keys())
 
 col_select, col_custom = st.columns([3, 2])
 
 with col_select:
     selected_models = st.multiselect(
-        "Select from Model Zoo",
+        f"Select from Model Zoo  _(showing **{adapter}** models only)_",
         options=_suggested,
         default=["auto"],
         help=(
@@ -122,6 +146,13 @@ if model_list:
     st.caption(f"Will run **{len(model_list)}** model(s): " + " · ".join(
         f"`{m}`" for m in model_list
     ))
+    # Warn about experimental models and surface known-issue notes
+    for _m in model_list:
+        _info = _catalog_models.get(_m, {})
+        _status = _info.get("status", "")
+        _notes  = _info.get("notes", "") or get_notes(adapter, _m)
+        if _status == "experimental" and _notes:
+            st.warning(f"⚠️ **{_m}** (experimental) — {_notes}")
 
 st.divider()
 
@@ -129,7 +160,6 @@ st.divider()
 run_clicked = st.button(
     f"Run Benchmark ({len(model_list)} model{'s' if len(model_list) != 1 else ''} in parallel)",
     type="primary",
-    disabled=not (spl_query or "").strip(),
     use_container_width=True,
 )
 
@@ -152,6 +182,17 @@ if run_clicked:
             )
         st.session_state["bench_result"] = bench_result
         st.session_state["bench_winner"] = None
+        if not bench_result.get("error") and bench_result.get("runs"):
+            try:
+                save_benchmark(
+                    benchmark_name = bench_result.get("benchmark_name", ""),
+                    spl_query      = spl_query.strip(),
+                    adapter        = adapter,
+                    runs           = bench_result.get("runs", []),
+                )
+                st.toast("Benchmark saved to database ✓", icon="💾")
+            except Exception:
+                pass  # never break the UI on a DB write failure
 
 # ── Results ───────────────────────────────────────────────────────────────────
 if "bench_result" in st.session_state and st.session_state["bench_result"]:
@@ -288,11 +329,4 @@ if "bench_result" in st.session_state and st.session_state["bench_result"]:
             "to personalise `USING MODEL auto` for your domain."
         )
 
-# ── Footer ────────────────────────────────────────────────────────────────────
-st.divider()
-st.caption(
-    "**SPL-Flow MVP** — "
-    "[SPL engine](https://github.com/digital-duck/SPL) · "
-    "[PocketFlow](https://github.com/The-Pocket/PocketFlow) · "
-    "Apache 2.0 · human×AI"
-)
+render_footer()

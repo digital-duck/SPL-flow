@@ -26,6 +26,9 @@ _OWNED_KEYS = frozenset(
     {"spl_query", "source", "adapter", "spl_warnings", "timestamp", "user_id", "active"}
 )
 
+# Project root = src/rag/../../  →  SPL-flow/
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+
 
 class ChromaStore(VectorStore):
     """Persistent ChromaDB-backed store.
@@ -40,7 +43,7 @@ class ChromaStore(VectorStore):
         personalisation:  ChromaStore(collection_name=f"spl_rag_{user_id}")
     """
 
-    DEFAULT_PERSIST_DIR = "./data/rag"
+    DEFAULT_PERSIST_DIR = str(_PROJECT_ROOT / "data" / "rag")
     DEFAULT_COLLECTION = "spl_rag"
 
     def __init__(

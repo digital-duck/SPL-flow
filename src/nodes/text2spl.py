@@ -25,6 +25,7 @@ class Text2SPLNode(Node):
             "context_text": shared.get("context_text", ""),
             "error": shared.get("last_parse_error", ""),
             "retry_count": shared.get("retry_count", 0),
+            "adapter": shared.get("adapter", "openrouter"),
         }
 
     def exec(self, prep_res):
@@ -53,15 +54,16 @@ class Text2SPLNode(Node):
         except Exception:
             _log.debug("RAG retrieval unavailable — using static examples only")
 
-        adapter = get_adapter("claude_cli")
+        cli_adapter = get_adapter("claude_cli")
         prompt = get_text2spl_prompt(
             prep_res["user_input"],
             prep_res["context_text"],
             prep_res["error"],
             retrieved_examples=retrieved_examples,
+            adapter=prep_res["adapter"],
         )
         _log.debug("Text2SPL prompt length: %d chars", len(prompt))
-        result = asyncio.run(adapter.generate(
+        result = asyncio.run(cli_adapter.generate(
             prompt=prompt,
             model="",
             max_tokens=2000,

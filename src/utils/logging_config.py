@@ -11,9 +11,9 @@ Logger hierarchy (mirrors the spl-llm package pattern):
     ├── spl_flow.nodes.benchmark benchmark run + per-model results
     └── spl_flow.flows          flow-level entry / exit
 
-Note: the spl-llm package emits its own logs under the "spl" and "spl.executor"
-hierarchy (CTE dispatch, LLM calls, response text). SPL-flow does NOT duplicate
-those — it logs at the orchestration / flow layer only.
+The spl-llm package emits its own logs under the "spl" and "spl.executor"
+hierarchy (adapter-level HTTP, token counts, raw responses).  Call
+bridge_spl_logger() after setup_logging() to route those into the same file.
 
 Usage
 -----
@@ -22,17 +22,18 @@ In each module declare the module-level logger once:
     from src.utils.logging_config import get_logger
     _log = get_logger("nodes.text2spl")   # → spl_flow.nodes.text2spl
 
-Setup (call once per process — CLI entry point or API function):
+Setup (call once per process — CLI entry point or Streamlit app startup):
 
-    from src.utils.logging_config import setup_logging
-    log_path = setup_logging("run", adapter="openrouter", log_level="info")
+    from src.utils.logging_config import setup_logging, bridge_spl_logger
+    log_path = setup_logging("run", adapter="openrouter", log_level="debug")
+    bridge_spl_logger(log_path)   # also capture spl.adapters.* logs
 
 Log file naming:
-    logs/<run_name>-<adapter>-<YYYYMMDD-HHMMSS>.log
+    logs/<run_name>[-<adapter>]-<YYYYMMDD-HHMMSS>.log
     e.g.  logs/run-openrouter-20260215-143022.log
-          logs/benchmark-claude_cli-20260215-144500.log
-          logs/generate-20260215-145001.log
+          logs/streamlit/streamlit-20260216-170000.log
 """
+import logging
 from pathlib import Path
 
 from dd_logging import (
@@ -40,9 +41,11 @@ from dd_logging import (
     get_logger as _get,
     setup_logging as _setup,
 )
+from dd_logging.core import FORMATTER, LOG_LEVELS
 
-_ROOT   = "spl_flow"
-LOG_DIR = Path(__file__).resolve().parent.parent.parent / "logs"
+_ROOT            = "spl_flow"
+LOG_DIR          = Path(__file__).resolve().parent.parent.parent / "logs"
+STREAMLIT_LOG_DIR = LOG_DIR / "streamlit"
 
 
 def get_logger(name: str):
@@ -97,3 +100,32 @@ def setup_logging(
 def disable_logging() -> None:
     """Remove all handlers from the spl_flow root logger (no-op log mode)."""
     _disable(_ROOT)
+
+
+def bridge_spl_logger(log_path: Path, log_level: str = "debug") -> None:
+    """Route the spl.* logger hierarchy (SPL engine + adapters) to *log_path*.
+
+    setup_logging() configures spl_flow.* only.  The SPL engine and its
+    adapters (openrouter, ollama, …) log under spl.* — a separate hierarchy
+    that would otherwise go nowhere.  Call this once after setup_logging() to
+    direct both trees into the same timestamped file.
+
+    Safe to call multiple times — stale FileHandlers are removed before the
+    new one is attached.
+
+    Parameters
+    ----------
+    log_path  : absolute path returned by setup_logging()
+    log_level : ``"debug"`` (default) | ``"info"`` | ``"warning"`` | ``"error"``
+    """
+    level = LOG_LEVELS.get(log_level.lower(), logging.DEBUG)
+    spl_root = logging.getLogger("spl")
+    spl_root.handlers = [
+        h for h in spl_root.handlers if not isinstance(h, logging.FileHandler)
+    ]
+    fh = logging.FileHandler(log_path, encoding="utf-8")
+    fh.setLevel(level)
+    fh.setFormatter(FORMATTER)
+    spl_root.addHandler(fh)
+    spl_root.setLevel(logging.DEBUG)
+    spl_root.propagate = False
