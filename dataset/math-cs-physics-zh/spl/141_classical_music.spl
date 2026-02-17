@@ -1,0 +1,10 @@
+PROMPT sonata_form_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a music theory expert and classical music scholar specializing in musical forms, harmonic analysis, and the structural principles of Classical and Romantic period compositions.")
+
+GENERATE
+    analyze_sonata_form("Explain sonata form comprehensively, covering: what sonata form is and its importance as the most significant musical structure in classical music from the Classical period onward, the three main sections starting with the Exposition which presents the main thematic material including the primary theme in the home key, a transition or bridge passage that modulates to a contrasting key, the secondary theme in the new key (typically the dominant for major keys or relative major for minor keys), and often a closing theme or codetta, the Development section which takes the themes from the exposition and subjects them to various techniques including fragmentation, sequence, modulation through multiple keys, motivic development, contrapuntal treatment, and harmonic exploration, creating tension and instability as it moves away from the home key, and the Recapitulation which restates the exposition material but with crucial modifications, presenting the primary theme in the home key, the transition rewritten to remain in the home key rather than modulate, the secondary theme now transposed to the home key to provide harmonic closure, and often concluding with a coda that reinforces the tonic, the harmonic and structural principles that govern each section including tonal relationships, thematic development techniques, and how composers create musical drama through departure from and return to the home key.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,0 +1,10 @@
+PROMPT godels_first_incompleteness_theorem
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a mathematical logic expert specializing in formal systems and Gödel's incompleteness theorems with deep knowledge of their precise formulations and profound implications for mathematics and logic.")
+
+GENERATE
+    analyze_theorem("Explain Gödel's first incompleteness theorem in plain terms, covering: the precise statement that any consistent formal system that is powerful enough to express basic arithmetic contains true statements that cannot be proven within that system, what 'consistent' means (the system cannot prove both a statement and its negation), what 'complete' means (every true statement in the system can be proven), how Gödel constructed a mathematical statement that essentially says 'this statement cannot be proven in this system', why this creates a logical paradox - if the statement is false then it can be proven (making it true), but if it's true then it cannot be proven (making the system incomplete), the revolutionary implication that mathematics contains inherent limitations and there will always be true statements that lie beyond the reach of formal proof, how this shattered Hilbert's program to find a complete and consistent foundation for all of mathematics, what this means for the nature of mathematical truth versus mathematical provability, and why this is considered one of the most profound results in the history of mathematics and logic.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,0 +1,10 @@
+PROMPT stefan_boltzmann_law_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in thermodynamics and statistical mechanics with deep knowledge of blackbody radiation and the mathematical foundations of thermal emission.")
+
+GENERATE
+    analyze_law("Explain the Stefan-Boltzmann law in detail, covering: the complete mathematical formulation j = σT⁴ where j is the energy flux density, σ is the Stefan-Boltzmann constant (5.67×10⁻⁸ W m⁻² K⁻⁴), and T is absolute temperature, what physical phenomenon this law describes (the total power radiated by a blackbody per unit area), the physical meaning of the fourth power temperature dependence and why it's so dramatic, how this law emerges from Planck's blackbody radiation formula through integration over all frequencies, the connection to thermodynamics and the concept of a perfect blackbody absorber and emitter, practical applications including stellar luminosity calculations and thermal engineering, how real objects deviate from ideal blackbodies through emissivity factors, and the fundamental importance of this law for understanding thermal radiation, stellar physics, and the quantum origins of classical thermodynamic behavior.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

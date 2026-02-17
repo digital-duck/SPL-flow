@@ -1,0 +1,10 @@
+PROMPT derivative_limit_definition
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a mathematical analysis expert specializing in calculus and real analysis with deep knowledge of the precise limit definition of derivatives and differential calculus.")
+
+GENERATE
+    analyze_definition("State the precise limit definition of a derivative and explain its mathematical meaning, covering: the complete mathematical formulation f'(x) = lim(h→0) [f(x+h) - f(x)]/h, what each component represents including f'(x) as the derivative of f at point x, h as an infinitesimal change in the input variable, f(x+h) - f(x) as the change in function value over the interval, and the ratio [f(x+h) - f(x)]/h as the average rate of change over that interval, how the limit as h approaches 0 captures the instantaneous rate of change at the exact point x, the geometric interpretation as the slope of the tangent line to the curve y = f(x) at the point (x, f(x)), why we use h→0 rather than h=0 to avoid division by zero while capturing the behavior arbitrarily close to the point, the relationship between this definition and the concept of linear approximation, how this limit definition provides the foundation for all differential calculus including the power rule, product rule, and chain rule, alternative notations including dy/dx and Df(x), and the fundamental significance of this definition in connecting the algebraic concept of limits with the geometric concept of tangent lines.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

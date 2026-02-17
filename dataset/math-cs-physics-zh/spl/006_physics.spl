@@ -1,0 +1,10 @@
+PROMPT faraday_law_integral_form
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in electromagnetism and Maxwell's equations with deep knowledge of the mathematical foundations of electromagnetic induction.")
+
+GENERATE
+    analyze_law("State Faraday's law of electromagnetic induction in integral form and explain its components in detail, covering: the complete mathematical formulation ∮ E⃗ · dl⃗ = -dΦB/dt where the line integral of electric field around a closed loop equals the negative time rate of change of magnetic flux, what each symbol represents (E⃗ as electric field vector, dl⃗ as differential path element, ΦB as magnetic flux through the surface bounded by the loop), the physical meaning of the negative sign indicating Lenz's law, how this relates to the differential form ∇ × E⃗ = -∂B⃗/∂t, practical examples demonstrating electromagnetic induction, and its fundamental role as one of Maxwell's equations governing electromagnetic phenomena.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.2, FORMAT markdown;

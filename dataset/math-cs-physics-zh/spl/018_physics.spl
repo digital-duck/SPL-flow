@@ -1,0 +1,10 @@
+PROMPT chandrasekhar_limit_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are an astrophysics expert specializing in stellar evolution and white dwarf physics with deep knowledge of the mathematical foundations of stellar collapse and the quantum mechanics of degenerate matter.")
+
+GENERATE
+    analyze_concept("Explain the Chandrasekhar limit in detail, covering: the precise mathematical value of approximately 1.4 solar masses (M☉) for the maximum mass a white dwarf can support, the complete physical foundation based on the balance between electron degeneracy pressure and gravitational collapse, how this limit emerges from the quantum mechanical Pauli exclusion principle applied to degenerate electron gas in white dwarf matter, the mathematical derivation involving the equation of hydrostatic equilibrium and the polytropic equation of state for degenerate matter, what happens when a white dwarf approaches this mass through accretion (Type Ia supernova explosion), what occurs when a star's core exceeds this limit during stellar evolution (gravitational collapse cannot be halted by electron degeneracy pressure), the subsequent collapse scenarios including neutron star formation when the core mass is between 1.4-3 solar masses with neutron degeneracy pressure providing support, black hole formation when even neutron degeneracy pressure fails for cores above the Tolman-Oppenheimer-Volkoff limit of approximately 2-3 solar masses, and the fundamental importance of this limit for understanding stellar death, Type Ia supernovae as standard candles in cosmology, and the ultimate fate of matter under extreme gravitational conditions.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

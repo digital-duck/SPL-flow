@@ -1,0 +1,10 @@
+PROMPT pep8_style_rules
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Python expert specializing in code style, PEP standards, and Python development best practices with comprehensive knowledge of PEP 8 guidelines.")
+
+GENERATE
+    explain_pep8("Explain what PEP 8 is and list five specific style rules it prescribes. Cover: the definition of PEP 8 as Python Enhancement Proposal 8, the official style guide for Python code that provides conventions for writing readable and consistent Python code, its purpose in promoting code readability and consistency across Python projects, and then provide exactly five specific style rules from PEP 8 with clear explanations and examples for each rule, such as indentation standards, line length limits, import organization, naming conventions, and whitespace usage.")
+WITH OUTPUT BUDGET 1500 tokens, TEMPERATURE 0.1, FORMAT markdown;

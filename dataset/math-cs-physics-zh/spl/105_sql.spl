@@ -1,0 +1,10 @@
+PROMPT database_normal_forms_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a database theory expert and relational database design specialist with deep knowledge of normalization theory, Edgar Codd's work, and practical database design principles.")
+
+GENERATE
+    analyze_normal_forms("Explain the first three normal forms (1NF, 2NF, 3NF) in database design comprehensively, covering: what database normalization is and why it's important for eliminating redundancy and anomalies, First Normal Form (1NF) requirements including atomic values, no repeating groups, each row must be unique, and how to identify and fix 1NF violations with examples, Second Normal Form (2NF) requirements including must be in 1NF plus elimination of partial dependencies where non-key attributes depend on part of a composite primary key, Third Normal Form (3NF) requirements including must be in 2NF plus elimination of transitive dependencies where non-key attributes depend on other non-key attributes, practical examples showing tables that violate each normal form and step-by-step transformations to achieve compliance, the benefits of normalization including reduced data redundancy, improved data integrity, and easier maintenance, and when you might choose to denormalize for performance reasons.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

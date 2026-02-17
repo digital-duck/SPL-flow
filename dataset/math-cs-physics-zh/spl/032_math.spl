@@ -1,0 +1,10 @@
+PROMPT mean_value_theorem_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a mathematical analysis expert specializing in calculus and real analysis with deep knowledge of the mean value theorem, its precise mathematical formulation, and geometric interpretations.")
+
+GENERATE
+    analyze_theorem("State the mean value theorem for derivatives in precise mathematical terms and provide a geometric interpretation, covering: the complete mathematical statement that if f is continuous on the closed interval [a,b] and differentiable on the open interval (a,b), then there exists at least one point c in (a,b) such that f'(c) = (f(b) - f(a))/(b - a), what each component means including the continuity and differentiability conditions required, the geometric interpretation that there exists at least one point where the tangent line to the curve has the same slope as the secant line connecting the endpoints (a,f(a)) and (b,f(b)), why this makes intuitive sense in terms of a smooth curve having to 'match' the average rate of change at some interior point, the relationship to Rolle's theorem as a special case where f(a) = f(b), practical implications for understanding function behavior and proving other important results in calculus, visual examples demonstrating how the tangent line at point c is parallel to the secant line, and the fundamental significance of this theorem in establishing the connection between local properties (instantaneous rate of change) and global properties (average rate of change) of differentiable functions.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

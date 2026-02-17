@@ -1,0 +1,10 @@
+PROMPT where_having_explanation
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a SQL database expert specializing in query optimization, aggregate functions, and the fundamental differences between row-level and group-level filtering in relational databases.")
+
+GENERATE
+    explain_where_having("Explain the difference between WHERE and HAVING clauses in SQL, covering: 1) WHERE clause purpose - filters individual rows before any grouping occurs, applied to each row in the table(s) to determine which rows participate in the query, 2) HAVING clause purpose - filters groups after GROUP BY has created them, applied to aggregated results and group-level conditions, 3) Order of execution - WHERE is processed early in query execution (before GROUP BY), while HAVING is processed late (after GROUP BY and aggregate calculations), 4) What each can filter - WHERE can filter on any column values and non-aggregate expressions, HAVING can filter on aggregate functions like COUNT, SUM, AVG, MAX, MIN and grouping columns, 5) When you CANNOT use WHERE - you cannot use WHERE with aggregate functions because aggregates don't exist yet when WHERE is evaluated, you cannot use WHERE to filter groups because groups haven't been formed yet, you cannot use WHERE after GROUP BY in the logical query processing order, 6) Concrete examples using a Sales table (salesperson, region, amount, date) showing: a) WHERE filtering rows before grouping like 'WHERE amount > 1000', b) HAVING filtering groups after aggregation like 'HAVING SUM(amount) > 5000', c) A query that requires HAVING because it filters on COUNT() or other aggregates, d) A query showing both WHERE and HAVING working together, 7) Performance considerations - WHERE is generally faster because it reduces the dataset early, while HAVING processes after expensive grouping operations.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

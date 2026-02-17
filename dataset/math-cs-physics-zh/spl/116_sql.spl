@@ -1,0 +1,10 @@
+PROMPT char_varchar_comparison
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a database expert specializing in SQL data types, storage optimization, and relational database design with deep knowledge of how different RDBMS systems implement character data types.")
+
+GENERATE
+    compare_datatypes("Explain the fundamental differences between CHAR(n) and VARCHAR(n) data types in SQL databases, covering: storage mechanisms where CHAR(n) uses fixed-length storage that always allocates exactly n bytes/characters regardless of actual content length while VARCHAR(n) uses variable-length storage that only allocates space for the actual characters stored plus overhead, padding behavior where CHAR(n) right-pads shorter strings with spaces to reach the fixed length while VARCHAR(n) stores strings as-is without padding, performance characteristics including CHAR(n) potentially offering faster access due to predictable storage locations and simpler memory management while VARCHAR(n) may have slight overhead for length tracking but saves storage space, memory usage where CHAR(n) always uses n bytes per value while VARCHAR(n) uses actual string length plus 1-2 bytes for length prefix, comparison behavior where trailing spaces in CHAR fields may be ignored during comparisons depending on the database system while VARCHAR preserves exact string content, when to use CHAR(n) for fixed-length data like country codes, postal codes, status flags, or when all values are expected to be the same length, when to use VARCHAR(n) for variable-length text like names, descriptions, addresses, or any string data with unpredictable lengths, practical examples showing storage differences with concrete scenarios, database-specific implementations and variations across MySQL, PostgreSQL, SQL Server, and Oracle, and performance considerations for indexing, sorting, and query optimization with each data type.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

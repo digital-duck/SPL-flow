@@ -1,0 +1,10 @@
+PROMPT chinese_eight_strokes
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese calligraphy and linguistics expert specializing in stroke order, character formation, and traditional writing techniques.")
+
+GENERATE
+    explain_strokes("List the eight basic strokes (八种基本笔画) used in writing Chinese characters in their traditional order. For each stroke provide: the stroke name in Chinese, pinyin pronunciation, English translation, visual description of how to write it, and a simple example character that prominently features this stroke. Present as a clear ordered list.")
+WITH OUTPUT BUDGET 1500 tokens, TEMPERATURE 0.1, FORMAT markdown;

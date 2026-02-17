@@ -1,0 +1,10 @@
+PROMPT taylors_theorem_lagrange_remainder
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a mathematical analysis expert specializing in real analysis and Taylor series with deep knowledge of Taylor's theorem, remainder terms, and their precise mathematical formulations.")
+
+GENERATE
+    analyze_theorem("State Taylor's theorem with the Lagrange remainder term in precise mathematical terms, covering: the complete statement that if f is (n+1) times differentiable on an interval containing a and x, then f(x) = f(a) + f'(a)(x-a) + f''(a)(x-a)²/2! + ... + f^(n)(a)(x-a)^n/n! + R_n(x) where R_n(x) = f^(n+1)(ξ)(x-a)^(n+1)/(n+1)! for some ξ between a and x, what each term represents including the Taylor polynomial of degree n centered at a, the Lagrange remainder term R_n(x) which captures the error between f(x) and its nth degree Taylor approximation, the role of the intermediate point ξ which depends on both x and n but whose exact location is generally unknown, the conditions required for the theorem to hold including the differentiability requirements, how this generalizes the mean value theorem (which is the n=0 case), the geometric interpretation of how the Taylor polynomial approximates the function with the remainder quantifying the approximation error, why the Lagrange form is particularly useful for error estimation in numerical analysis, comparison with other remainder forms like the integral remainder, and the fundamental significance of this theorem in establishing rigorous foundations for Taylor series expansions and polynomial approximations of functions.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

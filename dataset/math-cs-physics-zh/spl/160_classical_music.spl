@@ -1,0 +1,10 @@
+PROMPT twelve_tone_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a music theory and 20th century composition expert specializing in twelve-tone technique, serialism, and the Second Viennese School with deep knowledge of Arnold Schoenberg's compositional innovations.")
+
+GENERATE
+    explain_technique("Explain what a tone row is in twelve-tone (dodecaphonic) music and which composer developed the technique, covering: the definition of a tone row as an ordered sequence of all twelve chromatic pitches used exactly once without repetition, serving as the basic structural unit in twelve-tone composition, the identification of Arnold Schoenberg (1874-1951) as the composer who developed this technique around 1920-1923 as part of his method of composition with twelve tones which are related only with one another, the historical context of Schoenberg's development of twelve-tone technique as a systematic approach to atonal composition following his earlier free atonal period, how the tone row functions as the source material for an entire composition with four basic forms: the original row (P for prime), its retrograde (R), its inversion (I), and the retrograde inversion (RI), each of which can be transposed to any of the twelve chromatic levels creating a total of 48 possible row forms, the compositional principle that no pitch should be repeated until all twelve have been stated, the influence on Schoenberg's students Alban Berg and Anton Webern who became part of the Second Viennese School, examples of twelve-tone works including Schoenberg's Piano Suite Op. 25 (1921-1923) which was among his first complete twelve-tone compositions, and how this technique influenced later developments in serialism by composers like Pierre Boulez and Milton Babbitt who extended serial principles to other musical parameters.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,4 +1,7 @@
 pocketflow
+# PicoFlow — hardened evolution of PocketFlow (typed store, hooks, checkpointing)
+# For local dev: pip install -e /home/papagame/projects/digital-duck/picoflow
+picoflow
 streamlit>=1.32
 click>=8.0
 httpx>=0.25

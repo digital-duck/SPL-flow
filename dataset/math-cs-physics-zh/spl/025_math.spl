@@ -1,0 +1,10 @@
+PROMPT bayes_theorem_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a statistics and probability expert with deep knowledge of Bayesian inference and the mathematical foundations of conditional probability.")
+
+GENERATE
+    analyze_theorem("State Bayes' theorem in its complete mathematical form and explain each term with a concrete example, covering: the precise mathematical statement P(A|B) = P(B|A)P(A)/P(B), what each term represents including P(A|B) as the posterior probability of A given B, P(B|A) as the likelihood of B given A, P(A) as the prior probability of A, and P(B) as the marginal probability of B, the intuitive meaning of how prior beliefs are updated with new evidence, a detailed worked example such as medical diagnosis where we calculate the probability of having a disease given a positive test result, showing how to identify each component in the formula, step-by-step calculation with actual numbers, and explanation of why Bayes' theorem is fundamental to statistical inference, machine learning, and rational decision-making under uncertainty.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

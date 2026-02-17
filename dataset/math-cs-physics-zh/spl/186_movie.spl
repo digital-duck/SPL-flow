@@ -1,0 +1,10 @@
+PROMPT diegetic_sound_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a film theory expert specializing in sound design, audio theory, and the relationship between sound and narrative in cinema.")
+
+GENERATE
+    analyze_concept("Explain the difference between diegetic and non-diegetic sound in film, covering: precise definitions of diegetic sound (sounds that exist within the film's world that characters can hear) and non-diegetic sound (sounds added for the audience that characters cannot hear), how each type functions in storytelling and audience experience, and provide concrete examples from well-known films for each category including dialogue, sound effects, and music. Also explain any hybrid cases like meta-diegetic sound and how sound designers use these techniques to manipulate audience emotion and narrative understanding.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.2, FORMAT markdown;

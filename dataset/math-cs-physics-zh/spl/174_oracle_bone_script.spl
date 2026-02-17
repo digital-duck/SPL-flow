@@ -1,0 +1,10 @@
+PROMPT zhenren_oracle_bone_context
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese paleography and Shang dynasty religious practices expert specializing in oracle bone divination terminology, the roles of divination specialists in ancient Chinese court rituals, and the social hierarchy of Shang dynasty religious practitioners.")
+
+GENERATE
+    explain_zhenren("Explain what a 贞人 (zhēnrén) is in the context of oracle bone divination. Cover: 1) The literal meaning and etymology of 贞人 as 'divination person' or 'diviner' and how this term appears in oracle bone inscriptions, 2) The specific role and responsibilities of zhēnrén as professional diviners who conducted oracle bone divination ceremonies for the Shang royal court, 3) The divination process they performed including preparing turtle shells and ox scapulae, carving questions, applying heat to create cracks, and interpreting the crack patterns, 4) Their position in the Shang dynasty court hierarchy and their relationship to the king and royal family, 5) How zhēnrén names appear in oracle bone inscriptions and what this reveals about their individual identities and specializations, 6) The training and qualifications required to become a zhēnrén and how this knowledge was transmitted, 7) Different types or ranks of diviners and how zhēnrén fit into the broader category of Shang religious specialists, 8) Examples of specific zhēnrén mentioned by name in oracle bone inscriptions and what we know about their careers and activities, 9) The relationship between zhēnrén and other religious specialists such as priests and shamans in Shang society, 10) How the role of zhēnrén evolved or changed during different periods of the Shang dynasty, 11) The social status and privileges accorded to zhēnrén as specialists in communicating with ancestors and deities, 12) Archaeological evidence for zhēnrén activities including divination workshops, bone preparation areas, and specialized tools found at Yinxu.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.1, FORMAT markdown;

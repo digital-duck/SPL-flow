@@ -1,0 +1,10 @@
+PROMPT transaction_bank_example
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a database systems expert with extensive knowledge of transaction processing, ACID properties, and financial database operations.")
+
+GENERATE
+    explain_transactions("Explain database transactions comprehensively, covering: the definition of a transaction as a logical unit of work that consists of one or more database operations that must be executed as a single, indivisible unit, ensuring data integrity and consistency, the fundamental properties that transactions provide including atomicity (all operations succeed or all fail), consistency (database remains in valid state), isolation (concurrent transactions don't interfere), and durability (committed changes persist), detailed explanation of COMMIT operation which permanently saves all changes made during the transaction to the database, making them visible to other transactions and ensuring durability, detailed explanation of ROLLBACK operation which undoes all changes made during the transaction, returning the database to its state before the transaction began, and a concrete bank transfer example demonstrating these concepts: consider transferring $500 from Alice's account (balance $1000) to Bob's account (balance $300), the transaction would include: BEGIN TRANSACTION, UPDATE accounts SET balance = balance - 500 WHERE account_id = 'Alice', UPDATE accounts SET balance = balance + 500 WHERE account_id = 'Bob', then either COMMIT (if both updates succeed, making Alice's balance $500 and Bob's balance $800 permanently) or ROLLBACK (if any operation fails, both accounts return to original balances of $1000 and $300), why this transaction approach prevents scenarios like Alice losing $500 without Bob receiving it, or the system crashing mid-transfer leaving accounts in inconsistent state, and how database management systems implement these operations using techniques like write-ahead logging and two-phase commit protocols.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

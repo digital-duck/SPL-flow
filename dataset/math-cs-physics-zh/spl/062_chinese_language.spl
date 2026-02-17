@@ -1,0 +1,10 @@
+PROMPT chinese_de_particles_explanation
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in grammar particles, syntax, and pedagogical explanations for Chinese language learners.")
+
+GENERATE
+    explain_particles("Explain the difference between the three Chinese particles 的 (de), 地 (de), and 得 (de), covering: 1) 的 - used for possession and noun modification (之字结构), 2) 地 - used before verbs as an adverbial marker (白字结构), 3) 得 - used after verbs to indicate degree or result (土字结构). For each particle, provide the grammatical function, usage rules, and 3 concrete example sentences with English translations. Structure the explanation clearly with sections for each particle and highlight the key differences in usage patterns.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

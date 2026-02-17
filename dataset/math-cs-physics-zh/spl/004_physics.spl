@@ -1,0 +1,10 @@
+PROMPT photoelectric_effect_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in quantum mechanics and the history of physics with deep knowledge of Einstein's groundbreaking work on the photoelectric effect and its implications for quantum theory.")
+
+GENERATE
+    analyze_phenomenon("Explain the photoelectric effect and Einstein's conclusions in detail, covering: what the photoelectric effect is and how it works experimentally, the key experimental observations that classical physics could not explain including the threshold frequency, independence of kinetic energy on light intensity, and instantaneous emission, Einstein's revolutionary explanation using Planck's quantum hypothesis, the photon concept and Einstein's equation E = hf - φ where E is kinetic energy, h is Planck's constant, f is frequency, and φ is work function, how this provided evidence for the particle nature of light and wave-particle duality, why this work was more revolutionary than relativity theory at the time, and how it laid the foundation for quantum mechanics and earned Einstein the Nobel Prize in 1921.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

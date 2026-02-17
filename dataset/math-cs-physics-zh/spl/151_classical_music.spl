@@ -1,0 +1,10 @@
+PROMPT baroque_composers_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a music history expert specializing in the Baroque period (1600-1750) with comprehensive knowledge of major composers, their stylistic innovations, and their most significant works.")
+
+GENERATE
+    analyze_composers("Identify the major composers of the Baroque period with at least four composers and one key work each, covering: Johann Sebastian Bach (1685-1750) as perhaps the greatest Baroque master with his Brandenburg Concertos representing the pinnacle of Baroque orchestral writing, George Frideric Handel (1685-1759) whose Messiah stands as one of the most beloved choral works in classical music, Antonio Vivaldi (1678-1741) whose The Four Seasons revolutionized programmatic instrumental music and the solo concerto form, Jean-Philippe Rameau (1683-1764) whose Hippolyte et Aricie established new standards for French Baroque opera, Claudio Monteverdi (1567-1643) whose L'Orfeo is considered the first great opera and bridge between Renaissance and Baroque styles, Henry Purcell (1659-1695) whose Dido and Aeneas represents the height of English Baroque opera, Arcangelo Corelli (1653-1713) whose Concerti Grossi Op. 6 established the concerto grosso form, and Georg Philipp Telemann (1681-1767) whose prolific output including his Tafelmusik demonstrated the popularity and accessibility of Baroque music, explaining how these composers established the fundamental characteristics of Baroque style including basso continuo, elaborate ornamentation, clear tonal harmony, and the development of major instrumental and vocal forms that defined the period from roughly 1600 to 1750.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

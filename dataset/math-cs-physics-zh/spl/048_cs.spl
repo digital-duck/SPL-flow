@@ -1,0 +1,10 @@
+PROMPT hash_collision_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a computer science expert specializing in data structures, algorithms, and hash table implementations with deep knowledge of collision resolution techniques.")
+
+GENERATE
+    analyze_collisions("Explain hash collisions comprehensively, covering: the precise definition of a hash collision as when two different keys produce the same hash value when processed by a hash function, why collisions are inevitable due to the pigeonhole principle (infinite possible keys mapping to finite hash table slots), the mathematical concept that even with good hash functions, collisions become likely as the hash table fills up, two primary collision resolution strategies including Chaining (also called separate chaining) where each hash table slot contains a linked list, array, or other data structure to store multiple key-value pairs that hash to the same location, with detailed explanation of how insertion, lookup, and deletion work in chained hash tables, analysis of time complexity (average O(1) but worst-case O(n) if all keys hash to same slot), and the second strategy of Open Addressing where all elements are stored directly in the hash table array and collisions are resolved by probing for alternative locations using methods like linear probing (checking consecutive slots), quadratic probing (using quadratic increments), and double hashing (using a second hash function), with explanation of how insertion finds the next available slot, how lookup follows the same probe sequence, how deletion requires careful handling to maintain probe sequences, comparison of the trade-offs between chaining and open addressing including memory usage, cache performance, and handling of high load factors.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

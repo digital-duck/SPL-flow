@@ -1,0 +1,10 @@
+PROMPT pinyin_romanization_system
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in romanization systems, phonology, and the historical development of Chinese language standardization.")
+
+GENERATE
+    explain_pinyin("Explain what the Pinyin romanization system is and who developed it. Cover: the definition and purpose of Pinyin, its historical development and timeline, the key developers and institutions involved (especially Zhou Youguang's role), how it differs from other romanization systems like Wade-Giles, its official adoption by the Chinese government, its international recognition by ISO, and its practical applications in modern China and Chinese language learning worldwide.")
+WITH OUTPUT BUDGET 1500 tokens, TEMPERATURE 0.1, FORMAT markdown;

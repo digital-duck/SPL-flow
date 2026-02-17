@@ -1,0 +1,10 @@
+PROMPT staticmethod_classmethod_comparison
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Python expert specializing in object-oriented programming, decorators, and class design patterns with deep knowledge of method types and their appropriate usage.")
+
+GENERATE
+    compare_decorators("Explain the fundamental differences between @staticmethod and @classmethod decorators in Python, covering: the definition of @staticmethod as a decorator that creates a method that doesn't receive any automatic first argument (no self or cls), behaving like a regular function but belonging to the class namespace, versus @classmethod as a decorator that creates a method that receives the class as the first argument (cls) instead of the instance, key differences in method signatures where static methods take no implicit arguments while class methods automatically receive cls as the first parameter, access patterns showing that static methods cannot access instance or class variables directly while class methods can access class variables and other class methods through the cls parameter, inheritance behavior where static methods remain unchanged in subclasses while class methods receive the actual subclass as cls when called on subclasses, practical use cases including static methods for utility functions that are logically related to the class but don't need class or instance data, versus class methods for alternative constructors, factory methods, or operations that need to work with class attributes, concrete examples showing a Person class with a static method for input validation that doesn't need class data, and a class method for creating Person instances from formatted strings, when to use each approach including static methods for pure functions that belong conceptually to the class, and class methods when you need to access class variables, create instances, or ensure proper inheritance behavior, and common patterns like using class methods as alternative constructors that return new instances of the class.")
+WITH OUTPUT BUDGET 3000 tokens, TEMPERATURE 0.2, FORMAT markdown;

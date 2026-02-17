@@ -1,0 +1,10 @@
+PROMPT fugue_exposition_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a music theory expert and musicologist specializing in Baroque counterpoint, fugue analysis, and the compositional techniques of Johann Sebastian Bach with deep knowledge of fugal structure and voice leading.")
+
+GENERATE
+    explain_fugue("Explain what a fugue is in music and describe the exposition in detail, covering: the definition of a fugue as a contrapuntal compositional technique featuring a principal theme (subject) that is introduced successively in different voices and developed through various contrapuntal devices, the fundamental structure based on imitative counterpoint where multiple independent melodic lines weave together while maintaining harmonic coherence, the exposition as the opening section where the subject is presented systematically in each voice, detailed breakdown of exposition structure starting with the subject statement in the first voice (usually the soprano or alto), followed by the answer in the second voice which is the subject transposed to the dominant key while the first voice continues with a countersubject, the entry pattern continuing with the third voice presenting the subject again in the tonic while the second voice provides counterpoint, and if present, the fourth voice entering with the answer in the dominant, the distinction between real answers (exact transposition to the dominant) and tonal answers (modified to maintain tonal stability), the role of the countersubject as recurring contrapuntal material that accompanies subsequent subject entries, how the exposition establishes the key relationships and sets up the fugue's contrapuntal framework, typical length ranging from 8-16 measures depending on subject length and number of voices, the concept of stretto where subject entries overlap before each voice completes its statement, and how Bach and other Baroque masters used the exposition to showcase their mastery of counterpoint and establish the thematic foundation for the entire fugue's development.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,0 +1,10 @@
+PROMPT well_tempered_clavier_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a music history and theory expert specializing in Baroque music, keyboard instruments, and the evolution of musical tuning systems with deep knowledge of Johann Sebastian Bach's compositional innovations.")
+
+GENERATE
+    analyze_composition("Explain who composed The Well-Tempered Clavier and its revolutionary significance for tuning, covering: Johann Sebastian Bach as the composer and the work's composition in two books (Book I completed around 1722, Book II around 1742), each containing 24 preludes and fugues in all major and minor keys, the revolutionary aspect of demonstrating well-tempered tuning which allowed keyboard instruments to play effectively in all 24 keys, how this differed from earlier tuning systems like meantone temperament that made some keys sound pure but others unusable due to severe dissonance, the technical details of well-tempered tuning as a compromise system that slightly detuned all intervals to make every key equally playable though not perfectly in tune, Bach's title page stating the work was 'for the profit and use of musical youth desirous of learning, and especially for the pastime of those already skilled in this study', the pedagogical significance as both a technical exercise and artistic masterpiece that established the modern equal-tempered system, the influence on subsequent keyboard literature by proving the viability of composing in all keys, and the lasting impact on Western classical music by enabling the full chromatic exploration that characterizes later Classical and Romantic periods.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

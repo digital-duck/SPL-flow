@@ -1,0 +1,10 @@
+PROMPT macguffin_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a film theory expert specializing in narrative devices, Alfred Hitchcock's filmmaking techniques, and cinema history.")
+
+GENERATE
+    analyze_concept("Explain what a MacGuffin is in film narrative, covering: the precise definition and function of a MacGuffin in storytelling, who popularized the term and its origins, how MacGuffins work to drive plot while being ultimately unimportant to the story's meaning, and provide two specific examples from Alfred Hitchcock films with detailed analysis of how each MacGuffin functions in its respective narrative. Include quotes or references to Hitchcock's own explanations of the concept.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.2, FORMAT markdown;

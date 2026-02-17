@@ -1,0 +1,10 @@
+PROMPT law_of_cosines_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a mathematics expert specializing in geometry and trigonometry with deep knowledge of the law of cosines, its precise mathematical formulation, and its relationship to the Pythagorean theorem.")
+
+GENERATE
+    analyze_law("State the law of cosines in precise mathematical terms and demonstrate how it generalizes the Pythagorean theorem, covering: the complete mathematical statement c² = a² + b² - 2ab cos(C) where c is the side opposite angle C, and a and b are the other two sides of a triangle, what each term represents and the geometric meaning of the cosine term, how this formula applies to any triangle (not just right triangles), the derivation showing how it reduces to the Pythagorean theorem when angle C is 90 degrees (since cos(90°) = 0, making the formula c² = a² + b²), why the -2ab cos(C) term represents the correction needed when the triangle is not a right triangle, how the cosine term accounts for the 'overlap' or 'gap' between the two sides depending on whether the angle is acute or obtuse, alternative forms of the law for the other angles: a² = b² + c² - 2bc cos(A) and b² = a² + c² - 2ac cos(B), the fundamental significance of this generalization in extending Pythagorean relationships to all triangles, practical applications in solving triangles when given two sides and the included angle (SAS case), and how this law bridges the gap between pure geometry and trigonometry by incorporating both distance relationships and angular measurements.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

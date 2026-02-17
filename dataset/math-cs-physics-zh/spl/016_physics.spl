@@ -1,0 +1,10 @@
+PROMPT thermodynamics_laws_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in thermodynamics with deep knowledge of the mathematical foundations and precise formulations of the fundamental laws of thermodynamics.")
+
+GENERATE
+    analyze_laws("State the first and second laws of thermodynamics in precise terms, covering: the first law as the conservation of energy principle with the complete mathematical formulation dU = δQ - δW where dU is the change in internal energy, δQ is heat added to the system, and δW is work done by the system, explaining what each term represents and the sign conventions, alternative formulations including ΔU = Q - W for finite processes and the enthalpy form dH = δQ + VdP, the second law in multiple precise formulations including the Clausius statement that heat cannot spontaneously flow from cold to hot, the Kelvin-Planck statement that no heat engine can be 100% efficient, and the entropy formulation dS ≥ δQ/T with equality for reversible processes, what entropy S represents as a state function measuring system disorder or missing information, how these laws establish the fundamental constraints on energy conversion and the direction of natural processes, and their profound implications for understanding irreversibility, equilibrium, and the impossibility of perpetual motion machines.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

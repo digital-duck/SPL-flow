@@ -1,0 +1,10 @@
+PROMPT first_best_picture_oscar
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a film history expert specializing in Academy Awards history and early Hollywood cinema of the 1920s and 1930s.")
+
+GENERATE
+    analyze_first_award("Identify which film won the first Academy Award for Best Picture, including: the exact year of the ceremony and the year being honored, what the award was officially called at the first ceremony (as it wasn't initially called 'Best Picture'), details about the winning film including director and key cast, and any notable facts about that inaugural Academy Awards ceremony and how it differed from modern Oscar ceremonies.")
+WITH OUTPUT BUDGET 1000 tokens, TEMPERATURE 0.1, FORMAT markdown;

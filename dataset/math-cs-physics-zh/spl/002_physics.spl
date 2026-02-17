@@ -1,0 +1,10 @@
+PROMPT heisenberg_uncertainty_principle
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in quantum mechanics with deep knowledge of the mathematical foundations and physical interpretations of fundamental quantum principles.")
+
+GENERATE
+    analyze_principle("Explain Heisenberg's uncertainty principle in detail, covering: the complete mathematical formulation including the canonical form ΔxΔp ≥ ℏ/2 and the general form for any two non-commuting observables ΔA ΔB ≥ |⟨[Â,B̂]⟩|/2, what each symbol represents (Δx for position uncertainty, Δp for momentum uncertainty, ℏ as reduced Planck constant), the physical meaning of this fundamental limit on simultaneous measurement precision, why this is not due to measurement limitations but reflects the intrinsic nature of quantum systems, how it relates to wave-particle duality and the complementarity principle, practical examples demonstrating the principle in action, and its broader implications for our understanding of reality at the quantum scale.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,0 +1,10 @@
+PROMPT shi_de_construction_explanation
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in grammar constructions, syntax, and pedagogical explanations for Chinese language learners.")
+
+GENERATE
+    explain_constructions("Explain the difference between the 是...的 construction and a simple 是 sentence in Chinese grammar, covering: 1) What the 是...的 construction is and its fundamental purpose (emphasizing circumstances like time, place, manner, or agent of a past action), 2) What a simple 是 sentence does (stating identity, classification, or existence), 3) The structural difference: 是...的 wraps around a verb phrase to emphasize when/where/how/who did something, while simple 是 directly links subject and predicate, 4) When to use each construction - 是...的 for highlighting circumstances of completed actions, simple 是 for stating facts or identity, 5) At least 4 example pairs showing the same content expressed with both constructions, demonstrating how the meaning and emphasis changes, 6) Common contexts where 是...的 is required versus optional. Include clear examples with English translations and highlight the key functional differences.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.2, FORMAT markdown;

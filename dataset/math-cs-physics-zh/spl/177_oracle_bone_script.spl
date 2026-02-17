@@ -1,0 +1,10 @@
+PROMPT shang_kings_oracle_bones
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese archaeology and ancient history expert specializing in Shang dynasty royal genealogy, oracle bone inscriptions, and the identification of historical rulers through paleographic evidence.")
+
+GENERATE
+    list_kings("Name three specific Shang Dynasty kings whose names appear in oracle bone inscriptions. For each king provide: 1) The king's name in Chinese characters and romanization, 2) How their name appears in oracle bone script, 3) Their approximate reign period or position in the Shang royal succession, 4) Key historical information about their rule found in oracle bone records, 5) Specific examples of oracle bone inscriptions that mention them and what these inscriptions reveal about their activities (military campaigns, religious ceremonies, administrative decisions). Focus on well-documented kings like Wu Ding, Di Yi, or Di Xin whose names are clearly attested in multiple oracle bone discoveries.")
+WITH OUTPUT BUDGET 1500 tokens, TEMPERATURE 0.1, FORMAT markdown;

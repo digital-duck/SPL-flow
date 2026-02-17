@@ -1,0 +1,10 @@
+PROMPT three_act_structure_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a screenwriting expert and story structure theorist with deep knowledge of classical Hollywood narrative conventions and dramatic storytelling principles.")
+
+GENERATE
+    analyze_structure("Explain the three-act structure in screenwriting comprehensively, covering: what the three-act structure is and its foundational role in classical screenwriting, detailed breakdown of each act including Act I (setup), Act II (confrontation), and Act III (resolution) with their typical page counts and percentages, what specifically happens at each act break including Plot Point 1 (end of Act I) and Plot Point 2 (end of Act II) and how these moments propel the story forward, the crucial function of the midpoint in Act II and how it typically reverses or escalates the protagonist's situation, and concrete examples from well-known films demonstrating each structural element in action.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

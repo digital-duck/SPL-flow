@@ -1,0 +1,10 @@
+PROMPT dolly_zoom_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a cinematography expert specializing in camera movement techniques and Alfred Hitchcock's visual innovations.")
+
+GENERATE
+    analyze_technique("Explain the difference between a dolly zoom (Vertigo effect) and a simple zoom shot, covering: the precise technical execution of each technique, how a dolly zoom combines simultaneous camera movement and lens adjustment to create its distinctive visual distortion, the psychological and narrative effects each technique creates for audiences, which film made the dolly zoom famous and in what specific scene it was first prominently used, and how this technique has been employed by later filmmakers. Include technical details about how the dolly zoom maintains subject size while distorting background perspective.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.2, FORMAT markdown;

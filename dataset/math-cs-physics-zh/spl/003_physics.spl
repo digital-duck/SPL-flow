@@ -1,0 +1,10 @@
+PROMPT de_broglie_wavelength_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in quantum mechanics with deep knowledge of wave-particle duality and the mathematical foundations of matter waves.")
+
+GENERATE
+    analyze_formula("Explain the de Broglie wavelength formula in detail, covering: the complete mathematical form λ = h/p where λ is the de Broglie wavelength, h is Planck's constant, and p is momentum, how this relates momentum to wavelength for any particle with mass, the physical meaning of matter waves and why all matter exhibits wave properties, how this formula bridges classical mechanics (momentum) with quantum mechanics (wavelength), experimental evidence supporting de Broglie's hypothesis including electron diffraction, how the wavelength becomes negligible for macroscopic objects due to their large momentum, the fundamental implications for our understanding of matter including wave-particle duality and the quantum nature of reality, and how this led to the development of quantum mechanics and Schrödinger's wave equation.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

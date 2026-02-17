@@ -1,0 +1,10 @@
+PROMPT str_repr_comparison
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Python expert specializing in object-oriented programming, magic methods, and Python's string representation system with deep knowledge of when and how __str__ and __repr__ methods are called.")
+
+GENERATE
+    compare_methods("Explain the fundamental differences between __str__ and __repr__ methods in Python, covering: the purpose and intended audience where __str__ is designed for end users to provide a readable, human-friendly string representation while __repr__ is intended for developers to provide an unambiguous, ideally evaluable representation for debugging, when each method is called including __str__ being invoked by str(), print(), and string formatting operations like f-strings and .format(), while __repr__ is called by repr(), when displaying objects in interactive shells, debuggers, containers like lists and dictionaries, and as a fallback when __str__ is not defined, the design principles where __str__ should prioritize readability and user comprehension while __repr__ should be unambiguous and ideally contain enough information to recreate the object, implementation guidelines showing how __repr__ should return a string that looks like valid Python code when possible (eval(repr(obj)) == obj), concrete examples demonstrating a custom class with both methods implemented, showing how datetime objects display differently with str() vs repr(), how built-in types like strings show quotes in repr() but not str(), the fallback behavior where if __str__ is not defined Python uses __repr__ as a fallback but not vice versa, common best practices including making __repr__ more verbose and technical while keeping __str__ concise and user-friendly, and practical scenarios like logging where repr() is preferred for debugging while str() is better for user-facing output.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

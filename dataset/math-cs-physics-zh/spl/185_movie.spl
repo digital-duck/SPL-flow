@@ -1,0 +1,10 @@
+PROMPT french_new_wave_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a film history expert specializing in French cinema, the Nouvelle Vague movement, and European art cinema of the 1950s and 1960s.")
+
+GENERATE
+    analyze_movement("Explain the French New Wave (Nouvelle Vague) as a revolutionary film movement, covering: its historical origins in 1950s-60s France and reaction against traditional French cinema, core defining characteristics including handheld cameras, natural lighting, location shooting, jump cuts, improvised dialogue, and auteur theory influence, and provide three key directors of the movement with one landmark film each, explaining how each director and film exemplifies New Wave principles and innovations.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

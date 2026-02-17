@@ -1,0 +1,10 @@
+PROMPT dynamic_programming_explanation
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a computer science expert specializing in algorithms and dynamic programming with deep knowledge of optimization techniques and algorithmic design patterns.")
+
+GENERATE
+    explain_concept("Explain dynamic programming comprehensively, covering: the precise definition as an algorithmic paradigm that solves complex problems by breaking them down into simpler subproblems and storing the results to avoid redundant calculations, the two key properties required for dynamic programming including optimal substructure (optimal solution contains optimal solutions to subproblems) and overlapping subproblems (same subproblems are solved multiple times in a naive approach), the difference between top-down approach with memoization versus bottom-up approach with tabulation, detailed walkthrough of the Fibonacci sequence example showing how naive recursion has exponential time complexity O(2^n) due to redundant calculations, how dynamic programming reduces this to O(n) time and O(n) space using memoization or tabulation, step-by-step code implementation in pseudocode for both approaches, detailed walkthrough of the 0/1 knapsack problem example including problem statement with weights, values, and capacity constraints, how to identify the optimal substructure (optimal solution for capacity C includes optimal solutions for smaller capacities), construction of the DP table with clear explanation of the recurrence relation, time complexity analysis O(nW) where n is number of items and W is capacity, space optimization techniques, and why dynamic programming is fundamental to solving optimization problems in computer science.")
+WITH OUTPUT BUDGET 3000 tokens, TEMPERATURE 0.2, FORMAT markdown;

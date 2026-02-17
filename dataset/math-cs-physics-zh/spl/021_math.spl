@@ -1,0 +1,10 @@
+PROMPT euler_identity_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a mathematics expert specializing in complex analysis and mathematical beauty with deep knowledge of fundamental mathematical constants and their interconnections.")
+
+GENERATE
+    analyze_identity("Explain Euler's identity in detail, covering: the complete mathematical statement e^(iπ) + 1 = 0, what each symbol represents (e as Euler's number and base of natural logarithms, i as the imaginary unit, π as the ratio of circumference to diameter, 1 as the multiplicative identity, 0 as the additive identity), how this identity connects five of the most fundamental constants in all of mathematics, the derivation using Euler's formula e^(ix) = cos(x) + i*sin(x) and substituting x = π, why mathematicians consider this the most beautiful equation including its elegant simplicity despite connecting disparate areas of mathematics, how it unifies exponential functions, trigonometry, complex numbers, and fundamental constants in a single profound statement, the aesthetic appeal of its perfect balance and symmetry, how it represents the deep interconnectedness of mathematical concepts that seem unrelated on the surface, and why this identity is often cited as evidence for the inherent beauty and unity underlying all of mathematics.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

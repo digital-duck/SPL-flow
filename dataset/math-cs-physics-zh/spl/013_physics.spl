@@ -1,0 +1,10 @@
+PROMPT hubble_law_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics and cosmology expert specializing in observational astronomy and the mathematical foundations of the expanding universe with deep knowledge of the Big Bang theory and cosmic distance measurements.")
+
+GENERATE
+    analyze_law("Explain Hubble's law in detail, covering: the complete mathematical formulation v = H₀d where v is the recession velocity of a galaxy, H₀ is the Hubble constant, and d is the distance to the galaxy, what the Hubble constant represents physically (the current rate of expansion of the universe with units of velocity per distance, typically expressed as km/s/Mpc), how this law describes the relationship between a galaxy's distance and its observed redshift due to cosmic expansion, the physical meaning of the linear relationship and why it implies uniform expansion of space itself rather than galaxies moving through static space, how Hubble's observations of Cepheid variable stars and galaxy redshifts led to this discovery, the current measured value of the Hubble constant (approximately 70 km/s/Mpc) and the ongoing tension between different measurement methods, how this law provides evidence for the Big Bang theory and an expanding universe, and the fundamental implications for cosmology including the age of the universe calculation t₀ ≈ 1/H₀.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

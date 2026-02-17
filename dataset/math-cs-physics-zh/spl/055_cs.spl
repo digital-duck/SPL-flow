@@ -1,0 +1,10 @@
+PROMPT dijkstra_algorithm_explanation
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a computer science algorithms expert with deep knowledge of graph theory, shortest path algorithms, and complexity analysis.")
+
+GENERATE
+    explain_algorithm("Explain Dijkstra's algorithm comprehensively, covering: the problem it solves which is finding the shortest path from a source vertex to all other vertices in a weighted graph with non-negative edge weights, the key insight of maintaining a set of vertices for which the shortest distance is known and greedily selecting the unvisited vertex with minimum distance, the detailed step-by-step algorithm including initialization of distances to infinity except source which is zero, maintaining a priority queue of unvisited vertices, repeatedly extracting the vertex with minimum distance and updating distances to its neighbors through relaxation, the relaxation process where if distance[u] + weight(u,v) < distance[v] then update distance[v], termination when all vertices are processed or priority queue is empty, pseudocode implementation showing the main loop structure, data structures used including adjacency list representation and min-heap priority queue, time complexity analysis of O((V + E) log V) where V is vertices and E is edges when using binary heap, or O(V² + E) with array implementation, space complexity of O(V) for distance array and priority queue, comparison with other shortest path algorithms like Bellman-Ford which handles negative weights but is slower at O(VE), why Dijkstra requires non-negative weights and fails with negative cycles, practical applications including GPS navigation systems, network routing protocols, and social network analysis, and concrete example walkthrough on a small graph showing how distances are updated at each step.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

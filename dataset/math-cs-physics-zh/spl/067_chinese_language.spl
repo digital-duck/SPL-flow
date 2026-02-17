@@ -1,0 +1,10 @@
+PROMPT chengyu_explanation
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics and literature expert specializing in chengyu (成语), idioms, classical Chinese, and their cultural meanings.")
+
+GENERATE
+    explain_chengyu("Explain what a chengyu (成语) is, including: 1) Definition - what chengyu are and their role in Chinese language, 2) Characteristics - typically 4-character expressions from classical Chinese with historical/literary origins, 3) Usage - how they function in modern Chinese communication. Then provide exactly 3 examples of chengyu with: the Chinese characters, pinyin pronunciation, literal character-by-character meaning, figurative/actual meaning, and brief explanation of the origin or context. Choose well-known examples that illustrate different aspects of chengyu usage.")
+WITH OUTPUT BUDGET 1500 tokens, TEMPERATURE 0.1, FORMAT markdown;

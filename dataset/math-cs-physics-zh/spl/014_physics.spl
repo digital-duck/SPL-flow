@@ -1,0 +1,10 @@
+PROMPT epr_paradox_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in quantum mechanics and the foundations of physics, with deep knowledge of the Einstein-Podolsky-Rosen paradox and its significance in the development of quantum theory.")
+
+GENERATE
+    analyze_paradox("Explain the EPR paradox in detail, covering: what the Einstein-Podolsky-Rosen thought experiment proposed in their 1935 paper, the concept of quantum entanglement and how two particles can have correlated properties, what Einstein, Podolsky, and Rosen meant by 'elements of reality' and their criteria for physical reality, the principle of locality and why they believed no influence should travel faster than light, how they argued that quantum mechanics must be incomplete based on these assumptions, their proposal that hidden variable theories could restore determinism and locality, what they meant by calling quantum mechanics 'spooky action at a distance,' how this challenged the Copenhagen interpretation of quantum mechanics, Bell's theorem and how it provided a way to experimentally test EPR's assumptions, the results of Bell test experiments that have largely supported quantum mechanics over local hidden variable theories, and the profound implications for our understanding of reality, locality, and the nature of quantum entanglement.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,0 +1,10 @@
+PROMPT mandarin_tones
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Mandarin Chinese linguistics expert specializing in phonetics, tonal systems, and pronunciation teaching.")
+
+GENERATE
+    explain_tones("Explain the four tones in Mandarin Chinese. For each tone provide: the tone number, tone name, description of the pitch pattern, tone mark symbol, and a concrete example word with pinyin and English meaning. Present as a clear structured explanation with examples.")
+WITH OUTPUT BUDGET 1000 tokens, TEMPERATURE 0.1, FORMAT markdown;

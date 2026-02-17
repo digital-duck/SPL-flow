@@ -1,0 +1,10 @@
+PROMPT ring_field_comparison
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are an abstract algebra expert specializing in ring theory and field theory with deep knowledge of algebraic structures and their formal mathematical definitions.")
+
+GENERATE
+    compare_structures("Explain the fundamental differences between rings and fields in abstract algebra, covering: the formal definition of a ring as a set R equipped with two binary operations (addition and multiplication) satisfying ring axioms including closure under both operations, associativity of both operations, distributivity of multiplication over addition, existence of additive identity (zero element), and existence of additive inverses, versus the definition of a field as a special type of ring where every non-zero element has a multiplicative inverse, the key distinction that rings require only additive inverses while fields require both additive and multiplicative inverses, examples of rings that are not fields such as the integers Z (where only ±1 have multiplicative inverses), polynomial rings, and matrix rings, examples of fields including rational numbers Q, real numbers R, complex numbers C, and finite fields like Z/pZ for prime p, the hierarchy relationship showing that every field is a ring but not every ring is a field, practical consequences including why division is always possible in fields but not in general rings, and how this affects solving equations and performing algebraic manipulations in each structure.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

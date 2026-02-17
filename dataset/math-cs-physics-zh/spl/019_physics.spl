@@ -1,0 +1,10 @@
+PROMPT capacitor_energy_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in electromagnetism and circuit theory with deep knowledge of the mathematical foundations of electric fields and energy storage in capacitive systems.")
+
+GENERATE
+    analyze_energy("Explain the energy stored in an electric field of a capacitor in terms of capacitance and voltage, covering: the complete mathematical formula U = ½CV² where U is the stored energy, C is capacitance, and V is voltage, the physical derivation of this formula through integration of work done in charging the capacitor from W = ∫q dV/C as charge q builds up, alternative equivalent expressions U = ½QV and U = Q²/(2C) where Q is the stored charge, the physical meaning of this energy as the work required to assemble the charge configuration against the electric field, how this energy is actually stored in the electric field itself throughout the dielectric medium between the plates, the connection to field energy density u = ½ε₀E² integrated over the volume between capacitor plates, practical implications for capacitor design and energy storage applications, and the fundamental relationship between electrostatic potential energy and the geometry and material properties that determine capacitance.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

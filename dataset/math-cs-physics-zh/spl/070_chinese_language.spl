@@ -1,0 +1,10 @@
+PROMPT topic_comment_structure
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in syntax, sentence structure, and the topic-prominent characteristics of Chinese grammar.")
+
+GENERATE
+    explain_topic_comment("Explain the topic-comment sentence structure in Chinese grammar, including: 1) What topic-comment structure is and how it differs from subject-predicate structure, 2) How Chinese is a topic-prominent language where the topic (what the sentence is about) comes first, followed by a comment (what is said about the topic), 3) The basic pattern: Topic + Comment, where the topic establishes the frame of reference and the comment provides information about it, 4) How this structure allows for flexible word order and discourse organization in Chinese. Then provide exactly 2 clear examples of topic-comment sentences with: the Chinese sentence, pinyin pronunciation, word-by-word breakdown showing topic and comment boundaries, English translation, and detailed explanation of how the topic establishes the frame and the comment provides the information.")
+WITH OUTPUT BUDGET 1500 tokens, TEMPERATURE 0.1, FORMAT markdown;

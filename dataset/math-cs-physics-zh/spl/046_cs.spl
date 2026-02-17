@@ -1,0 +1,10 @@
+PROMPT cap_theorem_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a distributed systems expert with deep knowledge of theoretical computer science, database systems, and the fundamental trade-offs in distributed computing architectures.")
+
+GENERATE
+    analyze_theorem("Explain the CAP theorem comprehensively, covering: the precise statement that in any distributed data system, you can guarantee at most two of the three properties simultaneously, the three fundamental properties - Consistency (all nodes see the same data simultaneously and reads receive the most recent write), Availability (the system remains operational and responsive to requests even when some nodes fail), and Partition tolerance (the system continues to operate despite network failures that prevent communication between nodes), why these properties form an inherent trade-off in distributed systems, Eric Brewer's original conjecture and Gilbert and Lynch's formal proof, the practical implications for system design including CP systems like traditional RDBMS that sacrifice availability during network partitions, AP systems like DNS and web caches that sacrifice consistency for availability, and CA systems that work only in single-node scenarios, real-world examples of how major distributed systems like Amazon DynamoDB (AP), Google Spanner (CP), and traditional databases handle these trade-offs, the nuanced reality that modern systems often provide tunable consistency levels and eventual consistency models, why network partitions are inevitable in real distributed systems making partition tolerance essential, and how understanding CAP helps architects make informed decisions about consistency models, replication strategies, and failure handling in distributed applications.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -33,8 +33,8 @@ def build_spl_flow() -> Flow:
     sync_deliver = SyncDeliverNode()
     async_deliver = AsyncDeliverNode()
 
-    # text2spl → validate (always)
-    text2spl >> validate
+    # text2spl → validate (always; matches action returned by Text2SPLNode.post())
+    text2spl - "validate" >> validate
 
     # validate → execute (success) or retry text2spl or terminal error
     validate - "execute" >> execute
@@ -58,7 +58,7 @@ def build_generate_only_flow() -> Flow:
     text2spl = Text2SPLNode(max_retries=3)
     validate = ValidateSPLNode()
 
-    text2spl >> validate
+    text2spl - "validate" >> validate
     validate - "retry" >> text2spl
     # "execute" and "error" actions have no edge → flow terminates
 

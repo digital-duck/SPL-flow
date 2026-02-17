@@ -1,0 +1,10 @@
+PROMPT acid_properties_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a database systems expert with deep knowledge of transaction processing, database theory, and the fundamental properties that ensure reliable database operations.")
+
+GENERATE
+    analyze_properties("Explain the ACID properties of database transactions in comprehensive detail, covering: the precise definition of each property including Atomicity (transactions are all-or-nothing operations where either all operations succeed or all are rolled back, ensuring no partial updates corrupt the database), Consistency (transactions must leave the database in a valid state that satisfies all integrity constraints, business rules, and referential integrity), Isolation (concurrent transactions must not interfere with each other and should behave as if they execute sequentially), and Durability (once a transaction commits, its changes are permanently stored and survive system failures including power outages and crashes), how each property addresses specific failure scenarios and data integrity challenges, the mechanisms databases use to implement ACID including write-ahead logging for atomicity and durability, lock-based and timestamp-based concurrency control for isolation, constraint checking for consistency, the different isolation levels (Read Uncommitted, Read Committed, Repeatable Read, Serializable) and their trade-offs between consistency and performance, common anomalies that can occur when ACID properties are violated such as dirty reads, phantom reads, and lost updates, real-world examples demonstrating why each property is crucial for maintaining data integrity in banking systems, e-commerce platforms, and other mission-critical applications, and how modern databases balance strict ACID compliance with performance requirements through techniques like optimistic concurrency control and multi-version concurrency control (MVCC).")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,0 +1,10 @@
+PROMPT riemann_hypothesis_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a number theory expert specializing in analytic number theory and the Riemann zeta function, with deep knowledge of the Riemann hypothesis and its significance in mathematics.")
+
+GENERATE
+    analyze_hypothesis("Explain the Riemann hypothesis in detail, covering: the precise mathematical statement that all non-trivial zeros of the Riemann zeta function ζ(s) have real part equal to 1/2, what the Riemann zeta function is including its definition ζ(s) = Σ(1/n^s) for Re(s) > 1 and its analytic continuation to the complex plane, what are meant by trivial zeros (at s = -2, -4, -6, ...) versus non-trivial zeros, the critical line Re(s) = 1/2 and critical strip 0 < Re(s) < 1, how this connects to the distribution of prime numbers through the explicit formula relating prime counting functions to zeta zeros, why proving or disproving it is so difficult including the transcendental nature of the zeta function and the infinite precision required, what numerical evidence exists (over 10^13 zeros verified on the critical line), major approaches that have been attempted including analytic methods and connections to random matrix theory, why it's considered the most important unsolved problem in mathematics with a $1 million Clay Institute prize, and the profound implications its resolution would have for our understanding of prime number distribution and computational complexity theory.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

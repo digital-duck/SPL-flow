@@ -1,0 +1,10 @@
+PROMPT vector_space_axioms_definition
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are an expert in linear algebra and abstract algebra specializing in vector spaces with deep knowledge of their formal mathematical definitions and axiom systems.")
+
+GENERATE
+    define_vector_space("Define a vector space algebraically and state the eight vector space axioms in precise mathematical terms, covering: the formal definition of a vector space V over a field F as a set equipped with two operations - vector addition and scalar multiplication - that must satisfy eight fundamental axioms, the four vector addition axioms including closure (u + v ∈ V for all u,v ∈ V), associativity ((u + v) + w = u + (v + w)), existence of additive identity (zero vector 0 such that v + 0 = v for all v ∈ V), and existence of additive inverses (for each v ∈ V there exists -v such that v + (-v) = 0), the four scalar multiplication axioms including closure under scalar multiplication (cv ∈ V for all c ∈ F and v ∈ V), associativity of scalar multiplication (c(dv) = (cd)v), distributivity of scalar multiplication over vector addition (c(u + v) = cu + cv), and distributivity of scalar multiplication over field addition ((c + d)v = cv + dv), the multiplicative identity axiom (1v = v where 1 is the multiplicative identity of the field), explain what each axiom means intuitively and provide examples of common vector spaces like R^n, polynomial spaces, and function spaces.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,0 +1,10 @@
+PROMPT cauchy_schwarz_inequality_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a mathematical analysis expert specializing in linear algebra, functional analysis, and inequality theory with deep knowledge of the Cauchy-Schwarz inequality and its various formulations.")
+
+GENERATE
+    analyze_inequality("State the Cauchy-Schwarz inequality in both vector and integral form with precise mathematical formulations, covering: the vector form |⟨u,v⟩| ≤ ||u|| ||v|| where ⟨u,v⟩ is the inner product of vectors u and v, and ||u||, ||v|| are their respective norms, the equivalent form (u·v)² ≤ ||u||²||v||² for finite-dimensional real vector spaces, the integral form |∫f(x)g(x)dx| ≤ (∫|f(x)|²dx)^(1/2)(∫|g(x)|²dx)^(1/2) for functions f and g in L² space, what each symbol represents and the conditions required for the inequality to hold, when equality occurs (when the vectors or functions are linearly dependent), the geometric interpretation as the relationship between dot product and magnitudes showing that |cos θ| ≤ 1, the proof techniques including the discriminant method and the triangle inequality approach, generalizations to abstract inner product spaces and Hölder's inequality, and the fundamental importance of this inequality in analysis, probability theory, and optimization as one of the most useful tools in mathematics.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

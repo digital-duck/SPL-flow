@@ -1,0 +1,10 @@
+PROMPT central_limit_theorem_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a probability theory and mathematical statistics expert with deep knowledge of limit theorems, convergence in distribution, and the mathematical foundations of statistical inference.")
+
+GENERATE
+    analyze_theorem("State the central limit theorem precisely in its complete mathematical form and explain its significance, covering: the precise mathematical statement that for a sequence of independent and identically distributed random variables X₁, X₂, ..., Xₙ with finite mean μ and finite variance σ², the standardized sample mean (X̄ₙ - μ)/(σ/√n) converges in distribution to a standard normal distribution N(0,1) as n approaches infinity, what each term represents including X̄ₙ = (X₁ + X₂ + ... + Xₙ)/n as the sample mean, the standardization process and why we divide by σ/√n, the concept of convergence in distribution and what it means mathematically, the remarkable universality that this holds regardless of the original distribution shape (as long as mean and variance exist), practical implications including why sample means are approximately normally distributed for large samples even from non-normal populations, the threshold effect where n ≥ 30 is often cited as 'large enough', applications to confidence intervals and hypothesis testing, the connection to the law of large numbers and how they complement each other, historical development by de Moivre, Laplace, and others, and why this theorem is considered one of the most important results in all of mathematics for its role in making statistical inference possible.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

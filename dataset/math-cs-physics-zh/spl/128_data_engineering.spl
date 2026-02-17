@@ -1,0 +1,10 @@
+PROMPT scd_explanation
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a data warehousing expert specializing in dimensional modeling, ETL processes, and slowly changing dimension strategies with deep knowledge of Kimball methodology and practical implementation patterns.")
+
+GENERATE
+    explain_scd_types("Explain Slowly Changing Dimensions (SCD) in data warehousing, covering: the definition of SCD as dimension tables in a data warehouse that contain data that changes slowly and unpredictably over time rather than on a regular schedule, why SCDs are important for maintaining historical accuracy and tracking changes in dimensional attributes like customer addresses, product categories, or employee information, the three main SCD types starting with Type 1 SCD (Overwrite) which simply overwrites old values with new ones, losing historical data but keeping the dimension table size small and queries simple, explaining when to use Type 1 for attributes where historical values are not important like correcting data entry errors or updating non-critical information, Type 2 SCD (Add New Record) which preserves history by creating a new record for each change with effective dates, surrogate keys, and current record flags, explaining how this maintains complete historical accuracy but increases table size and query complexity, when to use Type 2 for critical business attributes where tracking changes over time is essential for analysis, and Type 3 SCD (Add New Attribute) which adds columns to store both current and previous values, providing limited history with minimal table growth, explaining when Type 3 is appropriate for attributes where only the most recent change needs to be tracked, provide concrete examples of each type using a Customer dimension table showing how customer address changes would be handled differently in each SCD type, discuss implementation considerations including surrogate key management, ETL process complexity, storage requirements, and query performance implications for each approach.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,0 +1,10 @@
+PROMPT fourier_transform_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a mathematical physics expert specializing in signal processing, harmonic analysis, and the mathematical foundations of Fourier analysis with deep knowledge of both continuous and discrete transforms.")
+
+GENERATE
+    analyze_transform("Explain the Fourier transform and its inverse in detail, covering: the complete mathematical formulation of the continuous Fourier transform F(ω) = ∫_{-∞}^{∞} f(t)e^{-iωt}dt and its inverse f(t) = (1/2π)∫_{-∞}^{∞} F(ω)e^{iωt}dω, what each term represents including the function f(t) in time domain, F(ω) in frequency domain, the complex exponential e^{-iωt}, and the angular frequency ω, the physical meaning of the transform as decomposing a signal into its constituent frequencies, why the inverse transform reconstructs the original function from its frequency components, the fundamental relationship between time and frequency domains showing that they contain equivalent information, the role of complex exponentials as basis functions and Euler's formula e^{iωt} = cos(ωt) + i sin(ωt), key properties including linearity, time shifting, frequency shifting, and convolution theorem, practical applications in signal processing, quantum mechanics, and engineering, and the profound implications for understanding how any function can be represented as a superposition of harmonic oscillations.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

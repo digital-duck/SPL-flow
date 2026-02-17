@@ -1,0 +1,10 @@
+PROMPT le_particle_differences
+WITH BUDGET 5000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in aspectual markers, discourse particles, and the grammatical functions of 了 in Mandarin Chinese.")
+
+GENERATE
+    explain_le_particles("Explain the difference between 了 as an aspect particle (动态助词 dòngtài zhùcí) and 了 as a sentence-final particle (语气助词 yǔqì zhùcí), covering: 1) Aspect particle 了 (了₁) - its position immediately after verbs, function in marking perfective aspect or completed actions, usage with resultative and directional complements, and restrictions on when it can appear, 2) Sentence-final particle 了 (了₂) - its position at the end of sentences, function in indicating change of state, new situations, or speaker's realization, and its role in discourse pragmatics, 3) Key differences in syntactic position, semantic function, and pragmatic meaning, 4) Situations where both can appear in the same sentence (double 了), 5) At least 6 concrete example sentences demonstrating each usage with English translations and grammatical analysis, 6) Common patterns and contexts where each type of 了 is required or prohibited. Structure the explanation with clear sections and highlight the diagnostic tests for distinguishing between the two uses.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,0 +1,10 @@
+PROMPT maxwell_equations_differential_form
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in electromagnetism and mathematical physics with deep knowledge of Maxwell's equations and their mathematical formulations.")
+
+GENERATE
+    analyze_equations("State the four Maxwell equations in differential form and explain each equation in detail, covering: 1) Gauss's law ∇ · E⃗ = ρ/ε₀ relating electric field divergence to charge density, 2) Gauss's law for magnetism ∇ · B⃗ = 0 showing no magnetic monopoles exist, 3) Faraday's law ∇ × E⃗ = -∂B⃗/∂t describing electromagnetic induction, and 4) Ampère-Maxwell law ∇ × B⃗ = μ₀J⃗ + μ₀ε₀∂E⃗/∂t relating magnetic field curl to current density and changing electric fields. For each equation explain what every symbol represents (E⃗ electric field, B⃗ magnetic field, ρ charge density, J⃗ current density, ε₀ permittivity, μ₀ permeability), the physical meaning and implications of each equation, how they form a complete description of electromagnetic phenomena, and their fundamental role in unifying electricity, magnetism, and light as manifestations of the electromagnetic field.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,0 +1,10 @@
+PROMPT args_kwargs_explanation
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Python expert specializing in function signatures, parameter handling, and argument unpacking with deep knowledge of Python's flexible argument passing mechanisms.")
+
+GENERATE
+    explain_arguments("Explain what *args and **kwargs mean in Python function signatures, covering: the definition of *args as a special syntax that allows a function to accept any number of positional arguments, collecting them into a tuple, with 'args' being just a conventional name and the asterisk being the key operator, the definition of **kwargs as syntax for accepting any number of keyword arguments, collecting them into a dictionary, with 'kwargs' being conventional and the double asterisk being the operator, how *args captures excess positional arguments that don't match named parameters, how **kwargs captures excess keyword arguments that don't match named parameters, the order requirements in function signatures where regular parameters come first, then *args, then keyword-only parameters, then **kwargs, practical examples showing a function using *args to sum any number of numbers, a function using **kwargs to build a user profile from flexible keyword arguments, a function combining both *args and **kwargs to demonstrate maximum flexibility, how to unpack arguments when calling functions using * for iterables and ** for dictionaries, common use cases including wrapper functions that need to pass arguments through to other functions, decorators that preserve original function signatures, and APIs that need flexible parameter handling, and best practices like using descriptive names instead of generic args/kwargs when the purpose is clear, documenting expected argument types, and being careful about parameter order requirements.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

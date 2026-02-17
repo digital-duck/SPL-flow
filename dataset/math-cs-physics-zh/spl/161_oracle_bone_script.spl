@@ -1,0 +1,10 @@
+PROMPT oracle_bone_scripts
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese historical linguistics and archaeology expert specializing in ancient Chinese writing systems, oracle bone inscriptions, and Shang dynasty civilization.")
+
+GENERATE
+    explain_oracle_bones("Explain what oracle bone scripts (甲骨文 jiǎgǔwén) are and to which dynasty they belong. Cover: 1) Definition and physical description of oracle bones, 2) Their historical context and dating to the Shang dynasty (approximate dates), 3) How they were discovered and by whom, 4) Their purpose and use in divination practices, 5) What types of information they contain (royal activities, weather, military campaigns, etc.), 6) Their significance as the earliest known form of Chinese writing, 7) How oracle bone script relates to modern Chinese characters, 8) Key archaeological sites where they were found. Provide specific examples of oracle bone characters and their modern equivalents.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;

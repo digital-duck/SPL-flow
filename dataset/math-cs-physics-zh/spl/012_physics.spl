@@ -1,0 +1,10 @@
+PROMPT bosons_fermions_comparison
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in particle physics and quantum statistics with deep knowledge of the fundamental distinction between bosons and fermions.")
+
+GENERATE
+    compare_particles("Explain the fundamental differences between bosons and fermions in detail, covering: the mathematical definition based on spin (bosons have integer spin 0, 1, 2, etc. while fermions have half-integer spin 1/2, 3/2, 5/2, etc.), the quantum statistical behavior including Bose-Einstein statistics vs Fermi-Dirac statistics, how bosons can occupy the same quantum state (leading to phenomena like Bose-Einstein condensation and stimulated emission) while fermions obey the Pauli exclusion principle, the symmetry properties of their wavefunctions under particle exchange (symmetric for bosons, antisymmetric for fermions), specific examples of bosons including photons (spin 1), W and Z bosons (spin 1), Higgs boson (spin 0), gluons (spin 1), and composite particles like helium-4 nuclei, examples of fermions including electrons (spin 1/2), protons and neutrons (spin 1/2), quarks (spin 1/2), muons (spin 1/2), and composite fermions like helium-3 nuclei, practical consequences and phenomena arising from these differences such as laser operation, superfluidity, atomic structure, and the stability of matter.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

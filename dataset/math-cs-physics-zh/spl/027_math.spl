@@ -1,0 +1,10 @@
+PROMPT prime_number_theorem_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a number theory expert specializing in analytic number theory and the distribution of prime numbers with deep knowledge of asymptotic analysis and the prime number theorem.")
+
+GENERATE
+    analyze_theorem("Explain the prime number theorem in detail, covering: the precise mathematical statement that π(x) ~ x/ln(x) as x approaches infinity where π(x) is the prime counting function (number of primes ≤ x), what this asymptotic notation means and why it shows primes become increasingly sparse, the equivalent formulation π(x) ~ Li(x) using the logarithmic integral Li(x) = ∫₂ˣ dt/ln(t), how this theorem describes the average density of primes among integers, the historical context including Gauss's and Legendre's conjectures based on numerical observations, the rigorous proof by Hadamard and de la Vallée Poussin in 1896 using complex analysis and the Riemann zeta function, what the theorem tells us about the 'local' behavior of primes versus their global distribution, how it connects to other important results like the prime gap estimates and Bertrand's postulate, the remarkable accuracy of the approximation even for relatively small values of x, and the deeper implications for our understanding of the multiplicative structure of integers and the connection between additive and multiplicative number theory.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

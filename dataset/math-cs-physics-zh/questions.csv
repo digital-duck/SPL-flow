@@ -1,0 +1,191 @@
+id,domain,question
+1,physics,What is the time-dependent Schrödinger equation and what does each term represent?
+2,physics,State Heisenberg's uncertainty principle mathematically and explain its physical meaning.
+3,physics,What is the de Broglie wavelength formula and what does it imply about matter?
+4,physics,Explain the photoelectric effect and what Einstein concluded from it.
+5,physics,What is the Compton scattering formula for wavelength shift?
+6,physics,State Faraday's law of electromagnetic induction in integral form.
+7,physics,What is the Schwarzschild radius and what physical object does it define?
+8,physics,Explain the Pauli exclusion principle and give an example of its consequences.
+9,physics,What is the Stefan-Boltzmann law and what does it describe?
+10,physics,State the four Maxwell equations in differential form.
+11,physics,What is the fine-structure constant α and why is it significant?
+12,physics,Explain the difference between bosons and fermions with examples of each.
+13,physics,What is Hubble's law and what does the Hubble constant represent?
+14,physics,Explain what the EPR paradox is and what it challenged about quantum mechanics.
+15,physics,What is the Boltzmann entropy formula S = k ln W and what does W represent?
+16,physics,State the first and second laws of thermodynamics in precise terms.
+17,physics,What is the Doppler effect formula for a moving source in a stationary medium?
+18,physics,Explain the Chandrasekhar limit and what happens to a star that exceeds it.
+19,physics,What is the energy stored in an electric field of a capacitor in terms of capacitance and voltage?
+20,physics,Explain the double-slit experiment and what it demonstrates about the nature of light and matter.
+21,math,State Euler's identity and explain why mathematicians consider it beautiful.
+22,math,State the fundamental theorem of calculus (both parts) precisely.
+23,math,What is the Riemann hypothesis and why is it unsolved?
+24,math,Define a group algebraically and state the four group axioms.
+25,math,State Bayes' theorem and explain each term with an example.
+26,math,State the Cauchy-Schwarz inequality in both vector and integral form.
+27,math,What does the prime number theorem state about the distribution of primes?
+28,math,Explain the difference between a ring and a field in abstract algebra.
+29,math,State Gödel's first incompleteness theorem in plain terms.
+30,math,What is the Fourier transform and what is its inverse?
+31,math,State the central limit theorem precisely and explain its significance.
+32,math,State the mean value theorem for derivatives and give a geometric interpretation.
+33,math,Define a vector space and list the eight axioms it must satisfy.
+34,math,What does the determinant of a matrix represent geometrically?
+35,math,Give the precise epsilon-delta definition of a limit lim(x→a) f(x) = L.
+36,math,State Taylor's theorem with the Lagrange remainder term.
+37,math,What is a topological space and what are open sets?
+38,math,Explain what a manifold is and give two concrete examples.
+39,math,State the law of cosines and show how it generalises the Pythagorean theorem.
+40,math,What is the definition of a derivative using the limit definition?
+41,cs,Explain the P vs NP problem and why its resolution would matter.
+42,cs,What is the halting problem and why is it undecidable?
+43,cs,Explain the difference between DFS and BFS and when you would choose each.
+44,cs,What is a Turing machine? Define its components formally.
+45,cs,What are the four Coffman conditions for deadlock? Explain each.
+46,cs,Explain the CAP theorem — what are the three properties and the trade-off?
+47,cs,What is the time complexity of quicksort in average and worst cases, and why?
+48,cs,What is a hash collision and describe two strategies for resolving it.
+49,cs,Explain the ACID properties of database transactions.
+50,cs,What is dynamic programming? Explain with the Fibonacci or knapsack example.
+51,cs,What is a semaphore and how does it differ from a mutex?
+52,cs,Explain what a red-black tree is and what invariants it maintains.
+53,cs,What is the difference between a process and a thread?
+54,cs,Explain virtual memory — what problem does it solve and how does paging work?
+55,cs,What is Dijkstra's algorithm? State the algorithm and its time complexity.
+56,cs,Explain what a race condition is and give a concrete example.
+57,cs,What is the difference between stack and heap memory allocation?
+58,cs,What is the time and space complexity of merge sort?
+59,cs,Explain what garbage collection is and describe the mark-and-sweep algorithm.
+60,cs,What is the difference between TCP and UDP? When would you use each?
+61,chinese_language,What are the four tones in Mandarin Chinese? Give an example word for each tone.
+62,chinese_language,Explain the difference between 的 (de)、地 (de) and 得 (de) with example sentences.
+63,chinese_language,What are the six categories of Chinese characters (六书 liù shū)? Give an example of each.
+64,chinese_language,Explain the 把 (bǎ) construction — when is it used and what is its sentence structure?
+65,chinese_language,What is the difference between 了 as an aspect particle and 了 as a sentence-final particle?
+66,chinese_language,Explain the concept of measure words (量词) and give five different measure words with the nouns they accompany.
+67,chinese_language,What is a chengyu (成语)? Give three examples with their literal and figurative meanings.
+68,chinese_language,Explain resultative complements (结果补语) in Chinese with three examples.
+69,chinese_language,What are the eight basic strokes used in writing Chinese characters? Name them in order.
+70,chinese_language,Explain the topic-comment sentence structure in Chinese with two examples.
+71,chinese_language,What is the difference between 想 (xiǎng) and 要 (yào) when expressing desire or intention?
+72,chinese_language,Explain the key grammatical differences between Classical Chinese (文言文) and Modern Standard Chinese (普通话).
+73,chinese_language,What are radicals (部首) and what role do they play in the Chinese writing system?
+74,chinese_language,What is the difference between 吃了 (chī le) and 吃过 (chī guò)?
+75,chinese_language,What is the Pinyin romanisation system and who developed it?
+76,chinese_language,Explain the difference between 是...的 construction and a simple 是 sentence.
+77,chinese_language,What is the difference between Traditional and Simplified Chinese characters? Give three examples of character pairs.
+78,chinese_language,Explain the four major Chinese dialect groups and the regions where they are spoken.
+79,chinese_language,What is the role of stroke order in writing Chinese characters and what are the general rules?
+80,chinese_language,Explain the difference between 已经 (yǐjīng) and 曾经 (céngjīng) with examples.
+81,python,What is the Global Interpreter Lock (GIL) in CPython and what are its implications for threading?
+82,python,Explain the difference between a generator function and a list comprehension. When would you use each?
+83,python,What is a decorator in Python? Write a simple decorator that logs function call time.
+84,python,Explain the difference between __str__ and __repr__ — when is each called?
+85,python,What is the Method Resolution Order (MRO) in Python and how does C3 linearization work?
+86,python,Explain the difference between @staticmethod and @classmethod with examples.
+87,python,What does *args and **kwargs mean in a function signature? Give an example of each.
+88,python,What is a context manager? Explain the __enter__ and __exit__ protocol.
+89,python,Explain the difference between is and == in Python with an example where they differ.
+90,python,Explain Python's reference counting memory management and when cyclic garbage collection kicks in.
+91,python,What is the difference between copy.copy() and copy.deepcopy()? When does it matter?
+92,python,Explain what __init__ and __new__ do — what is the difference and when would you override __new__?
+93,python,What are Python's dunder (magic) methods? List five important ones and explain each.
+94,python,Explain list slicing syntax a[start:stop:step] — what does a[::-1] return and why?
+95,python,What is the difference between list.append() and list.extend()?
+96,python,Explain how Python handles exceptions with try/except/else/finally — what does each block do?
+97,python,What is a lambda function? Give an example and explain its limitations versus a def function.
+98,python,What are Python's built-in data structures? Compare list, tuple, set, and dict on mutability and use case.
+99,python,What is PEP 8? Name five specific style rules it prescribes.
+100,python,Explain the difference between a shallow and deep copy using a nested list example.
+101,sql,Explain the difference between INNER JOIN, LEFT JOIN, RIGHT JOIN, and FULL OUTER JOIN with examples.
+102,sql,What is a window function? Write an example query using ROW_NUMBER() OVER (PARTITION BY ... ORDER BY ...).
+103,sql,Explain the difference between WHERE and HAVING clauses — when can you not use WHERE?
+104,sql,What is a Common Table Expression (CTE)? Write an example and explain when to use it over a subquery.
+105,sql,Explain the first three normal forms (1NF, 2NF, 3NF) with examples of what each eliminates.
+106,sql,What is the difference between UNION and UNION ALL? When would you choose each?
+107,sql,What is a database index? Explain when a composite index is more efficient than two separate indexes.
+108,sql,Explain the difference between a correlated subquery and a non-correlated subquery.
+109,sql,What is the difference between DELETE, TRUNCATE, and DROP — including transaction behaviour?
+110,sql,What is a transaction? Explain COMMIT and ROLLBACK with a bank transfer example.
+111,sql,What does GROUP BY do? Explain what happens if you SELECT a non-aggregated column not in GROUP BY.
+112,sql,What is the difference between a clustered index and a non-clustered index?
+113,sql,What does COALESCE do? Give an example and explain how it differs from NULLIF.
+114,sql,What is the difference between a stored procedure and a function in SQL?
+115,sql,Explain foreign keys and referential integrity — what are ON DELETE CASCADE and ON DELETE RESTRICT?
+116,sql,What is the difference between CHAR(n), VARCHAR(n), and TEXT in SQL data types?
+117,sql,Explain RANK() vs DENSE_RANK() vs ROW_NUMBER() — how do they differ when there are ties?
+118,sql,What is a materialized view and how does it differ from a regular view?
+119,sql,What does EXPLAIN (or EXPLAIN PLAN) show and how do you use it to optimise a slow query?
+120,sql,What is the difference between OLTP and OLAP databases in terms of design and query patterns?
+121,data_engineering,What is the difference between ETL and ELT? When is each approach preferred?
+122,data_engineering,Explain the difference between a data lake and a data warehouse. What is a data lakehouse?
+123,data_engineering,What is Apache Kafka? Explain topics, partitions, consumer groups, and offset management.
+124,data_engineering,Explain schema-on-read vs schema-on-write — trade-offs of each approach.
+125,data_engineering,What is Apache Spark and how does its execution model differ from Hadoop MapReduce?
+126,data_engineering,What is the medallion architecture (Bronze/Silver/Gold layers)? What transformations happen at each layer?
+127,data_engineering,Explain data partitioning in a distributed system — what is partition skew and how do you fix it?
+128,data_engineering,What is a Slowly Changing Dimension (SCD)? Explain the difference between Type 1, Type 2, and Type 3.
+129,data_engineering,What is Apache Airflow? Explain DAGs, tasks, operators, and the scheduler.
+130,data_engineering,Explain the difference between batch processing and stream processing. Give a use case for each.
+131,data_engineering,What is data lineage and why does it matter for data governance?
+132,data_engineering,What is dbt (data build tool)? What problem does it solve and how does it model data transformations?
+133,data_engineering,What is a data catalog? Name two tools and explain what metadata they store.
+134,data_engineering,Explain the difference between row-oriented storage (OLTP) and column-oriented storage (OLAP).
+135,data_engineering,What is Apache Parquet format? Why is it preferred over CSV for analytical workloads?
+136,data_engineering,What is the Lambda architecture? Name its three layers and explain the trade-offs.
+137,data_engineering,Explain eventual consistency in distributed systems — how does it differ from strong consistency?
+138,data_engineering,What is the difference between a star schema and a snowflake schema in a data warehouse?
+139,data_engineering,What is Change Data Capture (CDC)? Describe two common implementation approaches.
+140,data_engineering,Explain what exactly-once semantics means in stream processing and why it is hard to achieve.
+141,classical_music,What is sonata form? Describe its three main sections and what happens in each.
+142,classical_music,Who composed The Well-Tempered Clavier and what was its revolutionary significance for tuning?
+143,classical_music,Explain what counterpoint is in music — what rules did Fux codify in Gradus ad Parnassum?
+144,classical_music,Who were the three Viennese Classical composers and what period did they represent?
+145,classical_music,What is a fugue? Describe the exposition, subject, answer, and countersubject.
+146,classical_music,What is the significance of Beethoven's 9th Symphony — musically and historically?
+147,classical_music,Explain what a leitmotif is and give two examples from Wagner's Ring Cycle.
+148,classical_music,What is bel canto? Name three composers associated with the bel canto operatic style.
+149,classical_music,What is equal temperament? Explain why it was a compromise and what it replaced.
+150,classical_music,Explain the difference between Romantic and Impressionist music with examples of composers.
+151,classical_music,Who were the major composers of the Baroque period? Name at least four with one key work each.
+152,classical_music,What is a cadenza in a concerto? What is its purpose and who typically composed it?
+153,classical_music,Explain what program music is and give two famous examples.
+154,classical_music,What is the difference between polyphony and homophony? Give musical examples of each.
+155,classical_music,What was the Mannheim school and what innovations in orchestral playing did it introduce?
+156,classical_music,Explain the difference between a symphony and a concerto in terms of structure and forces.
+157,classical_music,What is the significance of The Art of Fugue (Die Kunst der Fuge) by J.S. Bach?
+158,classical_music,Explain what figured bass (basso continuo) is and its role in Baroque music.
+159,classical_music,What distinguishes the Classical period symphony from the Baroque concerto grosso?
+160,classical_music,What is a tone row in twelve-tone (dodecaphonic) music and which composer developed the technique?
+161,oracle_bone_script,What are oracle bone scripts (甲骨文 jiǎgǔwén) and to which dynasty do they belong?
+162,oracle_bone_script,What materials were oracle bones made from and how were the inscriptions made?
+163,oracle_bone_script,What was the primary purpose of oracle bone inscriptions in ancient China?
+164,oracle_bone_script,Who is Wang Yirong (王懿荣) and what is his role in the discovery of oracle bone script?
+165,oracle_bone_script,Approximately how many oracle bone pieces have been excavated and where were most found?
+166,oracle_bone_script,What is the significance of Yinxu (殷墟) for understanding oracle bone script?
+167,oracle_bone_script,How many distinct oracle bone script characters have been identified and how many have been deciphered?
+168,oracle_bone_script,Explain the typical structure of a complete oracle bone divination record (卜辞 bǔcí).
+169,oracle_bone_script,What topics and questions were most commonly divined using oracle bones?
+170,oracle_bone_script,Explain the six categories of Chinese character formation (六书) as they apply to oracle bone script.
+171,oracle_bone_script,What is the relationship between oracle bone script and bronze inscriptions (金文 jīnwén)?
+172,oracle_bone_script,Who is Dong Zuobin (董作宾) and what contribution did he make to oracle bone studies?
+173,oracle_bone_script,Describe the oracle bone script characters for 日 (sun), 月 (moon), and 山 (mountain) — what do they look like?
+174,oracle_bone_script,What is a 贞人 (zhēnrén) in the context of oracle bone divination?
+175,oracle_bone_script,Explain how oracle bone script helps historians date events in the Shang Dynasty.
+176,oracle_bone_script,What is the evolution from oracle bone script → bronze script → seal script → clerical script → regular script?
+177,oracle_bone_script,Name three Shang Dynasty kings whose names appear in oracle bone inscriptions.
+178,oracle_bone_script,Explain why the pictographic characters in oracle bone script evolved into more abstract forms.
+179,oracle_bone_script,What role did the diviner (卜人) play in the oracle bone ritual process?
+180,oracle_bone_script,How does oracle bone script compare to other ancient writing systems like Sumerian cuneiform or Egyptian hieroglyphs in terms of origin and structure?
+181,movie,What cinematographic techniques did Orson Welles and Gregg Toland pioneer in Citizen Kane (1941)?
+182,movie,What is the Kuleshov effect and what does it reveal about how audiences construct meaning in film?
+183,movie,What is a MacGuffin in film narrative? Who popularised the term and give two examples from Hitchcock films.
+184,movie,What is Italian Neorealism? Name its defining characteristics and two landmark films with their directors.
+185,movie,What is the French New Wave (Nouvelle Vague)? Name three key directors and one film each.
+186,movie,Explain the difference between diegetic and non-diegetic sound in film with concrete examples.
+187,movie,What is the Bechdel test? State its three criteria and discuss its limitations as a measure of representation.
+188,movie,Which film won the first Academy Award for Best Picture and in what year? What was the award called then?
+189,movie,Explain the three-act structure in screenwriting — what happens at each act break and what is the midpoint?
+190,movie,What is the difference between a dolly zoom (Vertigo effect) and a simple zoom shot? Which film made it famous?

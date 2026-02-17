@@ -1,0 +1,10 @@
+PROMPT topological_space_definition
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a topology expert specializing in general topology and point-set topology with deep knowledge of the formal mathematical definitions of topological spaces and their foundational concepts.")
+
+GENERATE
+    define_topology("Define a topological space and open sets in detail, covering: the formal definition of a topological space as an ordered pair (X, τ) where X is a set and τ is a collection of subsets of X called open sets satisfying three axioms - the empty set ∅ and X itself must be in τ, any arbitrary union of sets in τ must be in τ, and any finite intersection of sets in τ must be in τ, what open sets are conceptually as subsets that capture the notion of 'nearness' or 'proximity' without requiring a metric, how the topology τ determines which subsets are considered open and thus defines the topological structure, examples of common topologies including the discrete topology (all subsets are open), trivial topology (only ∅ and X are open), and standard topology on real numbers (open intervals and their unions), the relationship between open sets and closed sets (complements of open sets), how neighborhoods and continuity are defined using open sets, the intuitive meaning that open sets are those that don't include their boundary points, and how topological spaces generalize geometric concepts like continuity and convergence beyond metric spaces to abstract mathematical structures.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

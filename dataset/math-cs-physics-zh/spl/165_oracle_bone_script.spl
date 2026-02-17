@@ -1,0 +1,10 @@
+PROMPT oracle_bone_excavation_statistics
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese archaeology expert specializing in Shang dynasty excavations, oracle bone discoveries, and the quantitative analysis of archaeological finds from major excavation sites in China.")
+
+GENERATE
+    explain_excavation_numbers("Explain approximately how many oracle bone pieces have been excavated and where most were found. Cover: 1) The total estimated number of oracle bone fragments discovered to date (including both complete pieces and fragments), with acknowledgment that exact counts vary between sources due to different counting methods and ongoing discoveries, 2) The primary excavation site at Yinxu (殷墟) near Anyang in Henan Province as the most significant source, including the specific areas within Yinxu such as Xiaotun village, the royal cemetery at Xibeigang, and other sectors of the ancient Shang capital, 3) Major excavation periods and campaigns from the early 20th century systematic excavations by the Academia Sinica to modern archaeological work, 4) Secondary sites where oracle bones have been found, though in much smaller quantities, 5) The distribution of finds between different institutions and collections worldwide including major Chinese museums and archaeological institutes, university collections, and private collections formed during the early period of discoveries, 6) Challenges in providing exact counts due to the fragmentary nature of many pieces, different classification systems used by various institutions, and the ongoing nature of archaeological work, 7) Recent discoveries and how new excavations continue to add to the total count, 8) The significance of quantity in terms of providing sufficient material for comprehensive study of Shang dynasty writing, divination practices, and historical events.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;

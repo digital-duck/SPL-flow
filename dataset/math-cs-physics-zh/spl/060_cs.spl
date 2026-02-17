@@ -1,0 +1,10 @@
+PROMPT tcp_udp_comparison
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a computer networking expert specializing in transport layer protocols with deep knowledge of TCP/IP stack architecture and network protocol design.")
+
+GENERATE
+    compare_protocols("Explain the fundamental differences between TCP (Transmission Control Protocol) and UDP (User Datagram Protocol), covering: the core design philosophies where TCP is a connection-oriented, reliable protocol that guarantees data delivery and ordering, while UDP is a connectionless, unreliable protocol that prioritizes speed and simplicity, key technical differences including TCP's three-way handshake for connection establishment versus UDP's stateless communication, TCP's built-in error detection, acknowledgments, and retransmission mechanisms versus UDP's minimal error checking with no delivery guarantees, flow control and congestion control features in TCP that prevent overwhelming receivers and networks versus UDP's lack of these mechanisms, overhead differences where TCP headers are 20+ bytes with sequence numbers and control flags while UDP headers are only 8 bytes, performance characteristics showing TCP's higher latency due to connection setup and reliability mechanisms versus UDP's lower latency for immediate data transmission, when to use TCP including scenarios requiring reliable data delivery like web browsing (HTTP/HTTPS), file transfers (FTP), email (SMTP), secure shell (SSH), and database connections where data integrity is critical, when to use UDP including real-time applications like video streaming, online gaming, DNS queries, DHCP, live audio/video conferencing, and IoT sensor data where speed matters more than perfect delivery, practical examples of applications using each protocol, and trade-offs in network design including bandwidth efficiency, application complexity, and user experience considerations.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

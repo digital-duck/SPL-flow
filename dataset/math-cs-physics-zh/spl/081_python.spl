@@ -1,0 +1,10 @@
+PROMPT gil_threading_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Python internals expert specializing in CPython implementation, memory management, and concurrent programming with deep knowledge of the Global Interpreter Lock and its impact on threading performance.")
+
+GENERATE
+    analyze_gil("Explain the Global Interpreter Lock (GIL) in CPython comprehensively, covering: the precise definition of the GIL as a mutex that protects access to Python objects and prevents multiple native threads from executing Python bytecodes simultaneously, the historical reason why the GIL was introduced including CPython's reference counting garbage collection mechanism and the need to prevent race conditions when multiple threads modify reference counts, how the GIL works internally including when it is acquired and released, the thread switching mechanism where the GIL is released every few bytecode instructions or during I/O operations, the fundamental limitation that only one thread can execute Python code at a time even on multi-core systems, implications for CPU-bound versus I/O-bound tasks where CPU-bound multithreaded programs see no performance benefit and may even be slower due to context switching overhead, while I/O-bound programs can benefit since the GIL is released during I/O operations, common misconceptions about the GIL including the difference between threading limitations and actual parallelism, workarounds and alternatives including multiprocessing for true parallelism, using C extensions that release the GIL, alternative Python implementations like Jython and IronPython that don't have a GIL, and concurrent.futures for easier parallel execution, practical implications for Python developers including when to use threading versus multiprocessing, how libraries like NumPy and other C extensions can release the GIL for computational work, and why understanding the GIL is crucial for writing efficient concurrent Python programs.")
+WITH OUTPUT BUDGET 3000 tokens, TEMPERATURE 0.2, FORMAT markdown;

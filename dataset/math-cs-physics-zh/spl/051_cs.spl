@@ -1,0 +1,10 @@
+PROMPT semaphore_mutex_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a computer science expert specializing in operating systems, concurrent programming, and synchronization primitives with deep knowledge of threading and process coordination mechanisms.")
+
+GENERATE
+    analyze_synchronization("Explain what a semaphore is and how it differs from a mutex, covering: the definition of a semaphore as a synchronization primitive that maintains a counter representing the number of available resources, how semaphores work with wait/signal operations (P/V operations) that atomically decrement and increment the counter, the two main types - binary semaphores (counter 0 or 1) and counting semaphores (counter can be any non-negative integer), the definition of a mutex (mutual exclusion lock) as a binary synchronization primitive that provides exclusive access to a shared resource, the key differences including that mutexes are owned by the thread that acquires them while semaphores have no ownership concept, mutexes can only be released by the thread that acquired them while any thread can signal a semaphore, semaphores can allow multiple threads to access a resource pool while mutexes allow only one thread at a time, concrete use cases such as semaphores for managing limited resource pools like database connections or thread pools, and mutexes for protecting critical sections and ensuring atomic access to shared data structures, implementation details about how each primitive prevents race conditions and coordinates thread execution, and practical examples showing when to use each type of synchronization mechanism.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

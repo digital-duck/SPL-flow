@@ -1,0 +1,10 @@
+PROMPT coffman_conditions_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a computer science expert specializing in operating systems and concurrent programming with deep knowledge of deadlock theory and the Coffman conditions.")
+
+GENERATE
+    analyze_conditions("Explain the four Coffman conditions for deadlock in detail, covering: the complete statement that all four conditions must hold simultaneously for deadlock to occur, detailed explanation of each condition including Mutual Exclusion (resources cannot be shared and only one process can use a resource at a time), Hold and Wait (a process holding at least one resource is waiting to acquire additional resources held by other processes), No Preemption (resources cannot be forcibly taken away from a process and must be released voluntarily), and Circular Wait (there exists a circular chain of processes where each process is waiting for a resource held by the next process in the chain), concrete examples illustrating each condition in action such as printer allocation, database locks, or file access scenarios, why all four conditions are necessary for deadlock (removing any one condition prevents deadlock), and how operating systems use deadlock prevention by violating one or more of these conditions through techniques like resource ordering, timeouts, or preemption.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,0 +1,52 @@
+PROMPT compare_ancient_writing_systems
+WITH BUDGET 8000 tokens
+USING MODEL "claude-opus-4-6"
+
+WITH oracle_bone_analysis AS (
+    PROMPT oracle_bone_features
+    WITH BUDGET 2500 tokens
+    USING MODEL "claude-sonnet-4-5"
+
+    SELECT
+        system_role("You are a Chinese paleography expert specializing in oracle bone script origins, structural features, and developmental patterns within ancient Chinese writing systems.")
+
+    GENERATE
+        analyze_oracle_bones("Analyze oracle bone script's origins and structural characteristics. Cover: 1) Origins in Shang dynasty divination practices (c. 1250-1046 BCE) developing from pictographic representations of concrete objects and concepts, 2) Structural features including logographic nature where characters represent words or morphemes rather than sounds, pictographic origins with characters derived from visual representations of objects, ideographic elements representing abstract concepts, and determinative components that classify meaning, 3) Writing direction and layout patterns on turtle plastrons and ox scapulae, 4) Character formation principles including pictography, simple ideography, compound ideography, and early phonetic borrowing, 5) Relationship to spoken Chinese language as a logographic system representing Chinese morphemes and words, 6) Evolution from concrete divination tool inscriptions to broader administrative and ceremonial writing, 7) Technical constraints of carving into bone affecting character forms and complexity.")
+    WITH OUTPUT BUDGET 1800 tokens, TEMPERATURE 0.1, FORMAT json
+),
+
+cuneiform_analysis AS (
+    PROMPT cuneiform_features
+    WITH BUDGET 2500 tokens
+    USING MODEL "claude-sonnet-4-5"
+
+    SELECT
+        system_role("You are a Mesopotamian archaeology expert specializing in cuneiform writing system development, Sumerian linguistics, and ancient Near Eastern scribal traditions.")
+
+    GENERATE
+        analyze_cuneiform("Analyze Sumerian cuneiform's origins and structural characteristics. Cover: 1) Origins in Sumerian accounting and administrative needs (c. 3200 BCE) developing from token-based record-keeping systems, 2) Structural evolution from pictographic clay tokens to abstract wedge-shaped marks, transition from logographic to syllabic representation, development of phonetic elements representing sounds rather than meanings, and rebus principle for abstract concepts, 3) Writing medium of clay tablets and technical aspects of cuneiform impression, 4) Character formation using stylus creating wedge combinations, standardization across Mesopotamian civilizations, 5) Adaptation to multiple languages including Sumerian, Akkadian, Babylonian, Assyrian, and others, 6) Evolution from concrete accounting records to literature, law codes, and scholarly texts, 7) Technical advantages of clay medium allowing complex character combinations and detailed record-keeping.")
+    WITH OUTPUT BUDGET 1800 tokens, TEMPERATURE 0.1, FORMAT json
+),
+
+hieroglyph_analysis AS (
+    PROMPT hieroglyph_features
+    WITH BUDGET 2500 tokens
+    USING MODEL "claude-sonnet-4-5"
+
+    SELECT
+        system_role("You are an Egyptology expert specializing in hieroglyphic writing system development, ancient Egyptian linguistics, and pharaonic period scribal practices.")
+
+    GENERATE
+        analyze_hieroglyphs("Analyze Egyptian hieroglyphs' origins and structural characteristics. Cover: 1) Origins in early dynastic Egypt (c. 3100 BCE) for royal and religious inscription purposes, 2) Structural features including mixed logographic-alphabetic system with pictographs representing objects, phonetic elements representing sounds, determinatives clarifying meaning categories, and alphabetic elements for individual consonants, 3) Multiple writing forms including formal hieroglyphic, cursive hieratic, and simplified demotic scripts, 4) Character formation principles combining pictographic accuracy with phonetic functionality, standardized forms for temple and tomb inscriptions, 5) Integration with Egyptian language representing consonantal roots while omitting vowels, 6) Evolution from monumental religious contexts to administrative, literary, and scientific texts, 7) Technical considerations of stone carving, papyrus writing, and paint application affecting character design and complexity.")
+    WITH OUTPUT BUDGET 1800 tokens, TEMPERATURE 0.1, FORMAT json
+)
+
+SELECT
+    system_role("You are a comparative historical linguistics and ancient writing systems expert with expertise in analyzing structural and developmental patterns across world civilizations."),
+    context.oracle_bone_analysis AS oracle_data LIMIT 1800 tokens,
+    context.cuneiform_analysis AS cuneiform_data LIMIT 1800 tokens,
+    context.hieroglyph_analysis AS hieroglyph_data LIMIT 1800 tokens
+
+GENERATE
+    comparative_analysis(oracle_data, cuneiform_data, hieroglyph_data, "Compare oracle bone script with Sumerian cuneiform and Egyptian hieroglyphs in terms of origin and structure. Structure your analysis with: 1) ORIGINS COMPARISON covering chronological development (cuneiform c. 3200 BCE, hieroglyphs c. 3100 BCE, oracle bones c. 1250 BCE), cultural contexts (Mesopotamian administration, Egyptian royal-religious, Chinese divination), and initial purposes, 2) STRUCTURAL COMPARISON analyzing writing system types (logographic, syllabic, alphabetic elements), character formation principles, relationship to spoken language, writing directions and layouts, 3) EVOLUTIONARY PATTERNS comparing how each system adapted from concrete representation to abstract notation, phonetic development, standardization processes, and expansion beyond original contexts, 4) TECHNICAL FACTORS examining how writing media (clay, stone/papyrus, bone) influenced character development, tool constraints, and preservation patterns, 5) FUNCTIONAL DEVELOPMENT tracing expansion from specialized uses to broader literary and administrative applications, 6) UNIQUE CHARACTERISTICS highlighting what makes each system distinctive in world writing history, 7) LEGACY AND INFLUENCE on subsequent writing systems and modern scripts. Include specific character examples illustrating key structural differences and evolutionary patterns.")
+WITH OUTPUT BUDGET 4000 tokens, TEMPERATURE 0.1, FORMAT markdown;

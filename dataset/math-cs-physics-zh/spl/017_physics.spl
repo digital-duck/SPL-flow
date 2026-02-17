@@ -1,0 +1,10 @@
+PROMPT doppler_effect_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in wave mechanics and acoustics with deep knowledge of the mathematical foundations of wave propagation and the Doppler effect in various media.")
+
+GENERATE
+    analyze_formula("Explain the Doppler effect formula for a moving source in a stationary medium in detail, covering: the complete mathematical formulation f' = f(v/(v ± vs)) where f' is the observed frequency, f is the source frequency, v is the wave speed in the medium, vs is the source velocity, and the sign convention (minus when source approaches observer, plus when receding), the physical meaning of each term and how they relate to wave compression and rarefaction as the source moves, the derivation from basic wave principles showing how source motion affects wavelength while frequency remains constant at the source, why the formula is different from the case of a moving observer, the distinction between this classical formula and relativistic Doppler effects at high speeds, practical applications including radar, medical ultrasound, and astronomical observations, how the effect manifests in different types of waves including sound waves and electromagnetic radiation, and the fundamental implications for understanding wave propagation and relative motion between sources and observers.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

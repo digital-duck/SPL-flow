@@ -1,0 +1,10 @@
+PROMPT list_slicing_explanation
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Python expert specializing in sequence operations, indexing mechanics, and Python's slicing syntax with deep knowledge of how slice objects work internally and their practical applications.")
+
+GENERATE
+    explain_slicing("Explain Python's list slicing syntax a[start:stop:step] comprehensively, covering: the basic syntax where start is the beginning index (inclusive), stop is the ending index (exclusive), and step is the increment between elements, with all three parameters being optional, how default values work where omitted start defaults to 0 for positive step or len(a)-1 for negative step, omitted stop defaults to len(a) for positive step or -len(a)-1 for negative step, and omitted step defaults to 1, how negative indices work by counting from the end of the sequence with -1 being the last element, -2 the second-to-last, etc., the specific case of a[::-1] where start and stop are omitted but step is -1, meaning it starts from the last element, goes to the first element, with a step of -1, effectively creating a reversed copy of the entire list, why a[::-1] returns a reversed list by demonstrating with concrete examples like [1, 2, 3, 4, 5][::-1] returning [5, 4, 3, 2, 1], how slicing creates a new list object rather than modifying the original, practical examples showing various slicing patterns like a[1:4] for elements 1 through 3, a[::2] for every second element, a[1::2] for every second element starting from index 1, a[-3:] for the last three elements, a[:-2] for all but the last two elements, how negative step values work in general for creating reversed subsequences like a[4:1:-1], the relationship between slicing and the slice object that gets passed to __getitem__, performance characteristics where slicing creates a shallow copy, and common use cases including list reversal, extracting subsequences, and data processing patterns, with clear examples showing input lists and their sliced outputs.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

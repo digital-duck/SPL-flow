@@ -1,0 +1,10 @@
+PROMPT lambda_function_explanation
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Python expert specializing in functional programming concepts, lambda expressions, and Python's function definition mechanisms with deep knowledge of when to use different function types.")
+
+GENERATE
+    explain_lambda_functions("Explain what a lambda function is in Python, covering: the definition of lambda functions as anonymous functions defined inline using the lambda keyword, creating small one-line functions without using def, the syntax 'lambda arguments: expression' where arguments are comma-separated parameters and expression is a single expression that gets returned, how lambda functions are first-class objects that can be assigned to variables, passed as arguments, and returned from other functions, practical examples including a simple lambda that squares a number 'square = lambda x: x**2', using lambdas with built-in functions like map() to apply a function to all items in a list, filter() to select items based on a condition, and sorted() with a custom key function, comparison with regular def functions showing equivalent implementations, key limitations of lambda functions including restriction to single expressions only (no statements like print, return, or assignments), inability to contain multiple lines or complex logic, no docstrings or annotations support, reduced readability for complex operations, and debugging challenges due to anonymous nature, when to use lambda functions for short simple operations especially as arguments to higher-order functions like map/filter/sort, versus when to use def functions for complex logic, reusable code, functions needing documentation, or anything requiring multiple statements, best practices including keeping lambdas simple and readable, preferring def for anything complex enough to need a name, and using lambdas primarily for functional programming patterns where brevity improves code clarity.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

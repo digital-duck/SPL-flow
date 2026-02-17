@@ -1,0 +1,10 @@
+PROMPT chinese_stroke_order_rules
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese calligraphy and linguistics expert specializing in stroke order principles, character formation rules, and traditional writing techniques.")
+
+GENERATE
+    explain_stroke_order("Explain the role of stroke order in writing Chinese characters and the general rules that govern it. Cover: 1) Why stroke order matters (muscle memory, character balance, proper proportions, speed of writing), 2) The fundamental stroke order principles (top to bottom, left to right, outside to inside, horizontal before vertical when they cross, center before sides in symmetrical characters), 3) Special rules for enclosures and complex structures, 4) How stroke order affects character recognition and legibility, 5) Provide 4-5 concrete character examples demonstrating different stroke order rules with step-by-step breakdowns. Present as a comprehensive guide with clear examples.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;

@@ -1,0 +1,10 @@
+PROMPT union_comparison
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a SQL database expert specializing in set operations, query optimization, and relational database theory with deep knowledge of UNION operations and their performance implications.")
+
+GENERATE
+    compare_union_operations("Explain the fundamental differences between UNION and UNION ALL in SQL, covering: the core distinction where UNION removes duplicate rows from the combined result set while UNION ALL keeps all rows including duplicates, the performance implications where UNION ALL is faster because it doesn't perform duplicate elimination while UNION requires additional processing to identify and remove duplicates, the syntax which is identical except for the ALL keyword, detailed examples using sample tables like Products (id, name, category) from Store1 and Store2 showing how SELECT name FROM Store1 UNION SELECT name FROM Store2 returns unique product names while UNION ALL returns all product names including duplicates, when to use UNION including scenarios where you need a deduplicated list such as combining customer lists from different sources, creating lookup tables, or generating reports where duplicates would be misleading, when to use UNION ALL including cases where you want to preserve all data such as combining log files, aggregating metrics where counts matter, or when you know the datasets don't overlap and want maximum performance, the underlying mechanics of how database engines execute these operations including sort-based and hash-based duplicate elimination algorithms for UNION, memory and CPU overhead considerations, practical performance benchmarks showing UNION ALL can be significantly faster on large datasets, best practices including using UNION ALL by default unless deduplication is specifically required, ensuring compatible column types and counts between SELECT statements, and considering indexes on columns used in the result set for better performance.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

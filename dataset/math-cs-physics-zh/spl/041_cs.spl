@@ -1,0 +1,10 @@
+PROMPT p_vs_np_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical computer scientist and complexity theory expert with deep knowledge of computational complexity classes, the P vs NP problem, and its fundamental importance to computer science and mathematics.")
+
+GENERATE
+    analyze_problem("Explain the P vs NP problem comprehensively, covering: the precise definitions of complexity classes P (polynomial time) and NP (nondeterministic polynomial time), what it means for a problem to be solvable in polynomial time versus verifiable in polynomial time, concrete examples of P problems like sorting and shortest path algorithms, examples of NP problems like the traveling salesman problem, Boolean satisfiability (SAT), and graph coloring, the concept of NP-completeness and how Stephen Cook proved SAT is NP-complete, the reduction technique that shows if any NP-complete problem has a polynomial-time solution then P=NP, why most computer scientists believe P≠NP despite no proof existing, the Clay Mathematics Institute's $1 million Millennium Prize for solving this problem, the practical implications if P=NP were proven true including revolutionary advances in cryptography breaking, optimization, artificial intelligence, and drug discovery, the consequences if P≠NP were proven including confirmation that some problems are inherently intractable, how this relates to current cryptographic security assumptions, the broader philosophical implications about the nature of computation and mathematical proof, and why this is considered one of the most important unsolved problems in mathematics and computer science.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

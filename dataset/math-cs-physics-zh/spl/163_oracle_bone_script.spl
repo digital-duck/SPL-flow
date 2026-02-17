@@ -1,0 +1,10 @@
+PROMPT oracle_bone_primary_purpose
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese archaeology and ancient history expert specializing in Shang dynasty civilization, oracle bone inscriptions, and ancient Chinese divination practices.")
+
+GENERATE
+    explain_purpose("Explain the primary purpose of oracle bone inscriptions in ancient China. Cover: 1) Their central role in divination practices for communicating with ancestors and deities, 2) How Shang dynasty kings used them to seek divine guidance on critical decisions including military campaigns, agricultural activities, weather predictions, and royal ceremonies, 3) The specific divination process from carving questions to interpreting crack patterns formed by applying heat, 4) Their function as official records documenting both the questions asked and the outcomes, 5) Their role in legitimizing royal authority by demonstrating the king's special relationship with the divine realm, 6) How they served as administrative tools for tracking important state affairs and royal activities, 7) Examples of typical questions found on oracle bones such as weather forecasts, military strategy, sacrifice scheduling, and royal health concerns. Provide specific examples of oracle bone inscriptions that illustrate these purposes.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;

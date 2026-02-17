@@ -1,0 +1,10 @@
+PROMPT compton_scattering_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in quantum mechanics and particle physics with deep knowledge of photon-electron interactions and the mathematical foundations of Compton scattering.")
+
+GENERATE
+    analyze_formula("Explain the Compton scattering formula for wavelength shift in detail, covering: the complete mathematical form Δλ = λ' - λ = (h/mₑc)(1 - cos θ) where Δλ is the wavelength shift, λ' is the scattered wavelength, λ is the incident wavelength, h is Planck's constant, mₑ is the electron rest mass, c is the speed of light, and θ is the scattering angle, the physical meaning of each term and how they relate to the photon-electron collision, the derivation from conservation of energy and momentum in the collision, what the Compton wavelength h/mₑc represents and its numerical value, how the wavelength shift depends only on the scattering angle and not on the incident wavelength, experimental verification and its importance in confirming the particle nature of light, and the fundamental implications for quantum mechanics and our understanding of electromagnetic radiation.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

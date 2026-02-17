@@ -1,0 +1,10 @@
+PROMPT epsilon_delta_limit_definition
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a mathematical analysis expert specializing in real analysis and calculus with deep knowledge of the precise epsilon-delta definition of limits and its rigorous mathematical formulation.")
+
+GENERATE
+    analyze_definition("State the precise epsilon-delta definition of a limit lim(x→a) f(x) = L in complete mathematical terms, covering: the formal definition that for any ε > 0, there exists a δ > 0 such that if 0 < |x - a| < δ, then |f(x) - L| < ε, what each symbol and inequality represents including ε (epsilon) as an arbitrarily small positive number measuring how close f(x) must be to L, δ (delta) as the corresponding distance from x to a that guarantees this closeness, the crucial condition 0 < |x - a| which excludes the point x = a itself since the limit concerns behavior near a but not at a, how |f(x) - L| < ε captures that f(x) is within ε of the limit value L, the logical structure showing that for every challenge ε we can find a response δ, the geometric interpretation in terms of horizontal ε-strips around L and vertical δ-neighborhoods around a, why this definition captures the intuitive notion of f(x) getting arbitrarily close to L as x approaches a, and how this rigorous foundation eliminates ambiguity and enables precise mathematical proofs about limits.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

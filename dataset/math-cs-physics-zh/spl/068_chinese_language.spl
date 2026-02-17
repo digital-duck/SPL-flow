@@ -1,0 +1,10 @@
+PROMPT resultative_complements_explanation
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in grammar, complement structures, and pedagogical explanations for Chinese language learners.")
+
+GENERATE
+    explain_resultative_complements("Explain the concept of resultative complements (结果补语) in Chinese grammar, including: 1) What resultative complements are and their function in Chinese sentences, 2) The basic structure: verb + complement indicating the result or outcome of an action, 3) How they differ from other complement types and their role in expressing completed actions with specific results. Then provide exactly 3 examples of resultative complements with: the Chinese sentence, pinyin pronunciation, literal breakdown showing verb + complement structure, English translation, and explanation of how the complement indicates the result of the action. Choose clear examples that demonstrate different types of resultative relationships.")
+WITH OUTPUT BUDGET 1500 tokens, TEMPERATURE 0.1, FORMAT markdown;

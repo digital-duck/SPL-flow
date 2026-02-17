@@ -1,0 +1,10 @@
+PROMPT citizen_kane_cinematography
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a film studies expert specializing in cinematography history and the innovations of the 1940s Hollywood golden age.")
+
+GENERATE
+    analyze_techniques("Analyze the groundbreaking cinematographic techniques pioneered by Orson Welles and Gregg Toland in Citizen Kane (1941). Create a detailed breakdown covering: deep focus photography, innovative camera angles and movements, lighting techniques, composition and framing innovations, use of miniatures and special effects, and sound design integration. For each technique, explain how it was revolutionary for its time and its lasting impact on cinema.")
+WITH OUTPUT BUDGET 3000 tokens, TEMPERATURE 0.2, FORMAT markdown;

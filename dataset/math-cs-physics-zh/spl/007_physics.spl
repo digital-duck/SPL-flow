@@ -1,0 +1,10 @@
+PROMPT schwarzschild_radius_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in general relativity and black hole physics with deep knowledge of the mathematical foundations and physical interpretations of spacetime curvature.")
+
+GENERATE
+    analyze_concept("Explain the Schwarzschild radius in detail, covering: the complete mathematical formula rs = 2GM/c² where rs is the Schwarzschild radius, G is the gravitational constant, M is mass, and c is the speed of light, what physical object this radius defines (the event horizon of a black hole), the physical meaning of this critical radius as the boundary beyond which nothing can escape including light, how this emerges from Einstein's field equations and the Schwarzschild solution for spacetime around a spherically symmetric mass, what happens at and beyond this radius in terms of spacetime curvature and causality, practical examples showing how the Schwarzschild radius scales with mass for different objects, and the broader significance for our understanding of gravity, spacetime, and the ultimate fate of matter under extreme gravitational collapse.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

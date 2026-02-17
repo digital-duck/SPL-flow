@@ -1,0 +1,10 @@
+PROMPT chinese_dialect_groups
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese dialectology expert specializing in the major dialect groups of Chinese, their geographic distribution, linguistic characteristics, and regional variations.")
+
+GENERATE
+    explain_dialect_groups("Explain the four major Chinese dialect groups and their geographic regions. For each dialect group provide: 1) The dialect group name in English and Chinese, 2) The primary regions/provinces where it is spoken, 3) Major representative cities or areas, 4) Key linguistic characteristics that distinguish it from other groups, 5) Notable sub-dialects within the group. Cover the four major groups: Mandarin (官话), Wu (吴语), Yue/Cantonese (粤语), and Min (闽语). Present as a clear structured explanation with geographic and linguistic details for each group.")
+WITH OUTPUT BUDGET 1500 tokens, TEMPERATURE 0.1, FORMAT markdown;

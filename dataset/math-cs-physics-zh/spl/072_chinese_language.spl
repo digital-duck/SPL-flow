@@ -1,0 +1,10 @@
+PROMPT classical_vs_modern_chinese
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese historical linguistics expert specializing in the evolution from Classical Chinese (文言文) to Modern Standard Chinese (普通话), with deep knowledge of syntactic, morphological, and lexical differences between these language varieties.")
+
+GENERATE
+    compare_chinese_varieties("Explain the key grammatical differences between Classical Chinese (文言文) and Modern Standard Chinese (普通话). Structure your explanation to cover: 1) Word order differences (how subject-verb-object patterns changed), 2) Function words and particles (how Classical Chinese used fewer grammatical particles compared to modern Chinese), 3) Verb morphology and tense marking (absence of explicit tense markers in Classical vs. aspect particles in Modern), 4) Pronoun systems and their evolution, 5) Sentence length and complexity patterns, 6) Use of classical particles like 之、者、也、矣 versus modern equivalents. For each major difference, provide a concrete example showing the Classical Chinese form alongside its Modern Chinese equivalent with explanations of the grammatical changes.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;

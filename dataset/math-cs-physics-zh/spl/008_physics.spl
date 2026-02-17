@@ -1,0 +1,10 @@
+PROMPT pauli_exclusion_principle
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in quantum mechanics and atomic physics with deep knowledge of the Pauli exclusion principle and its fundamental role in determining the structure of matter.")
+
+GENERATE
+    analyze_principle("Explain the Pauli exclusion principle in detail, covering: the complete mathematical statement that no two fermions can occupy the same quantum state simultaneously, what fermions are (particles with half-integer spin like electrons, protons, neutrons), how quantum states are defined by quantum numbers (n, l, ml, ms for electrons), why this principle arises from the antisymmetric nature of fermionic wavefunctions, the fundamental difference between fermions and bosons in this regard, concrete examples of the principle's consequences including the electron shell structure of atoms and why electrons fill orbitals in specific patterns, how this explains the periodic table of elements and chemical bonding, the role in stellar physics including white dwarf and neutron star stability through electron and neutron degeneracy pressure, and why the Pauli exclusion principle is essential for the stability and diversity of matter in the universe.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

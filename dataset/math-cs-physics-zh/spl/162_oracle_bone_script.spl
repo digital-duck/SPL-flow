@@ -1,0 +1,10 @@
+PROMPT oracle_bone_materials
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese archaeology and paleography expert specializing in Shang dynasty oracle bone inscriptions, ancient Chinese divination practices, and the technical aspects of oracle bone preparation and inscription methods.")
+
+GENERATE
+    explain_materials_process("Explain what materials oracle bones were made from and how the inscriptions were made, covering: the primary materials used for oracle bones including turtle plastrons (the flat bottom shell of turtles, particularly from large river turtles) and ox scapulae (shoulder blades from cattle), why these specific materials were chosen for their flat surfaces suitable for carving and their significance in Shang religious practices, the preparation process including cleaning, polishing, and sometimes drilling small holes for heat application, the inscription technique involving first carving the divination question into the bone using bronze knives or other sharp tools before the divination ceremony, how heat was applied to create cracks for divination by placing hot metal rods or burning sticks into the prepared holes or directly onto the bone surface, the process of interpreting the resulting crack patterns as divine answers, the post-divination recording where scribes would carve the actual divination results and sometimes the eventual outcome onto the bone, the tools used for carving including bronze knives, awls, and other sharp implements, the sequence of inscription elements typically including the date, diviner's name, the question asked, the divine response interpreted from cracks, and sometimes the actual historical outcome, the technical challenges of carving into hard bone material and how this influenced the development of early Chinese character forms, and examples of well-preserved oracle bones showing both the divination cracks and the carved inscriptions that provide insight into Shang dynasty royal activities, weather concerns, military campaigns, and religious practices.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.1, FORMAT markdown;

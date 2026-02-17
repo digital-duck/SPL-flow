@@ -1,0 +1,10 @@
+PROMPT red_black_tree_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a computer science expert specializing in data structures and algorithms with deep knowledge of balanced binary search trees, tree invariants, and the mathematical properties that ensure optimal performance.")
+
+GENERATE
+    analyze_data_structure("Explain what a red-black tree is and what invariants it maintains, covering: the definition of a red-black tree as a self-balancing binary search tree where each node has a color attribute (red or black), the complete set of five red-black tree invariants including that the root is always black, all leaves (NIL nodes) are black, red nodes cannot have red children (no two red nodes can be adjacent), all paths from any node to its descendant leaves contain the same number of black nodes (black-height property), and every node is either red or black, how these invariants ensure the tree remains approximately balanced with a maximum height of 2log₂(n+1) where n is the number of nodes, the algorithms for maintaining these invariants during insertion and deletion operations through recoloring and rotations, why red-black trees guarantee O(log n) worst-case performance for search, insertion, and deletion operations, how the invariants prevent the tree from becoming skewed like a linked list, concrete examples showing valid and invalid red-black tree configurations, comparison with other balanced trees like AVL trees (red-black trees have less strict balancing requirements but simpler maintenance operations), and real-world applications where red-black trees are used such as in C++ STL map/set implementations, Java TreeMap/TreeSet, and Linux kernel's completely fair scheduler.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

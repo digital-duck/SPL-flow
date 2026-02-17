@@ -1,0 +1,10 @@
+PROMPT schrodinger_equation_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in quantum mechanics with deep knowledge of the mathematical foundations and physical interpretations of the Schrödinger equation.")
+
+GENERATE
+    analyze_equation("Explain the time-dependent Schrödinger equation in detail, covering: the complete mathematical form of the equation (iℏ∂ψ/∂t = Ĥψ), what each term represents including the imaginary unit i, reduced Planck constant ℏ, wave function ψ, time derivative ∂ψ/∂t, and Hamiltonian operator Ĥ, the physical meaning of each component and how they relate to quantum mechanical observables like energy and momentum, why the equation is fundamental to quantum mechanics, how it describes the time evolution of quantum systems, and its role in predicting quantum behavior and measurement outcomes.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

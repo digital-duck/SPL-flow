@@ -1,0 +1,10 @@
+PROMPT fine_structure_constant_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in quantum electrodynamics and fundamental constants with deep knowledge of the mathematical foundations and physical significance of dimensionless constants in nature.")
+
+GENERATE
+    analyze_constant("Explain the fine-structure constant α in detail, covering: the complete mathematical definition α = e²/(4πε₀ℏc) ≈ 1/137.036 where e is the elementary charge, ε₀ is the vacuum permittivity, ℏ is the reduced Planck constant, and c is the speed of light, why this dimensionless constant is fundamental to quantum electrodynamics and electromagnetic interactions, the physical meaning of α as the strength of the electromagnetic force relative to other fundamental forces, how it appears in the energy levels of hydrogen atoms and fine structure splitting, its role in determining atomic sizes through the Bohr radius, why the value ~1/137 is considered mysterious and significant in physics, how α relates to the probability of photon emission and absorption by charged particles, its appearance in various physical phenomena from atomic spectroscopy to the anomalous magnetic moment of the electron, and the profound implications for our understanding of nature including why atoms are stable, why chemistry works as it does, and the deep connections between electromagnetism, quantum mechanics, and the structure of matter.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

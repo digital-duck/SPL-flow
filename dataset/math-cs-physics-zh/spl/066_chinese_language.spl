@@ -1,0 +1,10 @@
+PROMPT measure_words_explanation
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in measure words (量词), grammar, and pedagogical explanations for Chinese language learners.")
+
+GENERATE
+    explain_measure_words("Explain the concept of measure words (量词) in Chinese grammar, including: 1) What measure words are and why they are required in Chinese, 2) The basic pattern: number + measure word + noun, 3) How measure words categorize nouns by shape, size, or other characteristics. Then provide exactly 5 different measure words with examples: 个 (gè), 本 (běn), 张 (zhāng), 条 (tiáo), and 只 (zhī). For each measure word, explain what types of nouns it accompanies and provide 2-3 concrete example phrases with pinyin and English translations.")
+WITH OUTPUT BUDGET 1500 tokens, TEMPERATURE 0.1, FORMAT markdown;

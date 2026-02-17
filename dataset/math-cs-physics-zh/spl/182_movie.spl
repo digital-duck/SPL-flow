@@ -1,0 +1,10 @@
+PROMPT kuleshov_effect_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a film theory expert specializing in early cinema history, montage theory, and cognitive film studies with deep knowledge of Soviet filmmaking pioneers.")
+
+GENERATE
+    analyze_effect("Explain the Kuleshov effect in detail, covering: what it is and how Lev Kuleshov's original experiments worked, the specific techniques used in his montage sequences, what the effect reveals about audience psychology and meaning construction in cinema, how viewers mentally connect disparate images to create narrative coherence, the broader implications for film editing and storytelling, and its influence on later filmmakers and film theory. Include concrete examples from Kuleshov's experiments and explain why this discovery was revolutionary for understanding how cinema works as a medium.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

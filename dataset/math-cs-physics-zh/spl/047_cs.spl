@@ -1,0 +1,10 @@
+PROMPT quicksort_complexity_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a computer science algorithms expert with deep knowledge of sorting algorithms, complexity analysis, and mathematical recurrence relations.")
+
+GENERATE
+    analyze_complexity("Explain the time complexity of quicksort in both average and worst cases, covering: the precise mathematical analysis showing average case is O(n log n) through the recurrence relation T(n) = T(k) + T(n-k-1) + O(n) where k is the partition position, how the expected value calculation with random pivot selection leads to T(n) = O(n log n), the worst case scenario of O(n²) when the pivot is always the smallest or largest element creating unbalanced partitions, the recurrence T(n) = T(n-1) + O(n) that leads to quadratic behavior, why this happens with already sorted arrays using naive pivot selection, the role of pivot selection strategies including random pivot, median-of-three, and their impact on performance, the mathematical proof using master theorem and substitution method, comparison with other O(n log n) algorithms like mergesort and heapsort, why quicksort is often preferred despite worst-case quadratic behavior, and practical considerations including cache performance and in-place sorting advantages.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

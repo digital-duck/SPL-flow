@@ -1,0 +1,10 @@
+PROMPT ranking_functions_comparison
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a SQL database expert specializing in window functions, ranking functions, and analytical queries with deep knowledge of how different ranking functions handle ties and their practical applications.")
+
+GENERATE
+    compare_ranking_functions("Explain the differences between RANK(), DENSE_RANK(), and ROW_NUMBER() window functions in SQL, focusing specifically on how each handles ties: ROW_NUMBER() assigns unique sequential integers to every row regardless of ties, so if multiple rows have the same value it still gives them different numbers (1, 2, 3, 4, 5) making it non-deterministic for tied values, RANK() assigns the same rank to tied values but skips subsequent ranks, so with two ties for first place the sequence would be (1, 1, 3, 4, 5) creating gaps after ties, DENSE_RANK() also assigns the same rank to tied values but does not skip ranks, producing a sequence like (1, 1, 2, 3, 4) with no gaps, demonstrate with a concrete example using an Employees table with columns (name, department, salary) and sample data showing employees with identical salaries, illustrate how SELECT name, salary, ROW_NUMBER() OVER (ORDER BY salary DESC) as row_num, RANK() OVER (ORDER BY salary DESC) as rank_num, DENSE_RANK() OVER (ORDER BY salary DESC) as dense_rank FROM Employees produces different results for tied salaries, explain the practical use cases where ROW_NUMBER() is useful for pagination and creating unique identifiers even with duplicates, RANK() mimics traditional ranking systems like sports competitions where ties create gaps, and DENSE_RANK() is ideal for creating compact ranking systems without gaps, discuss determinism issues where ROW_NUMBER() with ties may produce different results across query executions unless additional ORDER BY columns are specified to break ties, and performance considerations including how these functions are optimized differently by database engines and when to use each function based on business requirements.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

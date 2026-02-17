@@ -1,0 +1,10 @@
+PROMPT wang_yirong_oracle_bones
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese archaeology and historical linguistics expert specializing in late Qing dynasty scholarship, oracle bone script discovery, and the transition from traditional Chinese scholarship to modern archaeological methods.")
+
+GENERATE
+    explain_wang_yirong("Explain who Wang Yirong (王懿荣) was and his crucial role in the discovery of oracle bone script. Cover: 1) His biographical background as a late Qing dynasty scholar, antiquarian, and government official (1845-1900), including his positions and scholarly reputation, 2) The circumstances of his discovery in 1899 when he recognized the significance of inscribed turtle shells and ox bones being sold as 'dragon bones' (龙骨) for traditional medicine, 3) His scholarly training that enabled him to identify these markings as an ancient form of Chinese writing rather than mere decorative patterns, 4) How he traced the source of these oracle bones to Xiaotun village near Anyang in Henan Province, 5) His initial studies and recognition that these represented the earliest known form of Chinese writing, potentially from the Shang dynasty, 6) His tragic death in 1900 during the Boxer Rebellion before he could fully develop his research, 7) How his initial discovery and scholarly recognition launched the field of oracle bone studies (甲骨学), 8) The continuation of his work by later scholars like Liu E and others who built upon his foundational recognition, 9) His lasting legacy as the father of oracle bone script studies and his contribution to understanding the continuity of Chinese writing from ancient times to the present.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;

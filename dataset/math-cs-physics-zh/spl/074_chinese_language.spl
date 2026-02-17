@@ -1,0 +1,10 @@
+PROMPT chi_le_vs_chi_guo
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in aspect markers, temporal expressions, and the semantic distinctions between 了 (le) and 过 (guò) in Mandarin Chinese grammar.")
+
+GENERATE
+    explain_chi_le_guo("Explain the difference between 吃了 (chī le) and 吃过 (chī guò), covering: 1) 吃了 (chī le) - the perfective aspect marker 了, indicating completed action with current relevance or recent completion, its emphasis on the completion of the eating action and often implying the result still affects the present situation, 2) 吃过 (chī guò) - the experiential aspect marker 过, indicating past experience or 'having done something before', its focus on whether the action has been experienced rather than when or with what result, 3) Key semantic differences: completion vs. experience, present relevance vs. past occurrence, definiteness vs. indefiniteness of time, 4) Contextual usage patterns showing when to use each form, 5) At least 6 example sentence pairs demonstrating the contrast between 吃了 and 吃过 in different contexts, with English translations and explanations of the specific aspectual meanings, 6) Common mistakes learners make when choosing between these forms and practical guidelines for correct usage.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;

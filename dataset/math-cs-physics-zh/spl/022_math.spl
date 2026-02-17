@@ -1,0 +1,10 @@
+PROMPT fundamental_theorem_calculus
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a mathematical analysis expert specializing in calculus with deep knowledge of the fundamental theorem of calculus and its precise mathematical formulations.")
+
+GENERATE
+    analyze_theorem("State the fundamental theorem of calculus in precise terms, covering both parts: Part I (First Fundamental Theorem) which states that if f is continuous on [a,b] and F(x) = ∫ᵃˣ f(t) dt, then F is differentiable on (a,b) and F'(x) = f(x), explaining what this means about the relationship between integration and differentiation, Part II (Second Fundamental Theorem) which states that if f is continuous on [a,b] and F is any antiderivative of f on [a,b], then ∫ᵃᵇ f(x) dx = F(b) - F(a), what each symbol represents and the conditions required for the theorem to hold, how Part I establishes that integration and differentiation are inverse operations, how Part II provides the practical method for evaluating definite integrals using antiderivatives, the profound mathematical significance of these results in connecting the geometric concept of area under a curve with the algebraic process of finding antiderivatives, and why this theorem is considered one of the most important results in all of mathematics.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

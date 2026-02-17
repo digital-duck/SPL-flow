@@ -1,0 +1,10 @@
+PROMPT turing_machine_definition
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical computer scientist with deep expertise in formal models of computation, automata theory, and the mathematical foundations of computer science.")
+
+GENERATE
+    define_turing_machine("Define a Turing machine formally and explain its components comprehensively, covering: the complete formal mathematical definition as a 7-tuple M = (Q, Σ, Γ, δ, q₀, qaccept, qreject) where Q is the finite set of states, Σ is the input alphabet (finite set of input symbols), Γ is the tape alphabet containing Σ and including the blank symbol, δ is the transition function δ: Q × Γ → Q × Γ × {L, R} that determines the next state, symbol to write, and head movement direction, q₀ ∈ Q is the start state, qaccept ∈ Q is the accept state, and qreject ∈ Q is the reject state with qaccept ≠ qreject, the physical components including the infinite tape divided into cells each containing a symbol from the tape alphabet, the read/write head that can read the current symbol and write a new symbol to the current cell, the finite control unit that stores the current state and executes the transition function, how the machine operates through discrete steps by reading the current symbol, consulting the transition function to determine the next state and action, writing a new symbol to the current cell, and moving the head left or right, the concepts of configuration, computation, acceptance and rejection, and the fundamental significance of Turing machines as the mathematical foundation for understanding computability and the limits of algorithmic computation.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

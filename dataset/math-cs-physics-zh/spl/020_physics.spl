@@ -1,0 +1,10 @@
+PROMPT double_slit_experiment_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in quantum mechanics with deep knowledge of foundational experiments that revealed the wave-particle duality of light and matter.")
+
+GENERATE
+    analyze_experiment("Explain the double-slit experiment in detail, covering: the basic experimental setup with a coherent light source, barrier with two parallel slits, and detection screen, what happens when both slits are open showing the characteristic interference pattern with alternating bright and dark fringes, how this interference pattern demonstrates the wave nature of light through constructive and destructive interference, the shocking results when detectors are placed at the slits to determine which path each photon takes - the interference pattern disappears and particles behave like classical particles, how this same experiment works with electrons, atoms, and even large molecules demonstrating wave-particle duality for matter, the fundamental quantum mechanical principle that observation or measurement affects the system being observed, how individual particles sent one at a time still create the interference pattern over time showing each particle somehow 'goes through both slits simultaneously', the concept of superposition where particles exist in multiple states until measured, how this experiment challenges our classical intuition about reality and demonstrates the probabilistic nature of quantum mechanics, and the broader implications for our understanding of the fundamental nature of light, matter, and the role of observation in quantum systems.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

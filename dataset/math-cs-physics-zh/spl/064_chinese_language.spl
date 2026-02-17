@@ -1,0 +1,10 @@
+PROMPT ba_construction_explanation
+WITH BUDGET 5000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in syntax, grammatical constructions, and pedagogical explanations for Chinese language learners.")
+
+GENERATE
+    explain_construction("Explain the 把 (bǎ) construction in Chinese comprehensively, covering: 1) What the 把 construction is and its fundamental purpose in Chinese syntax, 2) When it is used - the specific conditions and contexts that require or favor the 把 construction, 3) The exact sentence structure pattern: Subject + 把 + Object + Verb + Result/Complement, 4) Key grammatical rules and restrictions for using 把 correctly, 5) At least 5 concrete example sentences demonstrating different uses of the 把 construction with English translations, 6) Common mistakes learners make with 把 and how to avoid them. Structure the explanation clearly with sections and highlight the key usage patterns.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

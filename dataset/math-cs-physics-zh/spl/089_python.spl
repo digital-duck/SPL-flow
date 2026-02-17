@@ -1,0 +1,10 @@
+PROMPT is_vs_equals_comparison
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Python expert specializing in object identity, equality semantics, and Python's object model with deep knowledge of when and why identity and equality comparisons behave differently.")
+
+GENERATE
+    compare_operators("Explain the fundamental differences between 'is' and '==' operators in Python, covering: the definition of 'is' as an identity operator that checks if two variables refer to the exact same object in memory by comparing object IDs, versus '==' as an equality operator that checks if two objects have the same value by calling the __eq__ method, how 'is' uses Python's built-in id() function to compare memory addresses while '==' compares object contents or values, the difference between object identity (same object instance) and object equality (equivalent values), practical examples demonstrating cases where they differ including: two separate list objects with identical contents where == returns True but is returns False, string interning behavior where small integers and short strings may share the same object making is return True unexpectedly, the None singleton where 'is None' is preferred over '== None' because None is guaranteed to be the same object, mutable vs immutable object behavior showing how identity can differ even when values are equal, performance implications where 'is' is faster since it only compares memory addresses while '==' may invoke complex comparison methods, best practices including when to use 'is' for singleton objects like None, True, False and type checking, versus when to use '== ' for value comparisons, common pitfalls like assuming 'is' works for value comparison or using '==' with None, and concrete code examples with variables, lists, strings, and integers showing the different results and explanations of why each behaves as it does, including using id() to demonstrate object identity.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

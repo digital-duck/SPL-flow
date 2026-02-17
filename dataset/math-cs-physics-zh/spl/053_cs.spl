@@ -1,0 +1,10 @@
+PROMPT process_thread_comparison
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a computer science expert specializing in operating systems, process management, and concurrent programming with deep knowledge of system-level programming and thread architecture.")
+
+GENERATE
+    compare_concepts("Explain the fundamental differences between processes and threads, covering: the definition of a process as an independent program in execution with its own memory space, process control block, and system resources, versus a thread as a lightweight execution unit within a process that shares the process's memory space and resources, key architectural differences including memory isolation where processes have separate virtual address spaces while threads within the same process share memory, heap, and code segments but maintain separate stacks and registers, resource overhead differences showing that process creation and context switching is more expensive than thread operations due to memory management and system calls, communication mechanisms including inter-process communication (IPC) methods like pipes, message queues, and shared memory for processes, versus direct memory sharing and synchronization primitives like mutexes and semaphores for threads, fault isolation where a crash in one process doesn't affect other processes while a thread crash can bring down the entire process, scheduling differences where the OS schedules processes independently while threads are typically scheduled within their parent process, concrete examples of when to use processes versus threads such as web servers using processes for isolation or threads for performance, and practical implications for system design including scalability, debugging complexity, and security considerations.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

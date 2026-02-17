@@ -1,0 +1,10 @@
+PROMPT bel_canto_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are an opera history and vocal music expert specializing in Italian bel canto tradition, vocal technique, and 19th century operatic composition with deep knowledge of the stylistic characteristics and compositional practices of the bel canto masters.")
+
+GENERATE
+    analyze_vocal_style("Explain what bel canto is and identify three composers associated with the bel canto operatic style, covering: the definition of bel canto meaning 'beautiful singing' as an Italian vocal technique and compositional style emphasizing lyrical melody, vocal virtuosity, and expressive phrasing that flourished in the early 19th century, the technical characteristics including long flowing melodic lines, elaborate coloratura passages, smooth legato phrasing, precise intonation, seamless register transitions, and the balance between vocal beauty and dramatic expression, how bel canto differed from earlier Baroque opera seria and later Romantic verismo styles, three major composers of the bel canto tradition starting with Gioachino Rossini (1792-1868) whose works like 'The Barber of Seville' and 'La Cenerentola' established the foundation of bel canto style with their elegant melodic writing and showcase for vocal agility, Vincenzo Bellini (1801-1835) who perfected the long-breathed melodic line in operas like 'Norma' and 'La sonnambula' with their sublime arias that demand both technical mastery and deep musical sensitivity, and Gaetano Donizetti (1797-1848) whose prolific output including 'Lucia di Lammermoor' and 'L'elisir d'amore' combined vocal brilliance with dramatic effectiveness, the historical period of bel canto's dominance roughly 1810-1840, the influence on vocal pedagogy and operatic composition, the revival of interest in bel canto repertoire in the 20th century through singers like Maria Callas, and the lasting impact on operatic vocal technique and composition.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

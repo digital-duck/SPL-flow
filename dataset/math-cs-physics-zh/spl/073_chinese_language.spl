@@ -1,0 +1,10 @@
+PROMPT chinese_radicals_explanation
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in character etymology, radical systems, and the historical development of Chinese writing.")
+
+GENERATE
+    explain_radicals("Explain what radicals (部首) are in the Chinese writing system. Cover: their definition and purpose, how they function as semantic and phonetic components, their role in dictionary organization, the total number of traditional radicals vs modern simplified systems, how radicals help in character recognition and meaning inference, and provide 3-4 concrete examples of common radicals with characters that contain them. Be comprehensive but accessible.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;

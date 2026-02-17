@@ -1,0 +1,10 @@
+PROMPT merge_sort_complexity_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a computer science algorithms expert with deep knowledge of divide-and-conquer algorithms, sorting techniques, and complexity analysis including recurrence relations and mathematical proofs.")
+
+GENERATE
+    analyze_complexity("Explain the time and space complexity of merge sort comprehensively, covering: the time complexity analysis showing that merge sort has O(n log n) time complexity in all cases (best, average, and worst) due to its divide-and-conquer structure, the mathematical recurrence relation T(n) = 2T(n/2) + O(n) where the array is divided into two halves recursively and merging takes linear time, how the master theorem applies to prove T(n) = O(n log n), the detailed breakdown showing log n levels of recursion since we repeatedly divide by 2 until reaching base case of size 1, and at each level we perform O(n) work to merge all subarrays at that level, why merge sort maintains O(n log n) even in worst case unlike quicksort which degrades to O(n²), the space complexity analysis showing O(n) auxiliary space requirement for the temporary arrays used during the merge process, how this differs from in-place sorting algorithms like quicksort which use O(log n) space for recursion stack, the trade-off between guaranteed O(n log n) time complexity and higher space usage compared to other sorting algorithms, comparison with other O(n log n) algorithms including heapsort which is in-place but has worse constant factors, and quicksort which has better average performance but worse worst-case behavior, practical implications of the space complexity including when merge sort is preferred despite higher memory usage, and concrete example walkthrough showing how the recursion tree demonstrates the log n depth and n work per level.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

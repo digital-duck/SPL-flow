@@ -1,0 +1,10 @@
+PROMPT shallow_deep_copy_nested_example
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Python expert specializing in object copying, memory management, and reference semantics with deep knowledge of how shallow and deep copying work with nested data structures.")
+
+GENERATE
+    explain_copy_difference("Explain the difference between shallow and deep copy using nested list examples, covering: the definition of shallow copy as creating a new object but inserting references to objects found in the original, versus deep copy as creating a new object and recursively copying all nested objects, demonstrate with a concrete nested list example starting with original = [[1, 2, 3], [4, 5, 6], [7, 8, 9]], show how import copy; shallow = copy.copy(original) creates a new outer list but the inner lists are shared references, while deep = copy.deepcopy(original) creates completely independent nested lists, illustrate the behavior difference by modifying nested elements like original[0][0] = 999 and show how this affects shallow copy (both original and shallow become [[999, 2, 3], [4, 5, 6], [7, 8, 9]]) because they share the same inner list objects, but deep copy remains unchanged ([[1, 2, 3], [4, 5, 6], [7, 8, 9]]) because it has independent copies, explain the memory and reference behavior where shallow copy results in id(original[0]) == id(shallow[0]) returning True (same inner list objects), while id(original[0]) == id(deep[0]) returns False (different inner list objects), provide step-by-step code examples showing the creation of each copy type, the modification of nested elements, and the resulting state of all three lists, explain when this difference matters including scenarios with nested mutable objects like lists of lists, lists of dictionaries, or any multi-level data structure where you need to modify nested elements without affecting the original, and demonstrate the practical implications with real-world examples like modifying a game board represented as a nested list or updating nested configuration data.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

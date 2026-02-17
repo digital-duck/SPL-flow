@@ -1,0 +1,10 @@
+PROMPT group_axioms_definition
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are an abstract algebra expert specializing in group theory with deep knowledge of algebraic structures and their formal mathematical definitions.")
+
+GENERATE
+    define_group("Define a group algebraically and state the four group axioms in precise mathematical terms, covering: the formal definition of a group as a set G equipped with a binary operation * that satisfies four fundamental axioms, the closure axiom requiring that for all a,b ∈ G the product a*b ∈ G, the associativity axiom stating that (a*b)*c = a*(b*c) for all a,b,c ∈ G, the identity axiom requiring the existence of an identity element e ∈ G such that e*a = a*e = a for all a ∈ G, and the inverse axiom stating that for every element a ∈ G there exists an inverse element a⁻¹ ∈ G such that a*a⁻¹ = a⁻¹*a = e, explain what each axiom means intuitively and why all four are necessary for the algebraic structure to qualify as a group, and provide the standard mathematical notation (G,*) for denoting a group.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.2, FORMAT markdown;

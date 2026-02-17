@@ -1,0 +1,10 @@
+PROMPT python_decorator_explanation
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Python expert specializing in language features, metaprogramming, and decorator patterns with deep knowledge of Python's function objects and closure mechanics.")
+
+GENERATE
+    explain_and_implement("Explain what a decorator is in Python and provide a complete implementation, covering: the definition of a decorator as a design pattern that allows behavior to be added to functions or classes dynamically without permanently modifying their structure, how decorators work using Python's first-class function support where functions can be passed as arguments, returned as values, and assigned to variables, the syntactic sugar where @decorator_name above a function definition is equivalent to func = decorator_name(func), the decorator function pattern that takes a function as input and returns a modified function, typically using nested functions and closures to wrap the original function's behavior, how decorators preserve the original function's metadata and arguments using functools.wraps, then provide a complete working example of a timing decorator that logs function execution time, including: import statements for time and functools modules, the decorator function definition that creates a wrapper function using closures, time measurement before and after function execution using time.time(), logging the function name and execution time, proper use of functools.wraps to preserve original function metadata, demonstration of applying the decorator using @ syntax to a sample function, and example output showing the timing logs, explain common use cases for decorators including logging, authentication, caching, rate limiting, and performance monitoring, and show how the same decorator can be applied to multiple functions.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

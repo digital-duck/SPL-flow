@@ -1,0 +1,10 @@
+PROMPT yijing_cengjing_difference
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in temporal adverbs, aspect markers, and the semantic distinctions between different expressions of pastness in Mandarin Chinese.")
+
+GENERATE
+    explain_yijing_cengjing("Explain the difference between 已经 (yǐjīng) and 曾经 (céngjīng), covering: 1) 已经 (yǐjīng) - meaning 'already', indicating that an action or state has been completed and continues to be relevant in the present, emphasizing the current result or ongoing effect of a past action, 2) 曾经 (céngjīng) - meaning 'once/formerly/in the past', indicating past experience or a previous state that may no longer be true, emphasizing the historical fact without current relevance, 3) Key semantic differences: present relevance vs. past experience, ongoing effects vs. discontinued states, definite completion vs. general past occurrence, 4) Temporal focus: 已经 connects past to present, while 曾经 isolates past events, 5) At least 6 example sentence pairs demonstrating the contrast between 已经 and 曾经 in similar contexts, with English translations and explanations of how the choice affects meaning and implication, 6) Common usage patterns and contexts where each is appropriate, including their interaction with other time expressions and aspect markers.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;

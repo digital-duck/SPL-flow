@@ -1,0 +1,10 @@
+PROMPT manifold_definition_examples
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a differential geometry expert specializing in manifold theory with deep knowledge of smooth manifolds and their applications in mathematics and physics.")
+
+GENERATE
+    define_manifold("Explain what a manifold is in differential geometry, covering: the formal definition of a manifold as a topological space that locally resembles Euclidean space, how manifolds are constructed using coordinate charts and atlases, the concept that manifolds look locally flat even though they may be globally curved, the requirement for smoothness and differentiability, and provide two concrete examples with detailed explanations - first, the 2-sphere S² (the surface of a ball in 3D space) explaining how it's a 2-dimensional manifold embedded in 3D space with coordinate charts using stereographic projection or spherical coordinates, and second, the Klein bottle as a 2-dimensional manifold that cannot be embedded in 3D space without self-intersection, explaining its non-orientable properties and how it demonstrates that manifolds can have exotic topological features not possible in ordinary Euclidean geometry.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

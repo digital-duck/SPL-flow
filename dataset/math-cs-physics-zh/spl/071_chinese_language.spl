@@ -1,0 +1,10 @@
+PROMPT xiang_yao_difference
+WITH BUDGET 5000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in modal verbs, semantic distinctions, and the pragmatic differences between desire and intention expressions in Mandarin Chinese.")
+
+GENERATE
+    explain_xiang_yao("Explain the difference between 想 (xiǎng) and 要 (yào) when expressing desire or intention, covering: 1) 想 (xiǎng) - its meaning of 'want/wish/would like to', indicating a subjective desire or preference that may be tentative or hypothetical, its use in polite requests and less definitive statements, 2) 要 (yào) - its meaning of 'want/need/will', indicating a stronger intention, determination, or necessity, its use when expressing definite plans or urgent needs, 3) Key semantic differences in strength of intention (tentative vs definite), politeness level, and temporal implications, 4) Contextual usage patterns where one is preferred over the other, 5) At least 6 example sentence pairs demonstrating the contrast between 想 and 要 in similar contexts, with English translations and explanations of the nuanced differences in meaning and tone, 6) Special cases like negation (不想 vs 不要) and their distinct meanings. Structure with clear sections and highlight the practical guidelines for choosing between them.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

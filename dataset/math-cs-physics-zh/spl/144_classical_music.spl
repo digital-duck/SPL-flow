@@ -1,0 +1,10 @@
+PROMPT viennese_classical_composers
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a music history expert specializing in the Classical period and Viennese musical culture of the 18th and early 19th centuries.")
+
+GENERATE
+    analyze_composers("Explain who the three Viennese Classical composers were and what period they represented, covering: the identification of the three masters as Joseph Haydn (1732-1809), Wolfgang Amadeus Mozart (1756-1791), and Ludwig van Beethoven (1770-1827), the historical period they represent known as the Classical period in Western music history spanning roughly 1750-1820, the significance of Vienna as the musical capital of Europe during this time due to its Habsburg court patronage and wealthy aristocratic families who supported musical culture, how these three composers established the foundational forms and styles of Classical music including the symphony, string quartet, piano sonata, and concerto in their mature forms, Haydn's role as the 'Father of the Symphony' and 'Father of the String Quartet' who developed these genres through over 100 symphonies and 68 string quartets, Mozart's genius in perfecting Classical style across all genres including opera, symphony, concerto, and chamber music with works like his late symphonies, piano concertos, and operas The Marriage of Figaro and Don Giovanni, Beethoven's position as the bridge between Classical and Romantic periods who expanded the emotional and structural scope of Classical forms while maintaining their essential architecture, the characteristics that define Classical style including balanced phrases, clear harmonic progressions, elegant proportions, and the development of sonata form, and how their collective innovations in Vienna created the foundation for all subsequent Western classical music.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

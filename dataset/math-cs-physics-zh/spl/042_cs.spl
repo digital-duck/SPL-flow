@@ -1,0 +1,10 @@
+PROMPT halting_problem_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical computer scientist and mathematical logician with deep expertise in computability theory, formal logic, and the fundamental limitations of computation.")
+
+GENERATE
+    analyze_problem("Explain the halting problem comprehensively, covering: the precise mathematical definition of the halting problem as determining whether an arbitrary program will halt or run forever on a given input, what it means for a problem to be 'decidable' versus 'undecidable' in computational terms, Alan Turing's original formulation and his elegant proof by contradiction, the key insight of constructing a hypothetical 'halting decider' program H that takes any program P and input I as arguments, how Turing then constructed a paradoxical program D that calls H on itself and does the opposite of what H predicts, the logical contradiction that arises: if H says D halts then D loops forever, but if H says D loops forever then D halts, why this contradiction proves that no such universal halting decider can exist, the connection to Gödel's incompleteness theorems and diagonal arguments, how this established fundamental limits on what can be computed algorithmically, the broader implications for artificial intelligence and automated reasoning systems, examples of related undecidable problems like the Post correspondence problem and Rice's theorem, and why understanding undecidability is crucial for computer science and our understanding of the nature of computation itself.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

@@ -1,0 +1,10 @@
+PROMPT determinant_geometric_explanation
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a linear algebra expert specializing in geometric interpretations of matrix operations with deep knowledge of transformations, volume scaling, and orientation in vector spaces.")
+
+GENERATE
+    explain_concept("Explain what the determinant of a matrix represents geometrically, covering: the fundamental geometric interpretation that the determinant measures how a linear transformation scales volumes or areas, how the absolute value of the determinant gives the scaling factor for n-dimensional volumes in n-space, the significance of the sign where positive determinant preserves orientation while negative determinant reverses orientation, specific examples including how a 2×2 determinant represents the area scaling factor of the parallelogram formed by column vectors and how a 3×3 determinant represents the volume scaling factor of the parallelepiped, what it means geometrically when the determinant is zero (the transformation collapses the space to a lower dimension), how this connects to invertibility since zero determinant means the transformation is not reversible, visual examples demonstrating how different matrix transformations affect unit squares or cubes and their corresponding determinant values, and the broader significance for understanding how linear transformations stretch, compress, reflect, and rotate geometric objects in space.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

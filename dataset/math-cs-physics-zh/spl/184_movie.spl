@@ -1,0 +1,10 @@
+PROMPT italian_neorealism_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a film history expert specializing in Italian cinema and post-war European film movements with deep knowledge of neorealism theory and practice.")
+
+GENERATE
+    analyze_movement("Explain Italian Neorealism as a film movement, covering: the historical context and origins of neorealism in post-WWII Italy, its core defining characteristics including use of non-professional actors, location shooting, social realism themes, documentary-style cinematography, and focus on working-class struggles, and provide two landmark films of the movement with their directors, explaining why each film is considered essential to neorealism and how it exemplifies the movement's key principles.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.2, FORMAT markdown;

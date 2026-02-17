@@ -1,0 +1,10 @@
+PROMPT race_condition_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a computer science expert specializing in concurrent programming and operating systems with deep knowledge of race conditions, synchronization mechanisms, and thread safety.")
+
+GENERATE
+    analyze_concept("Explain what a race condition is and provide a concrete example, covering: the definition of a race condition as a software bug that occurs when the correctness of a program depends on the relative timing or interleaving of multiple threads or processes accessing shared resources, why race conditions arise due to non-atomic operations and preemptive scheduling where threads can be interrupted at any point during execution, the fundamental problem of shared mutable state without proper synchronization, a detailed concrete example such as two threads incrementing a shared counter variable where the increment operation (read-modify-write) is not atomic, step-by-step breakdown showing how Thread A reads the counter value, Thread B reads the same value before Thread A writes back, both threads increment their local copies and write back, resulting in lost updates and incorrect final count, why this demonstrates the classic race condition pattern of check-then-act, additional examples including banking transactions where concurrent withdrawals could lead to overdrafts, file system operations where multiple processes writing to the same file could corrupt data, and web applications where concurrent user registrations might create duplicate accounts, common solutions to prevent race conditions including mutexes, semaphores, atomic operations, and lock-free programming techniques, and why race conditions are particularly dangerous because they often work correctly during testing but fail unpredictably in production under high concurrency.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

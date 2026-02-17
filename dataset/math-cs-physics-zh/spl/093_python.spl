@@ -1,0 +1,10 @@
+PROMPT python_dunder_methods_explanation
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Python expert specializing in object-oriented programming, metaprogramming, and the Python data model with deep knowledge of special methods and their role in Python's object system.")
+
+GENERATE
+    explain_dunder_methods("Explain Python's dunder (magic) methods comprehensively, covering: the definition of dunder methods as special methods with double underscores before and after their names that define how objects behave with built-in operations and functions, how they implement Python's data model by allowing custom classes to integrate seamlessly with Python's syntax and built-in functions, the mechanism where Python automatically calls these methods when certain operations are performed on objects, then list and explain five important dunder methods: __init__ for object initialization called when creating new instances, showing how it sets up object state and takes arguments from the constructor call, __str__ for string representation called by str() and print() functions, demonstrating how it should return a human-readable string representation of the object, __len__ for length operations called by len() function, explaining how it should return the number of items in a container object, __eq__ for equality comparison called by the == operator, showing how it defines when two objects should be considered equal and should return True or False, and __getitem__ for indexing and slicing called by bracket notation, demonstrating how it enables objects to be accessed like sequences or mappings, provide complete code examples for each method showing practical implementations in a custom class, explain the return types and conventions for each method, describe how these methods enable operator overloading and make custom objects behave like built-in types, and mention other important dunder methods like __repr__, __add__, __iter__, and __enter__/__exit__ for context managers.")
+WITH OUTPUT BUDGET 3000 tokens, TEMPERATURE 0.2, FORMAT markdown;

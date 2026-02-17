@@ -1,0 +1,10 @@
+PROMPT oracle_bone_liushu
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese paleography and linguistics expert specializing in oracle bone script analysis, character formation principles, and the application of the traditional六书 classification system to ancient Chinese writing.")
+
+GENERATE
+    explain_liushu_oracle("Explain how the six categories of Chinese character formation (六书 liù shū) apply specifically to oracle bone script. For each category provide: 1) The Chinese name and pinyin, 2) English translation and definition, 3) How this formation principle manifests in oracle bone script compared to later writing, 4) Specific oracle bone script examples with visual descriptions of the ancient forms, 5) How these oracle bone characters evolved into their modern equivalents, 6) The relative frequency of each category in the oracle bone corpus. Cover all six categories: 象形 (xiàngxíng - pictographs), 指事 (zhǐshì - indicative), 会意 (huìyì - compound ideographs), 形声 (xíngshēng - phono-semantic compounds), 转注 (zhuǎnzhù - derivative cognates), and 假借 (jiǎjiè - phonetic loans). Discuss how oracle bone script represents the earliest documented application of these formation principles and what this reveals about the systematic nature of early Chinese writing.")
+WITH OUTPUT BUDGET 3000 tokens, TEMPERATURE 0.1, FORMAT markdown;

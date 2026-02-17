@@ -1,0 +1,10 @@
+PROMPT leitmotif_wagner_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a musicology expert specializing in Richard Wagner's operas and leitmotif analysis with deep knowledge of the Ring Cycle's musical structure and dramatic symbolism.")
+
+GENERATE
+    explain_leitmotif("Explain what a leitmotif is in music and provide two specific examples from Wagner's Ring Cycle, covering: the definition of a leitmotif as a recurring musical theme or motif associated with a particular character, object, emotion, or idea that appears throughout an opera or musical work, Wagner's pioneering development of this technique as a sophisticated system of musical storytelling where short melodic phrases carry dramatic and symbolic meaning, how leitmotifs function as musical symbols that can be varied, combined, and transformed to reflect character development and plot progression, the first example being the Ring motif itself - a simple descending perfect fifth followed by an ascending fourth that represents the cursed ring of power, appearing first when Alberich forges the ring in Das Rheingold and recurring throughout all four operas in various transformations to signal the ring's presence and influence, the second example being Siegfried's Horn Call - a heroic ascending fanfare in the horn that characterizes the young hero Siegfried, first heard prominently in Act I of Siegfried when he forges his sword and later developed into triumphant variations during his heroic deeds, how Wagner uses these motifs structurally by weaving them into the orchestral fabric to provide commentary on the action, foreshadow future events, and create musical unity across the massive 15-hour cycle, the psychological depth achieved through motivic transformation where a theme might appear in major mode during moments of triumph and minor mode during tragedy, and Wagner's innovation in creating a musical language where the orchestra becomes a narrator through the sophisticated deployment of these interconnected leitmotifs.")
+WITH OUTPUT BUDGET 2800 tokens, TEMPERATURE 0.2, FORMAT markdown;

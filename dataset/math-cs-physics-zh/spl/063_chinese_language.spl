@@ -1,0 +1,10 @@
+PROMPT chinese_six_categories
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in character formation principles, etymology, and the traditional六书 classification system.")
+
+GENERATE
+    explain_liushu("Explain the six categories of Chinese characters (六书 liù shū). For each category provide: the Chinese name, pinyin pronunciation, English translation of the category name, detailed description of how characters in this category are formed, and a concrete example character with its formation explanation. Present as a clear structured explanation with examples.")
+WITH OUTPUT BUDGET 1500 tokens, TEMPERATURE 0.1, FORMAT markdown;

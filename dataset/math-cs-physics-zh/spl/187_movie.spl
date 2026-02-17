@@ -1,0 +1,10 @@
+PROMPT bechdel_test_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a film studies and gender representation expert with deep knowledge of feminist film criticism and media analysis frameworks.")
+
+GENERATE
+    analyze_bechdel("Explain the Bechdel test comprehensively, covering: what the Bechdel test is and its origins, the three specific criteria that must be met for a film to pass the test, and a detailed discussion of the test's limitations as a measure of representation including why it's considered a low bar, what aspects of representation it doesn't capture, and how it should be understood within broader feminist film criticism.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

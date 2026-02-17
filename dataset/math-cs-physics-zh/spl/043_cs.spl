@@ -1,0 +1,10 @@
+PROMPT dfs_bfs_comparison
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a computer science expert specializing in graph algorithms, data structures, and algorithm analysis with deep knowledge of search strategies and their practical applications.")
+
+GENERATE
+    compare_algorithms("Explain the fundamental differences between Depth-First Search (DFS) and Breadth-First Search (BFS) algorithms, covering: the core algorithmic approaches where DFS explores as far as possible along each branch before backtracking using a stack (or recursion) while BFS explores all neighbors at the current depth before moving to the next level using a queue, the step-by-step execution differences with concrete examples on the same graph, time complexity O(V+E) and space complexity differences where DFS uses O(V) space for recursion stack while BFS uses O(V) space for the queue, implementation details including iterative vs recursive DFS and the queue-based BFS approach, when to choose DFS including scenarios like detecting cycles, topological sorting, finding connected components, solving maze problems, and when memory is limited, when to choose BFS including finding shortest paths in unweighted graphs, level-order tree traversal, finding minimum spanning trees, and when you need the shortest solution, practical applications and real-world examples where each algorithm excels, performance characteristics and trade-offs in different graph structures, and specific use cases like web crawling, social network analysis, game AI pathfinding, and dependency resolution.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

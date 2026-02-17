@@ -1,0 +1,10 @@
+PROMPT oracle_bone_sun_character
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese paleography and oracle bone script expert specializing in the evolution of pictographic characters from Shang dynasty inscriptions to modern Chinese writing.")
+
+GENERATE
+    describe_sun_character("Describe the oracle bone script characters for 日 (sun), covering: 1) The pictographic nature of the oracle bone forms showing how they directly depicted the sun as a circular or oval shape, often with a central dot or line representing the sun's core or solar flares, 2) The various forms found in oracle bone inscriptions including simple circles, ovals with central dots, and more elaborate versions with radiating lines or internal markings, 3) How these ancient forms clearly show the pictographic origin as representations of the actual sun rather than abstract symbols, 4) The evolution from oracle bone script through bronze inscriptions, small seal script, and clerical script to arrive at the modern square form 日, 5) Specific examples of oracle bone 日 characters found at Yinxu with descriptions of their visual appearance and variations, 6) How the oracle bone sun character was used in compound characters and its role in forming other characters related to time, light, and celestial phenomena, 7) The frequency of appearance in oracle bone divination records, often in contexts related to weather, calendar, and royal activities, 8) Comparison with sun symbols in other early writing systems to highlight the universal pictographic tendency to represent the sun as a circle, 9) How the gradual squaring and standardization of the character reflects the evolution of Chinese writing from pictographic representation toward more abstract, systematized forms suitable for efficient writing.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;

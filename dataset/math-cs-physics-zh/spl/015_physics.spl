@@ -1,0 +1,10 @@
+PROMPT boltzmann_entropy_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a theoretical physics expert specializing in statistical mechanics and thermodynamics with deep knowledge of entropy, microstates, and the statistical foundations of the second law of thermodynamics.")
+
+GENERATE
+    analyze_formula("Explain the Boltzmann entropy formula S = k ln W in detail, covering: the complete mathematical formulation where S is entropy, k is the Boltzmann constant (1.381×10⁻²³ J/K), ln is the natural logarithm, and W is the number of microstates, what W represents physically as the number of distinct microscopic arrangements or configurations that correspond to the same macroscopic state, why the logarithmic relationship connects the microscopic world of atoms to macroscopic thermodynamic properties, how this formula provides the statistical mechanical foundation for entropy and bridges microscopic and macroscopic physics, the physical meaning of why entropy increases with the number of available microstates, how this relates to the second law of thermodynamics and the tendency toward maximum entropy, examples of how W changes in different physical processes like gas expansion or mixing, the connection to information theory and the concept of missing information about microscopic details, and the fundamental importance of this equation for understanding irreversibility, equilibrium, and the arrow of time in physics.")
+WITH OUTPUT BUDGET 2500 tokens, TEMPERATURE 0.2, FORMAT markdown;

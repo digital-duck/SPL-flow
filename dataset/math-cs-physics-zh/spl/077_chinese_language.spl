@@ -1,0 +1,10 @@
+PROMPT traditional_vs_simplified_chinese
+WITH BUDGET 4000 tokens
+USING MODEL "claude-sonnet-4-5"
+
+SELECT
+    system_role("You are a Chinese linguistics expert specializing in character evolution, the traditional-simplified character reform, and comparative orthography between Taiwan/Hong Kong and Mainland China writing systems.")
+
+GENERATE
+    explain_character_differences("Explain the key differences between Traditional Chinese characters (繁體字) and Simplified Chinese characters (简体字). Cover: 1) Historical background of the simplification reform in Mainland China, 2) The main principles used to simplify characters (reducing strokes, merging variants, phonetic substitution), 3) Geographic usage (where each system is used today), 4) Three concrete character pair examples showing Traditional → Simplified with stroke count comparison and explanation of the simplification method used. Present as a clear structured explanation with examples.")
+WITH OUTPUT BUDGET 1500 tokens, TEMPERATURE 0.1, FORMAT markdown;
