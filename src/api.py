@@ -51,7 +51,8 @@ from datetime import datetime, timezone
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
 
-from src.flows.spl_flow import generate_spl_only, run_spl_flow
+from src.flows.spl_flow import generate_spl_only
+from src.flows.chunking_flow import run_chunking_flow
 from src.utils.logging_config import get_logger
 
 _log = get_logger("api")
@@ -233,16 +234,22 @@ def run(
         "api.run  adapter=%s  provider=%s  delivery=%s  cache=%s  query_len=%d",
         adapter, provider or "(best-of-breed)", delivery_mode, cache_enabled, len(query),
     )
-    result = run_spl_flow(
+    result = run_chunking_flow(
         user_input=query,
         context_text=context_text,
         adapter=adapter,
         delivery_mode=delivery_mode,
         notify_email=notify_email,
-        spl_params=params,
         cache_enabled=cache_enabled,
         provider=provider,
     )
+    # Merge any caller-supplied spl_params on top (chunking flow builds its
+    # own params from chunks, but direct callers may supply extras).
+    if params and not result.get("chunking", {}).get("enabled"):
+        # Only inject caller params for the non-chunking path;
+        # in the chunking path params are chunk_1..chunk_k and must not be
+        # overwritten with the raw context_text "document" key.
+        result.setdefault("spl_params", {}).update(params)
 
     spl = result.get("spl_query", "")
     error = result.get("error", "")
@@ -276,6 +283,7 @@ def run(
         "email_sent": result.get("email_sent", False),
         "delivered": result.get("delivered", False),
         "error": error,
+        "chunking": result.get("chunking"),  # None for short docs; dict for chunked
     }
 
 

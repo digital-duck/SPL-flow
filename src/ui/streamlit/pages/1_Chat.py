@@ -29,6 +29,12 @@ try:
 except ImportError:
     SPL_AVAILABLE = False
 
+try:
+    from src.utils.chunker import should_chunk, count_tokens
+    CHUNKER_AVAILABLE = True
+except ImportError:
+    CHUNKER_AVAILABLE = False
+
 # ── Sample queries for UI testing ─────────────────────────────────────────────
 
 _SAMPLE_QUERIES = [
@@ -72,6 +78,19 @@ provider      = settings["provider"]
 context_text  = settings["context_text"]
 cache_enabled = settings["cache_enabled"]
 spl_params    = settings["spl_params"]
+
+# Warn when pasted document exceeds the chunking threshold.
+# The Chat page's generate→review→execute flow uses api.exec_spl (no chunking).
+# For long-doc use cases, the CLI `splflow run` command uses api.run() which
+# does trigger run_chunking_flow automatically.
+if CHUNKER_AVAILABLE and context_text and should_chunk(context_text):
+    doc_tokens = count_tokens(context_text)
+    st.sidebar.warning(
+        f"⚠️ Document is large (~{doc_tokens:,} tokens). "
+        "The Chat page generates SPL for review first; "
+        "the auto-chunking Map-Reduce path is available via "
+        "`splflow run` in the CLI."
+    )
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.title("💬 Chat")
