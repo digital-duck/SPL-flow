@@ -36,9 +36,20 @@ dependencies = [
 chroma = [
     "chromadb>=0.4",
 ]
+chunking = [
+    "chonkie[semantic]>=0.4",
+    "langdetect>=1.0.9",
+]
+all = [
+    "chromadb>=0.4",
+    "chonkie[semantic]>=0.4",
+    "langdetect>=1.0.9",
+]
 dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21",
+    "chonkie[semantic]>=0.4",
+    "langdetect>=1.0.9",
 ]
 
 [project.scripts]
