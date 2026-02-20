@@ -94,7 +94,18 @@ class ExecuteSPLNode(Node):
                 )
                 _log.info("[%s] USING MODEL auto → %s", plan.prompt_name, stmt.model)
 
-            result = asyncio.run(executor.execute(plan, params=params, stmt=stmt))
+            try:
+                result = asyncio.run(executor.execute(plan, params=params, stmt=stmt))
+            except Exception as exc:
+                _log.error(
+                    "[%s] LLM call failed  adapter=%s  model=%s  error=%s",
+                    plan.prompt_name, adapter_name,
+                    getattr(stmt, "model", "?") if stmt else "?",
+                    exc,
+                )
+                executor.close()
+                return {"error": f"[{plan.prompt_name}] {exc}"}
+
             cost_str = f"${result.cost_usd:.5f}" if result.cost_usd is not None else "—"
             _log.info(
                 "[%s] done  model=%s  tokens=%d+%d=%d  latency=%.0fms  cost=%s",

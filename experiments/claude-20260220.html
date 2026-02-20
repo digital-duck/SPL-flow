@@ -1,0 +1,24 @@
+<pre> <b>Is this enough for arXiv? Yes.</b> Here&apos;s the evidence map:
+                                                                                                                                                    
+  ┌─────────────────────────┬──────────────────────────────────────┬──────────────────────┐
+  │      §9 Extension       │           Evidence source            │        Status        │
+  ├─────────────────────────┼──────────────────────────────────────┼──────────────────────┤
+  │ §9.1 Text2SPL           │ <font color="#B1B9F9">spl_runner.py</font> → 3 .spl files         │ Run needed           │
+  ├─────────────────────────┼──────────────────────────────────────┼──────────────────────┤
+  │ §9.2 MoM routing        │ <font color="#B1B9F9">streamlit-20260220-062710.log</font>        │ <b>Done</b> <b>—</b> <b>no</b> <b>run</b> <b>needed</b> │
+  ├─────────────────────────┼──────────────────────────────────────┼──────────────────────┤
+  │ §9.3 Logical Chunking   │ <font color="#B1B9F9">spl_runner.py</font> <font color="#B1B9F9">--scripts</font> <font color="#B1B9F9">chunking.spl</font> │ Run needed           │
+  ├─────────────────────────┼──────────────────────────────────────┼──────────────────────┤
+  │ §9.4 SPL-flow 日-family │ <font color="#B1B9F9">.spl</font> + <font color="#B1B9F9">.md</font> on disk from 2026-02-20   │ <b>Done</b> <b>—</b> <b>no</b> <b>run</b> <b>needed</b> │
+  ├─────────────────────────┼──────────────────────────────────────┼──────────────────────┤
+  │ §9.5 BENCHMARK          │ <font color="#B1B9F9">splflow</font> <font color="#B1B9F9">benchmark</font> CLI                │ Run needed           │
+  └─────────────────────────┴──────────────────────────────────────┴──────────────────────┘
+
+  <b>Changes</b> <b>made:</b>
+
+  1. <b>TikZ</b> <b>architecture</b> <b>diagram</b> added to §9.4 — shows all 5 PocketFlow nodes with retry/error/async paths + MoM routing subgraph in the caption
+  2. <b>Mermaid</b> <b>diagram</b> added to README with full PocketFlow + MoM subgraph (GitHub-renderable)
+  3. <b>TODOs</b> <b>collapsed</b>: 16 → 10 — dropped all <font color="#B1B9F9">§9.x-B</font> duplicates; §9.2 converted to <font color="#B1B9F9">NOTE</font> pointing at the existing log
+  4. <b>Experiment</b> <b>stubs</b> added for Logical Chunking and BENCHMARK with exact commands, what to collect, and what each demonstrates architecturally
+  5. <b>MoM</b> <b>routing</b> <b>evidence</b> <b>section</b> in README with the exact log lines to use for Appendix B
+</pre>
