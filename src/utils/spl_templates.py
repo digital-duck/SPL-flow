@@ -136,6 +136,9 @@ Use a SINGLE PROMPT when one model handles the task well.
 4. GENERATE instruction must be a SINGLE quoted string literal (no line continuation)
 5. `{{param}}` placeholders in the instruction string reference SELECT aliases
 6. Statement ends with semicolon
+7. If the instruction string must contain double quotes, escape them with backslash: `\"`
+   BAD:  `generate_code("Say "Hello"")` → parser error (unescaped inner quotes)
+   GOOD: `generate_code("Say \"Hello\"")`  — or rephrase to avoid inner quotes entirely
 
 ## Output Budget Sizing Guide
 
@@ -337,6 +340,7 @@ def get_text2spl_prompt(
             f"- Ensure WITH BUDGET comes before USING MODEL\n"
             f"- Ensure CTEs come after USING MODEL and before SELECT\n"
             f"- Ensure GENERATE instruction is a single string literal (no string concatenation)\n"
+            f"- If the instruction text contains double quotes, escape them with backslash: GENERATE func(\"...say \\\"Hello\\\"...\")\n"
             f"- Ensure the statement ends with a semicolon\n"
             f"- Ensure context references use format: context.<param> AS <alias>\n"
         )
@@ -350,7 +354,12 @@ def get_text2spl_prompt(
             f"{context_text[:500]}"
         )
 
-    parts.append(f"## User Request\n{user_input}")
+    # Normalize double quotes in user_input to single quotes: prevents the LLM
+    # from naively copying them into a GENERATE string literal, which would
+    # create an unterminated-string-literal parse error (e.g. the query
+    # `say "Hello"` becoming `generate_code("...say "Hello"")`).
+    safe_input = user_input.replace('"', "'")
+    parts.append(f"## User Request\n{safe_input}")
     parts.append("## Your SPL Output")
 
     return "\n\n".join(parts)

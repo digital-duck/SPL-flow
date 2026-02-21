@@ -58,15 +58,18 @@ class Text2SPLNode(Node):
             _log.debug("RAG retrieval unavailable — using static examples only")
 
         # Use the adapter chosen by the user (sidebar / CLI) for Text2SPL too.
-        # For ollama, default to qwen3 when no specific model is selected —
-        # it has the best general + reasoning strengths for SPL generation.
+        # For ollama, default to qwen2.5 when no specific model is selected.
+        # qwen3 is avoided here: its thinking mode leaks <think>...</think> tags
+        # into the content field (both /api/chat and /v1/chat/completions) and
+        # produces verbose, hard-to-parse output even with /no_think suppression.
+        # qwen2.5 generates clean structured output with no thinking overhead.
         text2spl_adapter_name = prep_res["adapter"]
         text2spl_adapter = get_adapter(text2spl_adapter_name)
         _sid = (prep_res.get("selected_model_id") or "").strip()
         if _sid:
             text2spl_model = _sid
         elif text2spl_adapter_name == "ollama":
-            text2spl_model = "qwen3"
+            text2spl_model = "qwen2.5"
         else:
             text2spl_model = ""   # adapter default (openrouter auto-routes; claude_cli has one model)
 
@@ -99,8 +102,18 @@ class Text2SPLNode(Node):
         return result.content.strip()
 
     def post(self, shared, prep_res, exec_res):
-        # Strip markdown code fences if LLM wrapped output in ```sql ... ```
         spl = exec_res
+
+        # Strip <think>…</think> reasoning blocks emitted by thinking models
+        # (qwen3, deepseek-r1, etc.) before the SPL reaches the validator.
+        # The ollama adapter returns raw content; the lexer chokes on `/` or
+        # other characters that appear inside thinking text.
+        spl = re.sub(r"<think>.*?</think>", "", spl, flags=re.DOTALL | re.IGNORECASE)
+        # Also handle an unclosed <think> block (model output truncated).
+        spl = re.sub(r"<think>.*", "", spl, flags=re.DOTALL | re.IGNORECASE)
+        spl = spl.strip()
+
+        # Strip markdown code fences if LLM wrapped output in ```sql ... ```
         if spl.startswith("```"):
             lines = spl.split("\n")
             end = -1 if lines[-1].strip() == "```" else len(lines)

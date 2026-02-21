@@ -418,7 +418,7 @@ def exec_spl(
         from spl.analyzer import Analyzer
         from spl.optimizer import Optimizer
         from spl.executor import Executor
-        from spl.ast_nodes import CreateFunctionStatement
+        from spl.ast_nodes import CreateFunctionStatement, PromptStatement, CTEClause
     except ImportError as e:
         return {
             "primary_result": "",
@@ -428,6 +428,12 @@ def exec_spl(
 
     params = dict(spl_params or {})
     try:
+        # Re-sanitize for the execution adapter: converts any model names that are
+        # valid for the generation adapter but invalid here (e.g. "claude-sonnet-4-5"
+        # when executing with ollama/openrouter) to "auto" so auto_route can resolve them.
+        from src.nodes.text2spl import _sanitize_model_names
+        spl_query = _sanitize_model_names(spl_query, adapter)
+
         ast = parse(spl_query)
         analysis = Analyzer().analyze(ast)
         plans = Optimizer().optimize(analysis)
@@ -439,6 +445,29 @@ def exec_spl(
                 "error": "No PROMPT statements found in SPL query",
             }
 
+        from src.nodes.execute_spl import _find_stmt, _extract_texts
+        from src.utils.model_router import auto_route
+
+        # Patch "auto" on CTE nested prompts.  The SPL executor dispatches CTEs
+        # internally (via asyncio.gather) so the per-plan loop below never visits
+        # them; model names must be resolved in the AST before handing off.
+        for s in ast.statements:
+            if isinstance(s, PromptStatement):
+                for cte in s.ctes:
+                    if (
+                        isinstance(cte, CTEClause)
+                        and cte.nested_prompt is not None
+                        and (cte.nested_prompt.model or "").strip().lower() == "auto"
+                    ):
+                        sr, instr = _extract_texts(cte.nested_prompt)
+                        cte.nested_prompt.model = auto_route(
+                            adapter=adapter,
+                            system_role=sr,
+                            instruction=instr,
+                            provider=provider,
+                            is_final_prompt=False,
+                        )
+
         executor = Executor(adapter_name=adapter, cache_enabled=cache_enabled)
 
         for s in ast.statements:
@@ -447,8 +476,6 @@ def exec_spl(
 
         results = []
         for i, plan in enumerate(plans):
-            from src.nodes.execute_spl import _find_stmt, _extract_texts
-            from src.utils.model_router import auto_route
             stmt = _find_stmt(ast, plan.prompt_name)
             is_final = (i == len(plans) - 1)
             if stmt is not None and (stmt.model or "").strip().lower() == "auto":
