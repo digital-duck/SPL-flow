@@ -1,62 +1,79 @@
 """Few-shot examples and prompt templates for Text2SPL translation."""
 
 # ── Per-adapter routing tables ────────────────────────────────────────────────
-# Model IDs here are the EXACT strings that must appear in `USING MODEL "..."`.
-# Each adapter has its own namespace — Ollama short-names are invalid on OpenRouter
-# and vice-versa.
+# ── Dynamic routing tables from MODEL_CATALOG ────────────────────────────────
 
-_ROUTING_TABLES: dict[str, str] = {
-    "openrouter": """\
-| Task Type | Use Model |
-|-----------|-----------|
-| CJK (Chinese/Japanese/Korean) text | "qwen/qwen-2.5-72b-instruct" |
-| European languages (German, French, Spanish) | "mistralai/mistral-large-2411" |
-| Code review / generation | "mistralai/codestral-2501" |
-| Math / complex reasoning | "deepseek/deepseek-r1" |
-| Final synthesis / composition | "anthropic/claude-sonnet-4-5-20250929" |
-| Simple factual / general | "anthropic/claude-sonnet-4-5-20250929" |""",
+from src.utils.model_catalog import MODEL_CATALOG, get_models
 
-    "ollama": """\
-| Task Type | Use Model |
-|-----------|-----------|
-| CJK (Chinese/Japanese/Korean) text | "qwen2.5" |
-| European languages (German, French, Spanish) | "mistral-nemo" |
-| Code review / generation | "deepseek-coder-v2" |
-| Math / reasoning | "mathstral" |
-| General / synthesis | "qwen3" |""",
+def _build_routing_table(adapter: str) -> str:
+    """Build routing table dynamically from MODEL_CATALOG for given adapter."""
+    models = get_models(adapter, active_only=True)
 
-    "claude_cli": """\
-| Task Type | Use Model |
-|-----------|-----------|
-| Code-heavy / fast tasks | "claude-haiku-4-5" |
-| General / synthesis | "claude-sonnet-4-5" |
-| Complex long-form synthesis | "claude-opus-4-6" |""",
-}
+    # Task type mapping to find best models
+    task_models = {}
 
-# ── Per-adapter model names injected into few-shot examples ───────────────────
+    for model_id, info in models.items():
+        strengths = info.get("strengths", [])
+        for strength in strengths:
+            if strength not in task_models:
+                task_models[strength] = []
+            task_models[strength].append(model_id)
 
-_EXAMPLE_MODELS: dict[str, dict[str, str]] = {
-    "openrouter": {
-        "general":   "anthropic/claude-sonnet-4-5-20250929",
-        "cjk":       "qwen/qwen-2.5-72b-instruct",
-        "eu_lang":   "mistralai/mistral-large-2411",
-        "code":      "mistralai/codestral-2501",
-    },
-    "ollama": {
-        "general":   "qwen3",
-        "cjk":       "qwen2.5",
-        "eu_lang":   "mistral-nemo",
-        "code":      "deepseek-coder-v2",
-    },
-    "claude_cli": {
-        "general":   "claude-sonnet-4-5",
-        "cjk":       "claude-sonnet-4-5",
-        "eu_lang":   "claude-sonnet-4-5",
-        "code":      "claude-sonnet-4-5",
-    },
-}
+    # If no dedicated synthesis model exists, fall back to general so the LLM
+    # always has explicit guidance for the outer/final PROMPT — without this,
+    # models hallucinate adapter-incorrect names like "claude-sonnet-4-5".
+    if "synthesis" not in task_models and "general" in task_models:
+        task_models["synthesis"] = task_models["general"]
 
-_FALLBACK_MODELS = _EXAMPLE_MODELS["openrouter"]
+    # Build the routing table string
+    rows = []
+    task_labels = {
+        "cjk": "CJK (Chinese/Japanese/Korean) text",
+        "eu_lang": "European languages (German, French, Spanish)",
+        "code": "Code review / generation",
+        "math": "Math / complex reasoning",
+        "reasoning": "Reasoning / analysis",
+        "synthesis": "Final synthesis / composition",
+        "general": "Simple factual / general",
+    }
+
+    for task, label in task_labels.items():
+        if task in task_models and task_models[task]:
+            # Use first model for this task type
+            model = task_models[task][0]
+            rows.append(f'| {label} | "{model}" |')
+
+    if not rows:
+        # Fallback if no models found
+        if adapter == "claude_cli":
+            rows.append('| General / synthesis | "claude-sonnet-4-5" |')
+        else:
+            rows.append('| General | "qwen3:latest" |')
+
+    header = "| Task Type | Use Model |\n|-----------|-----------|"
+    return header + "\n" + "\n".join(rows)
+
+def _get_example_models(adapter: str) -> dict[str, str]:
+    """Get example model names for each task type from MODEL_CATALOG."""
+    models = get_models(adapter, active_only=True)
+
+    # Find best model for each task type
+    task_models = {}
+    for model_id, info in models.items():
+        strengths = info.get("strengths", [])
+        for strength in strengths:
+            if strength not in task_models:
+                task_models[strength] = model_id
+
+    # Ensure we have fallbacks
+    fallback = list(models.keys())[0] if models else "claude-sonnet-4-5"
+
+    return {
+        "general": task_models.get("general", fallback),
+        "cjk": task_models.get("cjk", fallback),
+        "eu_lang": task_models.get("eu_lang", fallback),
+        "code": task_models.get("code", fallback),
+    }
 
 # ── Static prompt body (routing table + examples are injected dynamically) ────
 
@@ -242,10 +259,28 @@ WITH OUTPUT BUDGET 3000 tokens, TEMPERATURE 0.1, FORMAT text;
 ```"""
 
 
-def _build_system_prompt(adapter: str) -> str:
-    routing = _ROUTING_TABLES.get(adapter, _ROUTING_TABLES["openrouter"])
+def _build_system_prompt(adapter: str, selected_model_id: str = "", selected_provider: str = "") -> str:
+    # If specific model is selected, create a custom routing table
+    if selected_model_id:
+        # Build custom routing table with the selected model
+        routing = f"""| Task Type | Use Model |
+|-----------|-----------|
+| All tasks | "{selected_model_id}" |"""
+
+        # Create custom example models dictionary
+        example_models = {
+            "general": selected_model_id,
+            "cjk": selected_model_id,
+            "eu_lang": selected_model_id,
+            "code": selected_model_id,
+        }
+    else:
+        # Use dynamic routing as before
+        routing = _build_routing_table(adapter)
+        example_models = _get_example_models(adapter)
+
     header = _PROMPT_HEADER.replace("{routing_table}", routing)
-    examples = _build_examples(_EXAMPLE_MODELS.get(adapter, _FALLBACK_MODELS))
+    examples = _build_examples(example_models)
     return f"{header}\n\n{examples}\n\n{_PROMPT_FOOTER}"
 
 
@@ -255,6 +290,8 @@ def get_text2spl_prompt(
     error: str = "",
     retrieved_examples: list[dict] | None = None,
     adapter: str = "openrouter",
+    selected_model_id: str = "",
+    selected_provider: str = "",
 ) -> str:
     """Format the complete prompt for Text2SPL translation.
 
@@ -274,7 +311,7 @@ def get_text2spl_prompt(
     Returns:
         Complete formatted prompt string for the LLM.
     """
-    parts = [_build_system_prompt(adapter)]
+    parts = [_build_system_prompt(adapter, selected_model_id, selected_provider)]
 
     # ── Dynamic few-shot examples from RAG store ──────────────────────────────
     if retrieved_examples:

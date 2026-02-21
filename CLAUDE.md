@@ -41,9 +41,9 @@ pip install -e /home/papagame/projects/digital-duck/SPL
 ### LLM Adapters
 | Adapter | Setup |
 |---------|-------|
-| `claude_cli` (default) | Install Claude CLI; no API key needed |
+| `ollama` (default) | Run `ollama serve` locally |
 | `openrouter` | `export OPENROUTER_API_KEY=...` |
-| `ollama` | Run `ollama serve` locally |
+| `claude_cli` | Install Claude CLI; no API key needed |
 
 ## Architecture
 
@@ -77,7 +77,7 @@ All nodes communicate via a single `shared` dict. Key fields:
 - **Errors**: `error` (fatal, terminates pipeline)
 
 ### Node Responsibilities
-- **`Text2SPLNode`** (`src/nodes/text2spl.py`): Calls `claude_cli` adapter with few-shot prompt to translate NL → SPL. Always hardwired to `claude_cli` adapter regardless of sidebar selection (sidebar adapter is used for execution only). Strips markdown code fences from LLM output. Returns `"validate"`.
+- **`Text2SPLNode`** (`src/nodes/text2spl.py`): Calls the user-selected adapter with a few-shot prompt to translate NL → SPL. Uses the same adapter as the execution step (set via sidebar / `--adapter` CLI flag). For `ollama`, defaults to `qwen3` when no specific model is selected. Strips markdown code fences and sanitizes adapter-incompatible model names from LLM output. Returns `"validate"`.
 - **`ValidateSPLNode`** (`src/nodes/validate_spl.py`): Calls `spl.parse()` + `Analyzer`. Returns `"execute"` (valid), `"retry"` (invalid, under 3 attempts), or `"error"` (give up).
 - **`ExecuteSPLNode`** (`src/nodes/execute_spl.py`): Runs the full SPL engine pipeline (`parse → analyze → optimize → execute`) using `asyncio.run()`. Registers `CREATE FUNCTION` statements before executing plans. Returns `"sync"` or `"async"` based on `delivery_mode`.
 - **`SyncDeliverNode`** / **`AsyncDeliverNode`** (`src/nodes/deliver.py`): Sync is a pass-through. Async saves to `/tmp/spl_flow_result_<timestamp>.md`. Email is a placeholder (v0.2).
@@ -103,7 +103,7 @@ Each entry in `execution_results`:
 
 ## Important Constraints
 
-- **`Text2SPLNode.exec()` is hardcoded to use `claude_cli`** for NL→SPL translation, regardless of the adapter selected in the UI/CLI. This is intentional — the sidebar adapter controls only the execution step.
+- **`Text2SPLNode.exec()` uses the user-selected adapter** for NL→SPL translation (same adapter as execution). For `ollama` without an explicit model selection, it defaults to `qwen3`.
 - **Async mode email is a stub** — `email_sent` is always `False` in v0.1. SMTP integration is planned for v0.2.
 - **`tests/` is empty** — no test suite exists yet. The architecture doc references `tests/test_flows.py` as planned.
 - The SPL engine's internal `asyncio.gather()` handles parallel CTE dispatch. PocketFlow is used only at the orchestration layer, not inside the SPL engine.

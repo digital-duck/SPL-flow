@@ -1,0 +1,96 @@
+-- ============================================================
+-- chunking_transformer_ollama.spl
+-- Logical Chunking: Map-Reduce review of
+-- "Attention Is All You Need" (Vaswani et al., 2017)
+--
+-- Pattern:  Declarative Map-Reduce over a long document
+--   Map:    4 CTEs summarise each section independently
+--           — dispatched sequentially via Ollama
+--   Reduce: 1 final PROMPT synthesises a structured review
+--
+-- Ollama-compatible version with local models:
+--   qwen3:latest → main synthesis (replaces claude-sonnet)
+--   qwen3:latest → CTE summarization (replaces claude-haiku)
+--
+-- Paper section: §9.3 — Declarative Map-Reduce for Long Contexts
+--
+-- Run:
+--   python3 experiments/spl_runner.py \
+--       --scripts experiments/chunking_transformer_ollama.spl \
+--       --adapters ollama \
+--       --output-dir ~/Downloads/Zinets/spl-experiments/chunking-$(date +%Y%m%d)
+-- ============================================================
+
+PROMPT transformer_review
+WITH BUDGET 16000 tokens
+USING MODEL "qwen3:latest"
+
+-- ── Map Phase ─────────────────────────────────────────────────
+-- Four sections run sequentially (Ollama limitation).
+-- qwen3: fast local model for extraction/summarisation tasks.
+
+WITH intro_summary AS (
+    PROMPT summarise_intro
+    WITH BUDGET 3000 tokens
+    USING MODEL "qwen3:latest"
+
+    SELECT
+        system_role("You are an expert NLP researcher. Be concise and precise.")
+
+    GENERATE
+        answer("Summarise the Abstract and Introduction of 'Attention Is All You Need' (Vaswani et al., 2017). Cover: (1) the core thesis — why self-attention can replace recurrence entirely, (2) the limitations of RNN and LSTM sequence models that motivated this work, (3) the key claims the authors make about Transformer quality, parallelism, and training efficiency.")
+    WITH OUTPUT BUDGET 350 tokens, FORMAT markdown
+),
+
+architecture_summary AS (
+    PROMPT summarise_architecture
+    WITH BUDGET 3000 tokens
+    USING MODEL "qwen3:latest"
+
+    SELECT
+        system_role("You are an expert NLP researcher. Be concise and precise.")
+
+    GENERATE
+        answer("Summarise the Model Architecture section of 'Attention Is All You Need' (Vaswani et al., 2017). Cover: (1) the encoder-decoder stack structure, (2) the scaled dot-product and multi-head attention mechanism, (3) positional encoding and why it is needed, (4) position-wise feed-forward sub-layers, (5) residual connections and layer normalisation.")
+    WITH OUTPUT BUDGET 350 tokens, FORMAT markdown
+),
+
+training_summary AS (
+    PROMPT summarise_training
+    WITH BUDGET 3000 tokens
+    USING MODEL "qwen3:latest"
+
+    SELECT
+        system_role("You are an expert NLP researcher. Be concise and precise.")
+
+    GENERATE
+        answer("Summarise the Training section of 'Attention Is All You Need' (Vaswani et al., 2017). Cover: (1) WMT 2014 EN-DE and EN-FR datasets, (2) hardware — 8 NVIDIA P100 GPUs, (3) the Adam optimiser with custom warmup learning-rate schedule, (4) regularisation via residual dropout and label smoothing, (5) total training time for base and big models.")
+    WITH OUTPUT BUDGET 350 tokens, FORMAT markdown
+),
+
+results_summary AS (
+    PROMPT summarise_results
+    WITH BUDGET 3000 tokens
+    USING MODEL "qwen3:latest"
+
+    SELECT
+        system_role("You are an expert NLP researcher. Be concise and precise.")
+
+    GENERATE
+        answer("Summarise the Results and Conclusions of 'Attention Is All You Need' (Vaswani et al., 2017). Cover: (1) BLEU scores on WMT EN-DE and EN-FR versus prior state-of-the-art, (2) training cost comparison in FLOPs, (3) key ablation study findings about attention heads and model dimensions, (4) the authors' conclusions about the Transformer's broader applicability.")
+    WITH OUTPUT BUDGET 350 tokens, FORMAT markdown
+)
+
+-- ── Reduce Phase ──────────────────────────────────────────────
+-- qwen3: higher-quality synthesis for the final critical review.
+
+SELECT
+    system_role("You are a senior AI researcher writing a structured critical review for an academic audience. Synthesise the four section summaries into a single coherent review. Be analytical, not merely descriptive."),
+    context.intro_summary        AS intro        LIMIT 500 tokens,
+    context.architecture_summary AS architecture LIMIT 500 tokens,
+    context.training_summary     AS training     LIMIT 500 tokens,
+    context.results_summary      AS results      LIMIT 500 tokens
+
+GENERATE
+    answer("Using the four section summaries (intro, architecture, training, results), write a structured critical review of 'Attention Is All You Need' under these five headings:\n\n## 1. Core Contribution\nWhat the paper fundamentally changed about sequence modelling.\n\n## 2. Key Design Decisions\nThe most consequential architectural choices and their rationale.\n\n## 3. Empirical Evidence\nStrength of the experimental results and what they do — and do not — demonstrate.\n\n## 4. Limitations and Open Questions\nWhat the paper left unanswered, or what later work revealed as limitations.\n\n## 5. Lasting Impact\nHow the Transformer reshaped the field from 2017 to today.")
+WITH OUTPUT BUDGET 1200 tokens, FORMAT markdown;

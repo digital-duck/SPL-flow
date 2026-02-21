@@ -20,7 +20,7 @@ st.set_page_config(
 
 from src import api
 from src.db.sqlite_store import save_session
-from src.utils.page_helpers import init_pipeline_state, render_footer, render_sidebar, reset_pipeline_state
+from src.utils.page_helpers import init_pipeline_state, render_footer, render_sidebar, reset_pipeline_state, strip_think_blocks
 
 spl_explain = None
 try:
@@ -40,23 +40,29 @@ except ImportError:
 _SAMPLE_QUERIES = [
     (
         "Chinese water-radical characters",
-        "List 10 Chinese characters that contain the water radical — "
-        "show decomposition formula, pinyin, English meaning, and German translation",
+        """
+List 10 Chinese characters that contain the water radical — 
+show decomposition formula, pinyin, English meaning, and German translation
+""",
     ),
     (
-        "Summarise an article",
-        "Summarize the key findings of this document in 3 bullet points, "
-        "highlighting the most important insights",
+        "用中文解释 LLM",
+        """ 
+用中文解释大型语言模型的工作原理，从参数知识、上下文知识和推理能力三个维度分析，
+并对比GPT、Claude 和开源模型（如 Qwen ）的主要异同。
+""",
+    ),
+    (
+        "Islamic Golden Age",
+        """ 
+ما هي أبرز إسهامات العلماء العرب في تطوير علم الرياضيات والفلك خلال العصر الذهبي الإسلامي،
+وكيف أثّرت هذه الإسهامات على العلوم الحديثة؟
+""",
     ),
     (
         "Quantum vs classical computing",
         "Compare quantum computing and classical computing in a structured "
         "markdown table with dimensions: speed, error rate, use cases, maturity",
-    ),
-    (
-        "Python code review",
-        "Review this Python function for bugs, performance issues, and style "
-        "improvements — provide a severity-ranked list with suggested fixes",
     ),
 ]
 
@@ -73,11 +79,13 @@ if "_sample_pending" in st.session_state:
 
 settings = render_sidebar()
 
-adapter       = settings["adapter"]
-provider      = settings["provider"]
-context_text  = settings["context_text"]
-cache_enabled = settings["cache_enabled"]
-spl_params    = settings["spl_params"]
+adapter            = settings["adapter"]
+selected_provider  = settings["provider"]          # "" = auto-route
+context_text       = settings["context_text"]
+cache_enabled      = settings["cache_enabled"]
+spl_params         = settings["spl_params"]
+selected_model_id  = settings["selected_model_id"]
+strip_think        = settings["strip_think"]
 
 # Warn when pasted document exceeds the chunking threshold.
 # The Chat page's generate→review→execute flow uses api.exec_spl (no chunking).
@@ -135,15 +143,22 @@ if generate_clicked:
         st.warning("Please enter a query before generating SPL.")
     else:
         with st.spinner("Translating to SPL (Text2SPL + RAG retrieval)..."):
-            result = api.generate(user_input, context_text=context_text, adapter=adapter)
+            result = api.generate(
+                user_input,
+                context_text=context_text,
+                adapter=adapter,
+                selected_model_id=selected_model_id,
+                selected_provider=selected_provider
+            )
         if result["error"]:
             st.error(f"SPL generation failed: {result['error']}")
         elif result["spl_query"]:
             st.session_state.spl_query = result["spl_query"]
-            # Force the editor to show the newly generated SPL.
+            # Force both panels to show the newly generated SPL.
             # st.text_area ignores value= once its key exists in session_state,
-            # so we overwrite the key directly here before the widget renders.
+            # so we overwrite both keys directly before the widgets render.
             st.session_state.spl_editor = result["spl_query"]
+            st.session_state.spl_view   = result["spl_query"]
             st.session_state.spl_generated = True
             st.session_state.flow_state = result
             st.session_state.executed = False
@@ -248,7 +263,7 @@ if st.session_state.spl_generated and st.session_state.spl_query:
                 adapter=adapter,
                 spl_params=spl_params,
                 cache_enabled=cache_enabled,
-                provider=provider,
+                provider=selected_provider,
             )
         st.session_state.flow_state = exec_result
         st.session_state.execution_results = exec_result.get("execution_results", [])
@@ -294,7 +309,7 @@ if st.session_state.executed:
 
         with col_result:
             if primary:
-                st.markdown(primary)
+                st.markdown(strip_think_blocks(primary) if strip_think else primary)
             else:
                 st.info("No result content was returned.")
 
@@ -303,6 +318,8 @@ if st.session_state.executed:
                     for r in results[:-1]:
                         st.markdown(f"**{r['prompt_name']}** — model: `{r['model']}`")
                         preview = r["content"]
+                        if strip_think:
+                            preview = strip_think_blocks(preview)
                         if len(preview) > 600:
                             preview = preview[:600] + "..."
                         st.text(preview)

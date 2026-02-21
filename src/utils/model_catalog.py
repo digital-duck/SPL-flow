@@ -31,7 +31,7 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
     "openrouter": {
 
         # Anthropic
-        "anthropic/claude-opus-4-6": {
+        "anthropic/claude-opus-4.6": {
             "name": "Claude Opus 4.6",
             "provider": "anthropic",
             "strengths": ["synthesis", "reasoning", "long-form"],
@@ -40,7 +40,7 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
             "status": "stable",
             "notes": "",
         },
-        "anthropic/claude-sonnet-4-5-20250929": {
+        "anthropic/claude-sonnet-4.5": {
             "name": "Claude Sonnet 4.5",
             "provider": "anthropic",
             "strengths": ["general", "synthesis", "code"],
@@ -51,17 +51,17 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
         },
 
         # OpenAI
-        "openai/gpt-4o-2024-11-20": {
-            "name": "GPT-4o (Nov 2024)",
+        "openai/gpt-5.2-codex": {
+            "name": "GPT-5.2 Codex",
             "provider": "openai",
-            "strengths": ["general", "reasoning", "code"],
+            "strengths": ["code"],
             "reasoning_model": False,
             "is_active": True,
             "status": "stable",
-            "notes": "Best token efficiency in benchmark (3,956 tokens, 28.4s).",
+            "notes": "",
         },
-        "openai/gpt-4o": {
-            "name": "GPT-4o (latest)",
+        "openai/gpt-4o-mini": {
+            "name": "GPT-4o Mini(latest)",
             "provider": "openai",
             "strengths": ["general", "reasoning", "code"],
             "reasoning_model": False,
@@ -69,10 +69,10 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
             "status": "stable",
             "notes": "",
         },
-        "openai/o3-mini": {
-            "name": "o3-mini",
+        "openai/gpt-5.2": {
+            "name": "GPT-5.2",
             "provider": "openai",
-            "strengths": ["math", "reasoning"],
+            "strengths": ["general", "reasoning", "code"],
             "reasoning_model": True,
             "is_active": True,
             "status": "stable",
@@ -80,17 +80,17 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
         },
 
         # Google
-        "google/gemini-3-flash-preview": {
-            "name": "Gemini 3 Flash",
+        "google/gemini-2.5-flash": {
+            "name": "Gemini 2.5 Flash",
             "provider": "google",
             "strengths": ["general", "speed"],
             "reasoning_model": False,
             "is_active": True,
             "status": "stable",
-            "notes": "Fastest in benchmark (26.1s). Good citation accuracy.",
+            "notes": "",
         },
-        "google/gemini-3-pro-preview": {
-            "name": "Gemini 3 Pro",
+        "google/gemini-2.5-pro": {
+            "name": "Gemini 2.5 Pro",
             "provider": "google",
             "strengths": ["general", "long-form"],
             "reasoning_model": False,
@@ -98,37 +98,10 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
             "status": "stable",
             "notes": "Verbose — correctly notes 2024 award not yet announced.",
         },
-        "google/gemini-2.0-flash-001": {
-            "name": "Gemini 2.0 Flash",
-            "provider": "google",
-            "strengths": ["general", "speed"],
-            "reasoning_model": False,
-            "is_active": True,
-            "status": "stable",
-            "notes": "",
-        },
-        "google/gemini-2.0-flash-thinking-exp": {
-            "name": "Gemini 2.0 Flash Thinking",
-            "provider": "google",
-            "strengths": ["math", "reasoning"],
-            "reasoning_model": True,
-            "is_active": True,
-            "status": "experimental",
-            "notes": "Reasoning model — extended thinking mode.",
-        },
-        "google/gemini-2.0-pro-exp": {
-            "name": "Gemini 2.0 Pro",
-            "provider": "google",
-            "strengths": ["reasoning", "long-form"],
-            "reasoning_model": False,
-            "is_active": True,
-            "status": "experimental",
-            "notes": "",
-        },
 
         # Mistral
-        "mistralai/mistral-large-2411": {
-            "name": "Mistral Large (Nov 2024)",
+        "mistralai/mistral-large-2512": {
+            "name": "Mistral Large (Dec 2025)",
             "provider": "mistral",
             "strengths": ["eu_lang", "reasoning", "general"],
             "reasoning_model": False,
@@ -136,8 +109,8 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
             "status": "stable",
             "notes": "Best-of-breed for European languages.",
         },
-        "mistralai/codestral-2501": {
-            "name": "Codestral (Jan 2025)",
+        "mistralai/codestral-2508": {
+            "name": "Codestral (Aug 2025)",
             "provider": "mistral",
             "strengths": ["code"],
             "reasoning_model": False,
@@ -147,8 +120,8 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
         },
 
         # Alibaba / Qwen
-        "qwen/qwen-2.5-72b-instruct": {
-            "name": "Qwen 2.5 72B",
+        "qwen/qwen-2.5-7b-instruct": {
+            "name": "Qwen 2.5 7B",
             "provider": "alibaba",
             "strengths": ["cjk", "general"],
             "reasoning_model": False,
@@ -176,7 +149,7 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
         },
 
         # DeepSeek
-        "deepseek/deepseek-r1": {
+        "deepseek/deepseek-r1-0528:free": {
             "name": "DeepSeek-R1",
             "provider": "deepseek",
             "strengths": ["math", "reasoning"],
@@ -188,7 +161,7 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
                 "answer is in 'reasoning' field. Benchmark: 859 tokens, 89.9s."
             ),
         },
-        "deepseek/deepseek-v3": {
+        "deepseek/deepseek-chat": {
             "name": "DeepSeek-V3",
             "provider": "deepseek",
             "strengths": ["general", "eu_lang"],
@@ -197,15 +170,7 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
             "status": "stable",
             "notes": "",
         },
-        "deepseek/deepseek-coder-v2": {
-            "name": "DeepSeek-Coder-V2",
-            "provider": "deepseek",
-            "strengths": ["code"],
-            "reasoning_model": False,
-            "is_active": True,
-            "status": "stable",
-            "notes": "Leads HumanEval and SWE-bench.",
-        },
+
 
         # Meta / Llama
         "meta-llama/llama-3.3-70b-instruct": {
@@ -225,17 +190,6 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
             "is_active": True,
             "status": "stable",
             "notes": "",
-        },
-
-        # Moonshot
-        "moonshotai/kimi-k2": {
-            "name": "Kimi K2",
-            "provider": "moonshotai",
-            "strengths": ["general"],
-            "reasoning_model": False,
-            "is_active": True,
-            "status": "stable",
-            "notes": "Completes tasks but hedges with 'unable to verify' on citations.",
         },
 
         # Z.ai / GLM
@@ -321,15 +275,6 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
         },
 
         # Mistral
-        "mistral-nemo": {
-            "name": "Mistral Nemo (Ollama)",
-            "provider": "mistral",
-            "strengths": ["eu_lang", "general", "reasoning"],
-            "reasoning_model": False,
-            "is_active": True,
-            "status": "stable",
-            "notes": "",
-        },
         "mistral": {
             "name": "Mistral (Ollama)",
             "provider": "mistral",
@@ -370,8 +315,8 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
         },
 
         # Meta / Llama
-        "llama3.2": {
-            "name": "Llama 3.2 (Ollama)",
+        "llama3": {
+            "name": "Llama 3 (Ollama)",
             "provider": "meta",
             "strengths": ["general"],
             "reasoning_model": False,
@@ -388,6 +333,15 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
             "status": "stable",
             "notes": "",
         },
+        "llama3.2": {
+            "name": "Llama 3.2 (Ollama)",
+            "provider": "meta",
+            "strengths": ["general", "speed"],
+            "reasoning_model": False,
+            "is_active": True,
+            "status": "stable",
+            "notes": "Small 3B model — fast, low memory footprint.",
+        },
 
         # Google
         "gemma3": {
@@ -398,6 +352,15 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
             "is_active": True,
             "status": "stable",
             "notes": "",
+        },
+        "gemma3:12b": {
+            "name": "Gemma 3 12B (Ollama)",
+            "provider": "google",
+            "strengths": ["general", "reasoning", "long-form"],
+            "reasoning_model": False,
+            "is_active": True,
+            "status": "stable",
+            "notes": "Larger 12B variant — better quality than gemma3 (4B) at ~2.5× memory.",
         },
         "codegemma": {
             "name": "CodeGemma (Ollama)",
@@ -419,14 +382,28 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
             "status": "stable",
             "notes": "",
         },
-        "phi3.5": {
-            "name": "Phi-3.5 (Ollama)",
-            "provider": "microsoft",
-            "strengths": ["general", "speed"],
+
+
+        # IBM
+        "granite-code:8b": {
+            "name": "Granite Code 8B (Ollama)",
+            "provider": "ibm",
+            "strengths": ["code"],
             "reasoning_model": False,
             "is_active": True,
             "status": "stable",
-            "notes": "",
+            "notes": "IBM open-source code model; enterprise-oriented.",
+        },
+
+        # MotherDuck
+        "duckdb-nsql": {
+            "name": "DuckDB NSQL (Ollama)",
+            "provider": "motherduck",
+            "strengths": ["code"],
+            "reasoning_model": False,
+            "is_active": True,
+            "status": "stable",
+            "notes": "Fine-tuned for DuckDB SQL generation; narrow but precise for analytics queries.",
         },
 
         # BigCode
@@ -545,3 +522,68 @@ def is_reasoning_model(adapter: str, model_id: str) -> bool:
 def get_notes(adapter: str, model_id: str) -> str:
     """Return known-issue notes for a model, or empty string."""
     return MODEL_CATALOG.get(adapter, {}).get(model_id, {}).get("notes", "")
+
+
+# ── Hierarchical model structure for UI ──────────────────────────────────────
+
+def build_adapter_provider_model_map(active_only: bool = True) -> dict[str, dict[str, list[str]]]:
+    """Build hierarchical map: adapter -> provider -> [model_ids].
+
+    Returns structure like:
+    {
+        "openrouter": {
+            "anthropic": ["anthropic/claude-opus-4.6", "anthropic/claude-sonnet-4.5"],
+            "openai": ["openai/gpt-5.2", "openai/gpt-4o-mini"],
+            ...
+        },
+        "ollama": {
+            "alibaba": ["qwen3", "qwen2.5", "qwen2.5-coder"],
+            "mistral": ["mistral", "mathstral"],
+            ...
+        },
+        ...
+    }
+
+    Parameters
+    ----------
+    active_only : bool
+        If True, only include models where is_active=True
+
+    Returns
+    -------
+    dict[str, dict[str, list[str]]]
+        Nested dictionary: adapter -> provider -> list of model IDs
+    """
+    result = {}
+
+    for adapter, models in MODEL_CATALOG.items():
+        result[adapter] = {}
+
+        for model_id, info in models.items():
+            # Skip inactive models if requested
+            if active_only and not info.get("is_active", True):
+                continue
+
+            provider = info.get("provider", "unknown")
+
+            if provider not in result[adapter]:
+                result[adapter][provider] = []
+
+            result[adapter][provider].append(model_id)
+
+    # Sort providers and models for consistent UI ordering
+    for adapter in result:
+        for provider in result[adapter]:
+            result[adapter][provider].sort()
+
+    return result
+
+
+def get_model_info(adapter: str, model_id: str) -> dict:
+    """Get complete model info for display purposes.
+
+    Returns
+    -------
+    dict with keys: name, provider, strengths, reasoning_model, status, notes, is_active
+    """
+    return MODEL_CATALOG.get(adapter, {}).get(model_id, {})

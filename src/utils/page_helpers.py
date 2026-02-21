@@ -8,7 +8,24 @@ import sys
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
 
+import re
+
 import streamlit as st
+
+# ── Think-block stripping ─────────────────────────────────────────────────────
+
+_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+
+
+def strip_think_blocks(text: str) -> str:
+    """Remove <think>…</think> reasoning tokens from model output.
+
+    Qwen3 and some Ollama-hosted reasoning models emit their chain-of-thought
+    inline in the content field wrapped in <think> tags.  This helper strips
+    those blocks so only the final answer is shown.  The raw content in
+    execution_results is never modified — stripping is display-only.
+    """
+    return _THINK_RE.sub("", text).strip()
 
 
 # ── Logging — one session log file per server process ─────────────────────────
@@ -56,6 +73,7 @@ _PIPELINE_DEFAULTS = {
     "spl_generated": False,
     "spl_query": "",
     "spl_editor": "",
+    "spl_view": "",     # read-only right panel — must stay in sync with spl_editor
     "execution_results": [],
     "flow_state": {},
     "executed": False,
@@ -86,37 +104,124 @@ def render_sidebar() -> dict:
     -------
     dict with keys:
         adapter, provider, delivery_mode, notify_email,
-        context_text, cache_enabled, spl_params
+        context_text, cache_enabled, spl_params, selected_model_id
+
+    ``provider`` is the pinned provider string (e.g. "anthropic") or ``""``
+    when auto-route is active.  It is safe to pass directly to the model
+    router — the router treats ``""`` as "best-of-breed".
     """
+    from src.utils.model_catalog import build_adapter_provider_model_map, get_model_info
+    from src.config import get_default_adapter
+
+    _default_adapter = get_default_adapter()
+    _adapter_options = ["ollama", "openrouter", "claude_cli"]
+    _default_index = _adapter_options.index(_default_adapter) if _default_adapter in _adapter_options else 0
+
     with st.sidebar:
         st.header("Settings")
 
         adapter = st.selectbox(
             "LLM Adapter",
-            options=["claude_cli", "openrouter", "ollama"],
-            index=0,
+            options=_adapter_options,
+            index=_default_index,
             help=(
-                "claude_cli — uses local Claude CLI (subscription)\n"
+                "ollama — local models, zero cost (qwen3, mistral, llama3, etc.)\n"
                 "openrouter — routes to 100+ models via OpenRouter API\n"
-                "ollama — local models (qwen2.5, mistral, llama3, etc.)"
+                "claude_cli — uses local Claude CLI (subscription)"
             ),
         )
-        st.caption("SPL auto-routes CJK/EU/code/synthesis sub-tasks to specialist models.")
 
-        _provider_label = st.selectbox(
-            "LLM Provider (USING MODEL auto)",
-            options=[
-                "(best-of-breed)", "anthropic", "google", "meta",
-                "mistral", "alibaba", "deepseek", "openai",
-            ],
-            index=0,
+        # Clear stale model selection whenever the adapter changes.
+        if st.session_state.get("_last_adapter") != adapter:
+            st.session_state.pop("selected_model_id", None)
+            st.session_state.pop("selected_provider", None)
+            st.session_state["_last_adapter"] = adapter
+
+        # Provider → Model cascade
+        model_map = build_adapter_provider_model_map(active_only=True)
+        adapter_models = model_map.get(adapter, {})
+        selected_provider = ""  # "" means auto-route
+
+        if adapter_models:
+            available_providers = sorted(adapter_models.keys())
+            st.caption(f"Available providers: {', '.join(available_providers)}")
+
+            provider_label = st.selectbox(
+                "🏢 Provider",
+                options=["(auto-route)"] + available_providers,
+                index=0,
+                help="Select a specific provider to see their models, or use (auto-route) for intelligent model routing",
+                key="direct_model_provider",
+            )
+            selected_provider = "" if provider_label.startswith("(") else provider_label
+
+            if selected_provider:
+                provider_model_ids = adapter_models.get(selected_provider, [])
+
+                if provider_model_ids:
+                    # Build display-name → model_id map; guard against duplicate names.
+                    model_options: list[str] = []
+                    model_id_map: dict[str, str] = {}
+
+                    for model_id in provider_model_ids:
+                        info = get_model_info(adapter, model_id)
+                        display_name = info.get("name", model_id)
+
+                        status = info.get("status", "stable")
+                        if status == "experimental":
+                            display_name += " 🟡"
+                        elif status == "deprecated":
+                            display_name += " 🔴"
+                        if info.get("reasoning_model"):
+                            display_name += " 🧠"
+
+                        if display_name in model_id_map:
+                            display_name = f"{display_name} ({model_id})"
+
+                        model_options.append(display_name)
+                        model_id_map[display_name] = model_id
+
+                    st.caption(f"Found {len(model_options)} models for **{selected_provider}**:")
+                    selected_model_display = st.selectbox(
+                        "🤖 Select Model",
+                        options=["(auto-route)"] + model_options,
+                        index=0,
+                        help=f"Select a specific {selected_provider} model, or use (auto-route) for task-based routing",
+                        key="direct_model_selection",
+                    )
+
+                    if selected_model_display and not selected_model_display.startswith("("):
+                        _mid = model_id_map[selected_model_display]
+                        st.session_state["selected_model_id"] = _mid
+                        st.session_state["selected_provider"] = selected_provider
+
+                        info = get_model_info(adapter, _mid)
+                        strengths = ", ".join(info.get("strengths", []))
+                        if strengths:
+                            st.caption(f"**Strengths:** {strengths}")
+                        if info.get("notes"):
+                            st.caption(f"**Notes:** {info['notes']}")
+                    else:
+                        st.session_state.pop("selected_model_id", None)
+                        st.session_state.pop("selected_provider", None)
+                else:
+                    st.warning(f"No models found for **{selected_provider}** on **{adapter}**")
+            else:
+                st.session_state.pop("selected_model_id", None)
+                st.session_state.pop("selected_provider", None)
+                st.info("✨ Auto-route mode: SPL will use intelligent model selection based on task type")
+        else:
+            st.error(f"No models available for **{adapter}** adapter")
+
+        strip_think = st.checkbox(
+            "Strip `<think>` blocks",
+            value=True,
             help=(
-                "Optional: pin USING MODEL auto to models from one provider.\n"
-                "Useful when your org has contracted with a specific provider.\n"
-                "Only takes effect when adapter = openrouter."
+                "Hide inline reasoning tokens (<think>…</think>) emitted by "
+                "models such as Qwen3 and DeepSeek-R1 (Ollama). "
+                "Raw content is preserved in session state — this is display-only."
             ),
         )
-        provider = "" if (_provider_label or "").startswith("(") else (_provider_label or "")
 
         st.divider()
 
@@ -170,12 +275,14 @@ def render_sidebar() -> dict:
 
     return {
         "adapter": adapter or "claude_cli",
-        "provider": provider,
+        "provider": selected_provider,        # "" = auto-route; real name = pinned provider
         "delivery_mode": delivery_mode,
         "notify_email": notify_email,
         "context_text": context_text or "",
         "cache_enabled": cache_enabled,
         "spl_params": spl_params,
+        "selected_model_id": st.session_state.get("selected_model_id"),
+        "strip_think": strip_think,
     }
 
 
@@ -213,10 +320,9 @@ _FOOTER_HTML = """
   <strong>SPL-Flow</strong> &mdash;
   <a href="https://github.com/digital-duck/SPL" target="_blank">SPL engine</a> &middot;
   <a href="https://github.com/The-Pocket/PocketFlow" target="_blank">PocketFlow</a> &middot;
-  Apache 2.0<br>
-  Built with ❤️ by
-  <a href="https://claude.ai/code" target="_blank">Claude</a> and
-  <a href="https://github.com/digital-duck" target="_blank">Digital-Duck</a>
+  Apache 2.0 &mdash; Built with ❤️ by
+  <a href="https://github.com/digital-duck" target="_blank">Digital-Duck</a> and
+  <a href="https://claude.ai/code" target="_blank">Claude</a> 
   &mdash; Human x AI
 </div>
 """

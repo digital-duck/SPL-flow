@@ -68,7 +68,7 @@ def build_generate_only_flow() -> Flow:
 def run_spl_flow(
     user_input: str,
     context_text: str = "",
-    adapter: str = "claude_cli",
+    adapter: str = "ollama",
     delivery_mode: str = "sync",
     notify_email: str = "",
     spl_params: dict = None,
@@ -124,7 +124,9 @@ def run_spl_flow(
 def generate_spl_only(
     user_input: str,
     context_text: str = "",
-    adapter: str = "claude_cli",
+    adapter: str = "ollama",
+    selected_model_id: str = "",
+    selected_provider: str = "",
 ) -> dict:
     """Run only the Text2SPL + Validate pipeline (no LLM execution).
 
@@ -144,6 +146,8 @@ def generate_spl_only(
         "user_input": user_input,
         "context_text": context_text,
         "adapter": adapter,
+        "selected_model_id": selected_model_id,
+        "selected_provider": selected_provider,
         "spl_query": "",
         "spl_ast": None,
         "spl_warnings": [],

@@ -83,16 +83,21 @@ class ExecuteSPLNode(Node):
             is_final = (i == len(plans) - 1)
 
             # ── Resolve USING MODEL auto ──────────────────────────────────────
+            # Must update both stmt.model AND plan.model: the optimizer copies
+            # stmt.model into plan.model at construction time, and the executor
+            # reads plan.model (not stmt.model) when calling the adapter.
             if stmt is not None and (stmt.model or "").strip().lower() == "auto":
                 system_role, instruction = _extract_texts(stmt)
-                stmt.model = auto_route(
+                resolved = auto_route(
                     adapter=adapter_name,
                     system_role=system_role,
                     instruction=instruction,
                     provider=provider,
                     is_final_prompt=is_final,
                 )
-                _log.info("[%s] USING MODEL auto → %s", plan.prompt_name, stmt.model)
+                stmt.model = resolved
+                plan.model = resolved
+                _log.info("[%s] USING MODEL auto → %s", plan.prompt_name, resolved)
 
             try:
                 result = asyncio.run(executor.execute(plan, params=params, stmt=stmt))

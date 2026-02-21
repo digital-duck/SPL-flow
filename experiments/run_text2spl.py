@@ -64,9 +64,7 @@ QUERIES: dict[str, str] = {
     ),
 }
 
-DEFAULT_LANGS = ["english", 
-                 #"chinese", "arabic"
-    ]
+DEFAULT_LANGS: list[str] = []   # empty = run all languages
 
 DEFAULT_ADAPTERS = ["claude_cli", "openrouter", "ollama"]
 

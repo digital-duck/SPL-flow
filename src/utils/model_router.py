@@ -1,4 +1,4 @@
-"""Model routing for USING MODEL auto — maps (task × provider) to model names.
+"""Model routing for USING MODEL auto — uses MODEL_CATALOG as single source of truth.
 
 Concept
 -------
@@ -9,14 +9,11 @@ Three orthogonal dimensions determine the final model:
 
   provider  — the LLM company a user/org prefers (anthropic, google, meta,
                mistral, alibaba, deepseek, openai).  Optional.  When set, the
-               routing table picks the best model FROM THAT PROVIDER for the
+               model selection picks the best model FROM THAT PROVIDER for the
                task — even if a different provider would win best-of-breed.
-               Example: company policy = "anthropic" → every auto-routed
-               PROMPT uses the best Claude model for its task.
 
   adapter   — the API interface in use (claude_cli, openrouter, ollama).
-               When no provider is set, the adapter-level best-of-breed model
-               is returned.
+               Determines which models are available.
 
 Resolution priority
 -------------------
@@ -24,130 +21,13 @@ Resolution priority
   2. provider set + other adapter       → adapter-level best (provider ignored)
   3. no provider + any adapter          → adapter-level best-of-breed for task
 
-Routing table source
---------------------
-Populated from HuggingFace Open LLM Leaderboard v2, LMSYS Chatbot Arena, and
-task-specific benchmarks (HumanEval, MATH, C-Eval, MT-Bench) as of 2026-02.
-Run  scripts/refresh_routing_table.py  to regenerate from latest leaderboard.
+Model selection uses MODEL_CATALOG strengths field to find best matches.
 """
 
-# ── Model Zoo: routing table ─────────────────────────────────────────────────
-#
-# Keys at the provider level  → "anthropic" | "google" | "meta" | "mistral"
-#                                "alibaba"  | "deepseek" | "openai"
-# Keys at the adapter level   → "openrouter" (best-of-breed)
-#                                "ollama"     (local pull names)
-#                                "claude_cli" (always Anthropic)
-#
-ROUTING_TABLE: dict[str, dict[str, str]] = {
+from src.utils.model_catalog import get_models
 
-    # ── CJK (Chinese / Japanese / Korean) ────────────────────────────────────
-    # Best-of-breed: Qwen2.5-72B leads C-Eval, CMMLU, and JP-LMEH.
-    "cjk": {
-        "anthropic":  "anthropic/claude-sonnet-4-5-20250929",
-        "google":     "google/gemini-2.0-flash-001",
-        "meta":       "meta-llama/llama-3.1-70b-instruct",
-        "mistral":    "mistralai/mistral-large-2411",
-        "alibaba":    "qwen/qwen-2.5-72b-instruct",       # best for CJK
-        "deepseek":   "deepseek/deepseek-v3",
-        "openai":     "openai/gpt-4o",
-        # adapter-level (no provider preference)
-        "openrouter": "qwen/qwen-2.5-72b-instruct",
-        "ollama":     "qwen2.5",
-        "claude_cli": "claude-sonnet-4-5",
-    },
+# ── Canonical list of supported providers ────────────────────────────────────
 
-    # ── Code (generation, review, debugging, refactoring) ────────────────────
-    # Best-of-breed: DeepSeek-Coder-V2 leads HumanEval and SWE-bench.
-    "code": {
-        "anthropic":  "anthropic/claude-sonnet-4-5-20250929",
-        "google":     "google/gemini-2.0-flash-001",
-        "meta":       "meta-llama/llama-3.1-70b-instruct",
-        "mistral":    "mistralai/codestral-2501",
-        "alibaba":    "qwen/qwen-2.5-coder-32b-instruct",
-        "deepseek":   "deepseek/deepseek-coder-v2",        # best for code
-        "openai":     "openai/gpt-4o",
-        "openrouter": "deepseek/deepseek-coder-v2",
-        "ollama":     "deepseek-coder",
-        "claude_cli": "claude-sonnet-4-5",
-    },
-
-    # ── European languages (German, French, Spanish, Italian …) ──────────────
-    # Best-of-breed: Mistral-Large leads EU multilingual MT-Bench variants.
-    "eu_lang": {
-        "anthropic":  "anthropic/claude-sonnet-4-5-20250929",
-        "google":     "google/gemini-2.0-flash-001",
-        "meta":       "meta-llama/llama-3.1-70b-instruct",
-        "mistral":    "mistralai/mistral-large-2411",       # best for EU
-        "alibaba":    "qwen/qwen-2.5-72b-instruct",
-        "deepseek":   "deepseek/deepseek-v3",
-        "openai":     "openai/gpt-4o",
-        "openrouter": "mistralai/mistral-large-2411",
-        "ollama":     "mistral",
-        "claude_cli": "claude-sonnet-4-5",
-    },
-
-    # ── Math / science (proofs, equations, symbolic reasoning) ───────────────
-    # Best-of-breed: DeepSeek-R1 leads MATH, AIME, and GPQA.
-    "math": {
-        "anthropic":  "anthropic/claude-sonnet-4-5-20250929",
-        "google":     "google/gemini-2.0-flash-thinking-exp",
-        "meta":       "meta-llama/llama-3.1-70b-instruct",
-        "mistral":    "mistralai/mistral-large-2411",
-        "alibaba":    "qwen/qwen-2.5-72b-instruct",
-        "deepseek":   "deepseek/deepseek-r1",               # best for math
-        "openai":     "openai/o3-mini",
-        "openrouter": "deepseek/deepseek-r1",
-        "ollama":     "deepseek-r1",
-        "claude_cli": "claude-sonnet-4-5",
-    },
-
-    # ── Long-form reasoning (analysis, debate, multi-step Q&A) ───────────────
-    # Best-of-breed: Claude Opus 4.6 + DeepSeek-R1 top MMLU-Pro / reasoning.
-    "reasoning": {
-        "anthropic":  "anthropic/claude-opus-4-6",          # best Anthropic
-        "google":     "google/gemini-2.0-pro-exp",
-        "meta":       "meta-llama/llama-3.3-70b-instruct",
-        "mistral":    "mistralai/mistral-large-2411",
-        "alibaba":    "qwen/qwen-2.5-72b-instruct",
-        "deepseek":   "deepseek/deepseek-r1",
-        "openai":     "openai/o1",
-        "openrouter": "anthropic/claude-opus-4-6",
-        "ollama":     "llama3.2",
-        "claude_cli": "claude-opus-4-6",
-    },
-
-    # ── Synthesis / composition (merge CTEs, writing, summarising) ───────────
-    # Best-of-breed: Claude Opus 4.6 excels at coherent long-form composition.
-    "synthesis": {
-        "anthropic":  "anthropic/claude-opus-4-6",
-        "google":     "google/gemini-1.5-pro",
-        "meta":       "meta-llama/llama-3.3-70b-instruct",
-        "mistral":    "mistralai/mistral-large-2411",
-        "alibaba":    "qwen/qwen-2.5-72b-instruct",
-        "deepseek":   "deepseek/deepseek-v3",
-        "openai":     "openai/gpt-4o",
-        "openrouter": "anthropic/claude-opus-4-6",
-        "ollama":     "llama3.2",
-        "claude_cli": "claude-opus-4-6",
-    },
-
-    # ── General / fallback ────────────────────────────────────────────────────
-    "general": {
-        "anthropic":  "anthropic/claude-sonnet-4-5-20250929",
-        "google":     "google/gemini-2.0-flash-001",
-        "meta":       "meta-llama/llama-3.3-70b-instruct",
-        "mistral":    "mistralai/mistral-large-2411",
-        "alibaba":    "qwen/qwen-2.5-72b-instruct",
-        "deepseek":   "deepseek/deepseek-v3",
-        "openai":     "openai/gpt-4o",
-        "openrouter": "anthropic/claude-sonnet-4-5-20250929",
-        "ollama":     "llama3.2",
-        "claude_cli": "claude-sonnet-4-5",
-    },
-}
-
-# Canonical list of supported providers (for UI dropdowns and validation)
 PROVIDERS: list[str] = [
     "anthropic", "google", "meta", "mistral",
     "alibaba", "deepseek", "openai",
@@ -155,7 +35,7 @@ PROVIDERS: list[str] = [
 
 # ── Task classifier ───────────────────────────────────────────────────────────
 
-_CJK_CHARS = set("中文日本語한국語漢字汉字かなカナ")
+_CJK_CHARS = set("中文日本語한국어漢字汉字かなカナ")
 _CJK_WORDS = {
     "cjk", "chinese", "japanese", "korean", "kanji", "hanzi",
     "radical", "pinyin", "hiragana", "katakana", "mandarin",
@@ -203,10 +83,16 @@ def detect_task(system_role: str = "", instruction: str = "") -> str:
     return "general"
 
 
-# ── Resolver ─────────────────────────────────────────────────────────────────
+# ── Resolver using MODEL_CATALOG ──────────────────────────────────────────────
 
 def resolve_model(adapter: str, task: str, provider: str = "") -> str:
     """Resolve a (task, adapter, provider) triple to a concrete model name.
+
+    Uses MODEL_CATALOG as single source of truth, filtering by:
+    - adapter availability
+    - model strengths matching the task
+    - provider preference (openrouter only)
+    - is_active status
 
     Parameters
     ----------
@@ -218,24 +104,40 @@ def resolve_model(adapter: str, task: str, provider: str = "") -> str:
     -------
     Concrete model name string ready to pass to the adapter.
     """
-    task_routes = ROUTING_TABLE.get(task, ROUTING_TABLE["general"])
-    fallback    = ROUTING_TABLE["general"]
+    # Get all active models for this adapter
+    available_models = get_models(adapter, active_only=True)
 
-    if provider:
-        # Provider preference only takes effect when using openrouter
-        # (which can reach every provider).  Other adapters fall back to
-        # their own adapter-level best.
-        if adapter == "openrouter":
-            return (
-                task_routes.get(provider)
-                or fallback.get(provider)
-                or fallback.get(adapter, "anthropic/claude-sonnet-4-5-20250929")
-            )
-        # ollama / claude_cli — honour adapter-level best regardless of provider
-        return task_routes.get(adapter) or fallback.get(adapter, "claude-sonnet-4-5")
+    if not available_models:
+        # Fallback if no models available for adapter
+        return "claude-sonnet-4-5" if adapter == "claude_cli" else "qwen3:latest"
 
-    # No provider preference — best-of-breed for this adapter
-    return task_routes.get(adapter) or fallback.get(adapter, "claude-sonnet-4-5")
+    # Filter models by task strength and provider
+    candidates = []
+    for model_id, info in available_models.items():
+        strengths = info.get("strengths", [])
+        model_provider = info.get("provider", "")
+
+        # Provider filtering (only for openrouter)
+        if provider and adapter == "openrouter" and model_provider != provider:
+            continue
+
+        # Task matching - exact match gets priority 3, general gets priority 1
+        if task in strengths:
+            priority = 3
+        elif "general" in strengths:
+            priority = 1
+        else:
+            continue  # Skip models that don't match task or general
+
+        candidates.append((priority, model_id, info))
+
+    if not candidates:
+        # No task-specific matches, fall back to first available model
+        return list(available_models.keys())[0]
+
+    # Sort by priority (highest first), then by provider preference
+    candidates.sort(key=lambda x: (-x[0], x[1]))
+    return candidates[0][1]
 
 
 def auto_route(
@@ -257,7 +159,7 @@ def auto_route(
 
     Returns
     -------
-    Resolved model name string.
+    Resolved model name string from MODEL_CATALOG.
     """
     task = "synthesis" if is_final_prompt else detect_task(system_role, instruction)
     return resolve_model(adapter, task, provider)

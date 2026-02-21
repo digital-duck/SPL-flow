@@ -131,9 +131,11 @@ def generate(
     query: str,
     context_text: str = "",
     *,
-    adapter: str = "claude_cli",
+    adapter: str = "ollama",
     save_to_rag: bool = True,
     user_id: str = "",
+    selected_model_id: str = "",
+    selected_provider: str = "",
 ) -> dict:
     """Translate a natural language query to SPL (no LLM execution).
 
@@ -146,14 +148,16 @@ def generate(
 
     Parameters
     ----------
-    query        : free-form natural language query
-    context_text : optional reference document injected into the Text2SPL prompt
-    adapter      : execution adapter the user intends to use — controls which
-                   model IDs appear in the routing table ("claude_cli" |
-                   "openrouter" | "ollama").  Text2SPL itself always runs
-                   on claude_cli; this only shapes the generated SPL.
-    save_to_rag  : persist the (query, SPL) pair to the RAG store on success
-    user_id      : scope the RAG record to a specific user ("" = shared store)
+    query             : free-form natural language query
+    context_text      : optional reference document injected into the Text2SPL prompt
+    adapter           : execution adapter the user intends to use — controls which
+                        model IDs appear in the routing table ("claude_cli" |
+                        "openrouter" | "ollama").  Text2SPL itself always runs
+                        on claude_cli; this only shapes the generated SPL.
+    save_to_rag       : persist the (query, SPL) pair to the RAG store on success
+    user_id           : scope the RAG record to a specific user ("" = shared store)
+    selected_model_id : specific model ID to use instead of auto-routing (optional)
+    selected_provider : provider of the selected model (optional)
 
     Returns
     -------
@@ -161,7 +165,13 @@ def generate(
     """
     _log.info("api.generate  adapter=%s  query_len=%d  context_len=%d  save_to_rag=%s",
               adapter, len(query), len(context_text), save_to_rag)
-    result = generate_spl_only(user_input=query, context_text=context_text, adapter=adapter)
+    result = generate_spl_only(
+        user_input=query,
+        context_text=context_text,
+        adapter=adapter,
+        selected_model_id=selected_model_id,
+        selected_provider=selected_provider
+    )
     spl = result.get("spl_query", "")
     error = result.get("error", "")
 
@@ -194,7 +204,7 @@ def run(
     query: str,
     *,
     context_text: str = "",
-    adapter: str = "claude_cli",
+    adapter: str = "ollama",
     delivery_mode: str = "sync",
     notify_email: str = "",
     spl_params: dict | None = None,
@@ -292,7 +302,7 @@ def benchmark(
     *,
     models: list | None = None,
     benchmark_name: str = "",
-    adapter: str = "claude_cli",
+    adapter: str = "ollama",
     provider: str = "",
     spl_params: dict | None = None,
     cache_enabled: bool = False,
@@ -381,7 +391,7 @@ def benchmark(
 def exec_spl(
     spl_query: str,
     *,
-    adapter: str = "claude_cli",
+    adapter: str = "ollama",
     spl_params: dict | None = None,
     cache_enabled: bool = False,
     provider: str = "",
@@ -443,13 +453,15 @@ def exec_spl(
             is_final = (i == len(plans) - 1)
             if stmt is not None and (stmt.model or "").strip().lower() == "auto":
                 system_role, instruction = _extract_texts(stmt)
-                stmt.model = auto_route(
+                resolved = auto_route(
                     adapter=adapter,
                     system_role=system_role,
                     instruction=instruction,
                     provider=provider,
                     is_final_prompt=is_final,
                 )
+                stmt.model = resolved
+                plan.model = resolved
             r = asyncio.run(executor.execute(plan, params=params, stmt=stmt))
             results.append({
                 "prompt_name": plan.prompt_name,

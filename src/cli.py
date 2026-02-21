@@ -71,11 +71,12 @@ def _init_logging(
 # ── Shared option decorators ───────────────────────────────────────────────────
 
 def adapter_option(f):
+    from src.config import get_default_adapter
     return click.option(
         "--adapter", "-a",
-        default="claude_cli",
+        default=get_default_adapter,   # callable: re-evaluated at runtime from splflow.yaml
         show_default=True,
-        type=click.Choice(["claude_cli", "openrouter", "ollama"]),
+        type=click.Choice(["ollama", "openrouter", "claude_cli"]),
         help="LLM adapter to use for execution.",
     )(f)
 

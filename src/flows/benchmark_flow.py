@@ -22,7 +22,7 @@ def run_benchmark_flow(
     *,
     benchmark_name: str = "",
     models: list | None = None,
-    adapter: str = "claude_cli",
+    adapter: str = "ollama",
     provider: str = "",
     spl_params: dict | None = None,
     cache_enabled: bool = False,

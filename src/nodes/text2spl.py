@@ -1,4 +1,5 @@
 """Text2SPL Node: translates free-form user query to SPL syntax."""
+import re
 import sys
 import asyncio
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
@@ -26,6 +27,8 @@ class Text2SPLNode(Node):
             "error": shared.get("last_parse_error", ""),
             "retry_count": shared.get("retry_count", 0),
             "adapter": shared.get("adapter", "openrouter"),
+            "selected_model_id": shared.get("selected_model_id", ""),
+            "selected_provider": shared.get("selected_provider", ""),
         }
 
     def exec(self, prep_res):
@@ -54,18 +57,37 @@ class Text2SPLNode(Node):
         except Exception:
             _log.debug("RAG retrieval unavailable — using static examples only")
 
-        cli_adapter = get_adapter("claude_cli")
+        # Use the adapter chosen by the user (sidebar / CLI) for Text2SPL too.
+        # For ollama, default to qwen3 when no specific model is selected —
+        # it has the best general + reasoning strengths for SPL generation.
+        text2spl_adapter_name = prep_res["adapter"]
+        text2spl_adapter = get_adapter(text2spl_adapter_name)
+        _sid = (prep_res.get("selected_model_id") or "").strip()
+        if _sid:
+            text2spl_model = _sid
+        elif text2spl_adapter_name == "ollama":
+            text2spl_model = "qwen3"
+        else:
+            text2spl_model = ""   # adapter default (openrouter auto-routes; claude_cli has one model)
+
+        _log.info(
+            "Text2SPL using adapter=%s  model=%s",
+            text2spl_adapter_name, text2spl_model or "(adapter default)",
+        )
+
         prompt = get_text2spl_prompt(
             prep_res["user_input"],
             prep_res["context_text"],
             prep_res["error"],
             retrieved_examples=retrieved_examples,
             adapter=prep_res["adapter"],
+            selected_model_id=prep_res["selected_model_id"],
+            selected_provider=prep_res["selected_provider"],
         )
         _log.debug("Text2SPL prompt length: %d chars", len(prompt))
-        result = asyncio.run(cli_adapter.generate(
+        result = asyncio.run(text2spl_adapter.generate(
             prompt=prompt,
-            model="",
+            model=text2spl_model,
             max_tokens=2000,
             temperature=0.2,
             system=(
@@ -83,8 +105,47 @@ class Text2SPLNode(Node):
             lines = spl.split("\n")
             end = -1 if lines[-1].strip() == "```" else len(lines)
             spl = "\n".join(lines[1:end])
-        shared["spl_query"] = spl.strip()
+
+        # Replace model names that don't belong to the active adapter with
+        # "auto" so the executor can resolve them correctly at runtime.
+        # LLMs sometimes hallucinate adapter-incorrect names (e.g. generating
+        # "claude-sonnet-4-5" even when the adapter is ollama).
+        spl = _sanitize_model_names(spl.strip(), prep_res["adapter"])
+
+        shared["spl_query"] = spl
         shared["retry_count"] = prep_res["retry_count"] + 1
         _log.info("Text2SPL done  spl_lines=%d  total_attempts=%d",
-                  len(spl.strip().splitlines()), shared["retry_count"])
+                  len(spl.splitlines()), shared["retry_count"])
         return "validate"
+
+
+# ── Model-name sanitiser ───────────────────────────────────────────────────────
+
+_USING_MODEL_RE = re.compile(r'(USING\s+MODEL\s+)"([^"]+)"', re.IGNORECASE)
+
+
+def _sanitize_model_names(spl: str, adapter: str) -> str:
+    """Replace adapter-incompatible model names with ``"auto"``.
+
+    The Text2SPL LLM sometimes emits model names it was trained on (e.g.
+    ``claude-sonnet-4-5``) even when the active adapter is ``ollama``.
+    This function scans every ``USING MODEL "..."`` clause and replaces any
+    name that is not in MODEL_CATALOG[adapter] with ``"auto"``, which the
+    executor then resolves via the model router.
+
+    ``"auto"`` itself is always kept unchanged.
+    """
+    from src.utils.model_catalog import MODEL_CATALOG
+    valid = set(MODEL_CATALOG.get(adapter, {}).keys())
+
+    def _replace(m: re.Match) -> str:
+        prefix, model_name = m.group(1), m.group(2)
+        if model_name.lower() == "auto" or model_name in valid:
+            return m.group(0)
+        _log.info(
+            "sanitise: replaced incompatible model %r → auto  (adapter=%s)",
+            model_name, adapter,
+        )
+        return f'{prefix}"auto"'
+
+    return _USING_MODEL_RE.sub(_replace, spl)

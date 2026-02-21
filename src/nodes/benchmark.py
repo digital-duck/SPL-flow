@@ -209,16 +209,19 @@ async def _run_one(
             stmt     = _find_stmt(ast, plan.prompt_name)
             is_final = (i == len(plans) - 1)
 
-            # Late binding: resolve "auto" at routing-time, just before LLM call
+            # Late binding: resolve "auto" at routing-time, just before LLM call.
+            # Must set plan.model too — the executor reads plan.model, not stmt.model.
             if stmt is not None and (stmt.model or "").strip().lower() == "auto":
                 system_role, instruction = _extract_texts(stmt)
-                stmt.model = auto_route(
+                resolved = auto_route(
                     adapter=adapter,
                     system_role=system_role,
                     instruction=instruction,
                     provider=provider,
                     is_final_prompt=is_final,
                 )
+                stmt.model = resolved
+                plan.model = resolved
 
             r = await executor.execute(plan, params=params, stmt=stmt)
             prompt_results.append({
@@ -261,7 +264,10 @@ async def _run_one(
         return run
 
     except Exception as exc:
-        return _error_run(model_id, resolved_from, patched_spl, str(exc))
+        # str(exc) can be "" for TimeoutError and similar bare exceptions —
+        # fall back to the type name so the error is never silently empty.
+        err_msg = str(exc) or f"{type(exc).__name__} (no message)"
+        return _error_run(model_id, resolved_from, patched_spl, err_msg)
 
 
 def _error_run(
@@ -305,7 +311,7 @@ class BenchmarkNode(Node):
             "spl_query":      shared["spl_query"],
             "models":         shared.get("benchmark_models", ["auto"]),
             "benchmark_name": shared.get("benchmark_name", ""),
-            "adapter":        shared.get("adapter", "claude_cli"),
+            "adapter":        shared.get("adapter", "ollama"),
             "provider":       shared.get("provider", ""),
             "params":         shared.get("spl_params", {}),
             "cache":          shared.get("cache_enabled", False),
@@ -337,11 +343,19 @@ class BenchmarkNode(Node):
 
         t_start = __import__("time").monotonic()
 
+        # Ollama processes one model at a time (single GPU); a semaphore prevents
+        # concurrent requests from timing out silently on a busy local server.
+        # Cloud adapters (openrouter, claude_cli) support true parallelism.
+        _concurrency = 1 if adapter == "ollama" else len(patches)
+
         async def run_all():
-            tasks = [
-                _run_one(mid, rfrom, pspl, adapter, provider, params, cache)
-                for mid, rfrom, pspl in patches
-            ]
+            sem = asyncio.Semaphore(_concurrency)
+
+            async def _guarded(mid, rfrom, pspl):
+                async with sem:
+                    return await _run_one(mid, rfrom, pspl, adapter, provider, params, cache)
+
+            tasks = [_guarded(mid, rfrom, pspl) for mid, rfrom, pspl in patches]
             return await asyncio.gather(*tasks, return_exceptions=True)
 
         raw = asyncio.run(run_all())

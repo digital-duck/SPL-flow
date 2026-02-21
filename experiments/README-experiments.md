@@ -231,6 +231,13 @@ Explain (in Chinese) how large language models work, analysing them along three 
 parametric knowledge, contextual knowledge, and reasoning capability — and compare the key
 similarities and differences between GPT, Claude, and open-source models such as Qwen.
 
+
+```bash
+
+python -m src.cli run
+  "用中文解释大型语言模型的工作原理，从参数知识、上下文知识和推理能力三个维度分析，并对比GPT、Claude和开源模型（如Qwen）的主要异同。" --adapter claude_cli --output chinese_test.json
+
+```
 ### Q3 - Arabic
 
 ```
@@ -249,18 +256,84 @@ and astronomy during the Islamic Golden Age, and how did these contributions inf
 
 **Status:** TODO — run after Text2SPL experiments
 
-**Document to use:** The SPL paper itself (this paper's §1–§4), or any publicly available research paper. Split into 4 sections: intro, method/language, engine/optimizer, evaluation.
+**Document:** "Attention Is All You Need" (Vaswani et al., 2017) — 4 logical sections:
+Abstract+Intro, Model Architecture, Training, Results+Conclusions.
+The LLM already knows the paper; no text injection needed.
+
+**Script:** `experiments/chunking_transformer.spl`
 
 **Command:**
 ```bash
 cd ~/projects/digital-duck/SPL-flow
 
-# Write the chunking script first (4-CTE Map-Reduce) — see §9.3 listing in paper
-# Then run:
-python3 experiments/spl_runner.py \
-    --scripts experiments/chunking_paper.spl \
-    --adapters openrouter \
-    --output-dir ~/Downloads/Zinets/spl-experiments/chunking-$(date +%Y%m%d)
+python3 experiments/spl_runner.py --scripts experiments/chunking_transformer.spl \
+    --adapters openrouter --output-dir ~/Downloads/Zinets/spl-experiments/chunking-$(date +%Y%m%d)
+
+
+python3 experiments/spl_runner.py --scripts experiments/chunking_transformer.spl --adapters openrouter --output-dir ~/Downloads/Zinets/spl-experiments/chunking-$(date +%Y%m%d)-v2
+
+python3 experiments/spl_runner.py --scripts experiments/chunking_transformer_ollama.spl \
+      --adapters ollama --output-dir ~/Downloads/Zinets/spl-experiments/chunking-$(date +%Y%m%d)-ollama
+
+
+```
+
+
+
+```
+
+● The run is correct. The log tells a clean story:                                                                                                  
+                                                          
+  Map phase: perfectly parallel ✓                                                                                                                   
+  14:01:33  [CTE:intro_summary]        starting  haiku-4.5  ─┐                                                                                      
+  14:01:33  [CTE:architecture_summary] starting  haiku-4.5   │ all 4 at once                                                                        
+  14:01:33  [CTE:training_summary]     starting  haiku-4.5   │                                                                                      
+  14:01:33  [CTE:results_summary]      starting  haiku-4.5  ─┘                                                                                    
+
+  14:01:36  training      done  3.5s  (1082 chars) ✓
+  14:01:36  architecture  done  3.8s  (1231 chars) ✓
+  14:01:37  intro         done  4.4s  (1659 chars) ✓
+  14:01:38  results       done  5.2s  ( 984 chars) ✓
+            ──── Map wall time: 5.2s (not 4×5.2 = 20.8s) ────
+
+  Reduce phase: 32s for 1200 output tokens from Sonnet ✓
+  14:01:38  transformer_review → Sonnet-4-5  (1635 input + 1200 output = 2835 tokens)
+  14:02:10  done  37.5s total latency (includes Map CTE time)
+
+  The display "2,835 tokens / $0.00" is misleading — spl_runner.py only reads execution_results from result.json, which only records the top-level
+  PROMPT. The real totals from the log are:
+
+  ┌──────────────────────┬────────────┬────────┬────────────┐
+  │         Step         │   Model    │ Tokens │  Latency   │
+  ├──────────────────────┼────────────┼────────┼────────────┤
+  │ intro_summary        │ haiku-4.5  │ 469    │ 4.4s       │
+  ├──────────────────────┼────────────┼────────┼────────────┤
+  │ architecture_summary │ haiku-4.5  │ 473    │ 3.8s       │
+  ├──────────────────────┼────────────┼────────┼────────────┤
+  │ training_summary     │ haiku-4.5  │ 488    │ 3.5s       │
+  ├──────────────────────┼────────────┼────────┼────────────┤
+  │ results_summary      │ haiku-4.5  │ 484    │ 5.2s       │
+  ├──────────────────────┼────────────┼────────┼────────────┤
+  │ transformer_review   │ sonnet-4-5 │ 2,835  │ 32s        │
+  ├──────────────────────┼────────────┼────────┼────────────┤
+  │ Total                │            │ 4,749  │ 37.5s wall │
+  └──────────────────────┴────────────┴────────┴────────────┘
+
+  Map parallelism speedup: 5.2s vs ~20.8s sequential = 4× confirmed.
+
+  This is exactly the §9.3 evidence you need. The cost=n/a in the table is a gap in the metrics pipeline (the openrouter adapter isn't surfacing
+  per-CTE cost to result.json). The actual cost would be roughly:
+  - 4 × 484 tok × haiku-4.5 rate ($1/$5 per M) ≈ $0.003
+  - 2,835 tok × sonnet-4-5 rate ($3/$15 per M) ≈ $0.022
+  - Total ≈ ~$0.025
+
+
+```
+
+### Adapter = Ollama
+
+```bash
+python3 experiments/spl_runner.py --scripts experiments/chunking_transformer.spl --adapters ollama --output-dir ~/Downloads/Zinets/spl-experiments/chunking-$(date +%Y%m%d)-v3
 ```
 
 **Collect for Appendix C:**
@@ -287,11 +360,7 @@ python3 experiments/spl_runner.py \
 ```bash
 cd ~/projects/digital-duck/SPL-flow
 
-python3 -m src.cli benchmark \
-    ~/Downloads/Zinets/spl-experiments/spl-9.2-A-20260220-063838.spl \
-    --models "qwen2.5:7b,mistral:7b,llama3.1:8b" \
-    --adapter openrouter \
-    --output ~/Downloads/Zinets/spl-experiments/benchmark-$(date +%Y%m%d).json
+python3 -m src.cli benchmark /home/papagame/Downloads/Zinets/spl-experiments/spl-9.2-A-claude_cli-20260220-063838.spl --models "qwen2.5,qwen3,mistral,llama3.1,deepseek-r1,gemma3,phi4" --adapter ollama --output ~/Downloads/Zinets/spl-experiments/benchmark-ollama-$(date +%Y%m%d).json
 ```
 
 **Collect for Appendix E:**

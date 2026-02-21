@@ -1,0 +1,8 @@
+## SPL-flow configuration file
+## This file defines configuration settings for the SPL-flow application, including model selection and adapter configuration.
+
+# default LLM adapter to use for SPL generation and execution
+# Options include: "claude_cli", "ollama", 
+# future enhancement: "gemini", "openai", etc. 
+# See model_catalog.py for supported models and their adapters.
+llm_adapter: ollama
