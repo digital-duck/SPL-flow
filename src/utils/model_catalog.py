@@ -425,9 +425,9 @@ MODEL_CATALOG: dict[str, dict[str, dict]] = {
             "provider": "anthropic",
             "strengths": ["synthesis", "reasoning", "long-form"],
             "reasoning_model": False,
-            "is_active": True,
+            "is_active": False,  # too slow / empty-response via claude -p; use Sonnet
             "status": "stable",
-            "notes": "",
+            "notes": "Disabled for claude_cli: returns empty stdout on large outputs.",
         },
         "claude-sonnet-4-5": {
             "name": "Claude Sonnet 4.5",
