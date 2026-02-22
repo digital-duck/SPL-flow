@@ -12,7 +12,7 @@ import streamlit as st
 
 st.set_page_config(
     page_title="SPL-Flow · Review",
-    page_icon="📋",
+    page_icon="👁️",
     layout="wide",
 )
 

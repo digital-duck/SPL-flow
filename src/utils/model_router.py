@@ -17,9 +17,9 @@ Three orthogonal dimensions determine the final model:
 
 Resolution priority
 -------------------
-  1. provider set + openrouter adapter  → provider's best model for task
-  2. provider set + other adapter       → adapter-level best (provider ignored)
-  3. no provider + any adapter          → adapter-level best-of-breed for task
+  1. provider set + openrouter/cloud_direct adapter  → provider's best model for task
+  2. provider set + other adapter                    → adapter-level best (provider ignored)
+  3. no provider + any adapter                       → adapter-level best-of-breed for task
 
 Model selection uses MODEL_CATALOG strengths field to find best matches.
 """
@@ -96,7 +96,7 @@ def resolve_model(adapter: str, task: str, provider: str = "") -> str:
 
     Parameters
     ----------
-    adapter  : "claude_cli" | "openrouter" | "ollama"
+    adapter  : "claude_cli" | "openrouter" | "ollama" | "cloud_direct"
     task     : output of detect_task()
     provider : optional org preference — any key in PROVIDERS, or ""
 
@@ -109,7 +109,12 @@ def resolve_model(adapter: str, task: str, provider: str = "") -> str:
 
     if not available_models:
         # Fallback if no models available for adapter
-        return "claude-sonnet-4-5" if adapter == "claude_cli" else "qwen3:latest"
+        if adapter == "claude_cli":
+            return "claude-sonnet-4-5"
+        elif adapter == "cloud_direct":
+            return "claude-sonnet-4.6"
+        else:
+            return "qwen3:latest"
 
     # Filter models by task strength and provider
     candidates = []
@@ -117,8 +122,8 @@ def resolve_model(adapter: str, task: str, provider: str = "") -> str:
         strengths = info.get("strengths", [])
         model_provider = info.get("provider", "")
 
-        # Provider filtering (only for openrouter)
-        if provider and adapter == "openrouter" and model_provider != provider:
+        # Provider filtering (for openrouter and cloud_direct)
+        if provider and adapter in ["openrouter", "cloud_direct"] and model_provider != provider:
             continue
 
         # Task matching - exact match gets priority 3, general gets priority 1

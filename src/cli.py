@@ -76,7 +76,7 @@ def adapter_option(f):
         "--adapter", "-a",
         default=get_default_adapter,   # callable: re-evaluated at runtime from splflow.yaml
         show_default=True,
-        type=click.Choice(["ollama", "openrouter", "claude_cli"]),
+        type=click.Choice(["ollama", "openrouter", "cloud_direct", "claude_cli"]),
         help="LLM adapter to use for execution.",
     )(f)
 

@@ -1,7 +1,7 @@
 """SPL-Flow — Home page (Streamlit UI).
 
 Run:
-    streamlit run src/ui/streamlit/⚡SPL_Flow_App.py
+    streamlit run src/ui/streamlit/🌊SPL_Flow_App.py
 """
 import sys
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
@@ -15,11 +15,11 @@ from src.utils.page_helpers import _init_streamlit_logging, _streamlit_log_path,
 
 st.set_page_config(
     page_title="SPL-Flow",
-    page_icon="⚡",
+    page_icon="🌊",
     layout="wide",
 )
 
-st.title("⚡ SPL-Flow")
+st.title("Welcome 🌊")
 st.caption("Declarative LLM Orchestration")
 st.markdown(
     "Translate any natural language query into "

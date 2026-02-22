@@ -125,6 +125,41 @@ class Text2SPLNode(Node):
         # "claude-sonnet-4-5" even when the adapter is ollama).
         spl = _sanitize_model_names(spl.strip(), prep_res["adapter"])
 
+        # Optimize token budget allocation to ensure consistency
+        # LLMs often generate SPL with inconsistent budget math (LIMIT + OUTPUT > TOTAL)
+        try:
+            from src.utils.budget_optimizer import optimize_spl_budget, validate_spl_budget
+
+            # Validate current budget allocation
+            validation = validate_spl_budget(spl)
+
+            if not validation["is_valid"]:
+                _log.warning(
+                    "Budget inconsistent: %d total used > %d available (%.1f%% utilization). Optimizing...",
+                    validation["total_used"],
+                    validation["main_budget"] or 0,
+                    validation["utilization"] * 100
+                )
+                spl = optimize_spl_budget(spl)
+
+                # Log the optimization result
+                new_validation = validate_spl_budget(spl)
+                _log.info(
+                    "Budget optimized: %d total used ≤ %d available (%.1f%% utilization)",
+                    new_validation["total_used"],
+                    new_validation["main_budget"] or 0,
+                    new_validation["utilization"] * 100
+                )
+            else:
+                _log.debug(
+                    "Budget already consistent: %d total used ≤ %d available (%.1f%% utilization)",
+                    validation["total_used"],
+                    validation["main_budget"] or 0,
+                    validation["utilization"] * 100
+                )
+        except Exception as e:
+            _log.warning("Budget optimization failed: %s. Using original SPL.", e)
+
         shared["spl_query"] = spl
         shared["retry_count"] = prep_res["retry_count"] + 1
         _log.info("Text2SPL done  spl_lines=%d  total_attempts=%d",

@@ -114,7 +114,7 @@ def render_sidebar() -> dict:
     from src.config import get_default_adapter
 
     _default_adapter = get_default_adapter()
-    _adapter_options = ["ollama", "openrouter", "claude_cli"]
+    _adapter_options = ["ollama", "openrouter", "cloud_direct", "claude_cli"]
     _default_index = _adapter_options.index(_default_adapter) if _default_adapter in _adapter_options else 0
 
     with st.sidebar:

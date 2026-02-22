@@ -38,31 +38,89 @@ except ImportError:
 # ── Sample queries for UI testing ─────────────────────────────────────────────
 
 _SAMPLE_QUERIES = [
+    # ── Core Examples ──────────────────────────────────────────────────────────
     (
         "Chinese water-radical characters",
-        """
-List 10 Chinese characters that contain the water radical — 
-show decomposition formula, pinyin, English meaning, and German translation
-""",
+        """List 10 Chinese characters that contain the water radical —
+show decomposition formula, pinyin, English meaning, and German translation""",
     ),
     (
         "用中文解释 LLM",
-        """ 
-用中文解释大型语言模型的工作原理，从参数知识、上下文知识和推理能力三个维度分析，
-并对比GPT、Claude 和开源模型（如 Qwen ）的主要异同。
-""",
+        """用中文解释大型语言模型的工作原理，从参数知识、上下文知识和推理能力三个维度分析，
+并对比GPT、Claude 和开源模型（如 Qwen ）的主要异同。""",
     ),
     (
         "Islamic Golden Age",
-        """ 
-ما هي أبرز إسهامات العلماء العرب في تطوير علم الرياضيات والفلك خلال العصر الذهبي الإسلامي،
-وكيف أثّرت هذه الإسهامات على العلوم الحديثة؟
-""",
+        """ما هي أبرز إسهامات العلماء العرب في تطوير علم الرياضيات والفلك خلال العصر الذهبي الإسلامي،
+وكيف أثّرت هذه الإسهامات على العلوم الحديثة؟""",
     ),
     (
         "Quantum vs classical computing",
         "Compare quantum computing and classical computing in a structured "
         "markdown table with dimensions: speed, error rate, use cases, maturity",
+    ),
+
+    # ── Advanced Multi-Model Examples ───────────────────────────────────────────
+    (
+        "Multi-model research synthesis",
+        """Research the recent breakthroughs in protein folding prediction (AlphaFold series).
+Use one model for technical analysis, another for medical applications, and a third
+for explaining implications to non-scientists. Synthesize into a comprehensive report
+with timeline, key innovations, future directions, and societal impact.""",
+    ),
+    (
+        "Cross-language code documentation",
+        """Create comprehensive API documentation for a machine learning library. Generate
+examples in Python, JavaScript, and Go. Include installation guides, authentication
+setup, rate limiting considerations, error handling patterns, and performance optimization
+tips. Format as interactive documentation with code snippets and expected outputs.""",
+    ),
+    (
+        "Historical linguistics analysis",
+        """Trace the etymological evolution of mathematical terms across cultures: analyze how
+concepts like 'algebra' (Arabic al-jabr), 'algorithm' (Persian al-Khwarizmi), and
+'zero' (Sanskrit śūnya) traveled through languages. Create a timeline showing linguistic
+borrowing, semantic shifts, and cultural knowledge transfer patterns.""",
+    ),
+    (
+        "Nobel Prize winners' papers (Benchmark)",
+        """List most recent 2 papers published by each nobel prize winner in physics,
+field medal winner in math, and turing prize winner in computer science
+in past 5 years""",
+    ),
+
+    # ── SPL-Flow Architecture Showcase ──────────────────────────────────────────
+    (
+        "Enterprise Architecture Review",
+        """Analyze a microservices architecture for security vulnerabilities, performance
+bottlenecks, and cost optimization. Use specialist models for: (1) Security analysis
+of authentication flows and data patterns, (2) Performance review of database queries
+and API endpoints, (3) Cost analysis of cloud resource utilization. Generate executive
+summary with prioritized recommendations and implementation roadmap.""",
+    ),
+    (
+        "Scientific Literature Meta-Analysis",
+        """Conduct a systematic review of climate change mitigation strategies published
+in 2023-2024. Use domain specialists for: (1) Technology analysis (renewable energy,
+carbon capture), (2) Policy evaluation (international agreements, regulations),
+(3) Economic impact assessment (costs, market trends). Synthesize into comprehensive
+meta-analysis with evidence quality ratings and actionable insights.""",
+    ),
+    (
+        "AI Ethics Impact Assessment",
+        """Evaluate the ethical implications of deploying autonomous vehicles in urban areas.
+Use specialized analysis for: (1) Technical safety assessment (ML model reliability,
+edge cases), (2) Legal framework analysis (liability, regulation compliance),
+(3) Social impact evaluation (employment, accessibility, privacy). Create balanced
+ethical framework with implementation guidelines.""",
+    ),
+    (
+        "Global Market Intelligence Report",
+        """Generate comprehensive market analysis for quantum computing commercialization
+across regions. Deploy specialists for: (1) Technology readiness assessment (hardware,
+software, algorithms), (2) Competitive landscape mapping (key players, partnerships),
+(3) Investment and funding analysis (VC trends, government initiatives). Deliver strategic
+recommendations with 3-year market projections.""",
     ),
 ]
 
@@ -102,27 +160,31 @@ if CHUNKER_AVAILABLE and context_text and should_chunk(context_text):
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.title("💬 Chat")
-st.caption("Describe your query in plain English — SPL-Flow translates, routes, and composes the answer.")
+st.caption("**Formalized Prompt Engineering**: SPL-Flow translates free-form queries → systematic decomposition → specialist model orchestration")
 st.divider()
 
-# ── STEP 1: Query Input — 2-column layout ─────────────────────────────────────
+# ── STEP 1: Query Input — 4-column layout ─────────────────────────────────────
 st.subheader("Step 1 — Describe your query")
 
-col_input, col_samples = st.columns([3, 2])
+col_input, col_samples_core, col_samples_advanced, col_samples_showcase = st.columns([7, 3, 3, 3])
 
 with col_input:
     user_input = st.text_area(
         "What do you want to generate?",
-        height=170,
+        height=200,
         placeholder=(
             "Describe your query in plain English.\n"
-            "SPL-Flow translates it to a structured SPL query\n"
-            "and routes sub-tasks to specialist models."
+            "SPL-Flow formalizes prompt engineering by:\n"
+            "• Translating free-form queries → structured SPL scripts\n"
+            "• Breaking complex tasks → manageable CTE pipelines\n"
+            "• Orchestrating specialist models → optimal efficiency\n"
+            "• Managing token budgets → solving context limitations\n\n"
+            "Try the sample queries to see systematic decomposition →"
         ),
         key="user_input_area",
     )
 
-    btn_col, reset_col, _ = st.columns([2, 1, 4])
+    btn_col, reset_col = st.columns([2, 1])
     with btn_col:
         generate_clicked = st.button("Generate SPL", type="primary", use_container_width=True)
     with reset_col:
@@ -130,9 +192,26 @@ with col_input:
             reset_pipeline_state()
             st.rerun()
 
-with col_samples:
-    st.caption("**Sample queries** — click to load:")
-    for label, query in _SAMPLE_QUERIES:
+with col_samples_core:
+    st.caption("**🎯 Core Examples** — click to load:")
+    # Display first 4 samples (core examples)
+    for label, query in _SAMPLE_QUERIES[:4]:
+        if st.button(label, key=f"sample_{label}", use_container_width=True):
+            st.session_state["_sample_pending"] = query
+            st.rerun()
+
+with col_samples_advanced:
+    st.caption("**🚀 Multi-Model Examples** — click to load:")
+    # Display next 4 samples (advanced multi-model examples)
+    for label, query in _SAMPLE_QUERIES[4:8]:
+        if st.button(label, key=f"sample_{label}", use_container_width=True):
+            st.session_state["_sample_pending"] = query
+            st.rerun()
+
+with col_samples_showcase:
+    st.caption("**⚡ SPL-Flow Showcase** — click to load:")
+    # Display last 4 samples (architecture showcase examples)
+    for label, query in _SAMPLE_QUERIES[8:12]:
         if st.button(label, key=f"sample_{label}", use_container_width=True):
             st.session_state["_sample_pending"] = query
             st.rerun()
@@ -196,7 +275,11 @@ if st.session_state.spl_generated and st.session_state.spl_query:
                 type="primary", use_container_width=True,
             )
         with btn_dl:
-            _spl_filename = f"spl-{datetime.now().strftime('%Y%m%d-%H%M%S')}.spl"
+            # Sanitize adapter and model names for filename
+            _safe_adapter = adapter.replace("/", "-").replace(":", "-").replace(" ", "-")
+            _safe_model = selected_model_id.replace("/", "-").replace(":", "-").replace(" ", "-") if selected_model_id else "auto"
+            _ts = datetime.now().strftime('%Y%m%d-%H%M%S')
+            _spl_filename = f"spl-{_safe_adapter}-{_safe_model}-{_ts}.spl"
             st.download_button(
                 "⬇ Download SPL",
                 data=edited_spl or original_spl,
@@ -340,17 +423,24 @@ if st.session_state.executed:
 
             if primary:
                 st.write("")  # small gap between metrics and download button
+                # Sanitize adapter and model names for filename
+                _safe_adapter = adapter.replace("/", "-").replace(":", "-").replace(" ", "-")
+                _actual_model = final.get("model", selected_model_id or "auto")
+                _safe_model = _actual_model.replace("/", "-").replace(":", "-").replace(" ", "-")
                 _ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-                _result_filename = f"splflow-{_ts}.md"
+                _result_filename = f"splflow-{_safe_adapter}-{_safe_model}-{_ts}.md"
                 _cost_str = f"${_cost:.5f}" if (_cost := final.get("cost_usd")) is not None else "—"
                 _dl_content = (
                     f"# SPL-Flow Result\n\n"
                     f"**Query:** {st.session_state.get('user_input_saved', '')}\n\n"
                     f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                    f"**Adapter:** {adapter}\n\n"
+                    f"**Provider:** {selected_provider or 'auto'}\n\n"
                     f"---\n\n"
                     f"## Metrics\n\n"
                     f"| Metric | Value |\n"
                     f"|--------|-------|\n"
+                    f"| Adapter | {adapter} |\n"
                     f"| Model   | {final.get('model', '—')} |\n"
                     f"| Tokens  | {final.get('total_tokens', 0):,} |\n"
                     f"| Latency | {final.get('latency_ms', 0) / 1000:.1f}s |\n"

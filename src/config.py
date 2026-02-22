@@ -6,7 +6,7 @@ so the app works out-of-the-box with no config file required.
 
 Supported splflow.yaml keys
 ---------------------------
-llm_adapter : str   — default LLM adapter ("ollama" | "openrouter" | "claude_cli")
+llm_adapter : str   — default LLM adapter ("ollama" | "openrouter" | "claude_cli" | "cloud_direct")
 """
 from pathlib import Path
 
@@ -18,7 +18,7 @@ except ImportError:
 
 _YAML_PATH = Path(__file__).resolve().parent.parent / "splflow.yaml"
 
-_VALID_ADAPTERS = {"ollama", "openrouter", "claude_cli"}
+_VALID_ADAPTERS = {"ollama", "openrouter", "claude_cli", "cloud_direct"}
 _BUILTIN_DEFAULTS = {
     "llm_adapter": "ollama",
 }
