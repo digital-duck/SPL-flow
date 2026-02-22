@@ -306,3 +306,38 @@ user identity can be injected there once and passed down to every `save_session(
 `save_benchmark()` call. No page-level changes needed beyond reading `user_id` from sidebar context.
 
 **Status**: 📋 Planned — SQLite schema ready for `user_id` column when SSO is wired up.
+
+---
+
+### Model Configuration Verification — Capability & Cost Balance
+
+**Context**: Review `/home/papagame/projects/digital-duck/SPL-flow/data/model_settings.yaml` to ensure balanced model selection across all adapters.
+
+**Verification Matrix**: For each adapter, verify coverage across:
+
+**📋 Capability Dimensions:**
+- `general` — General-purpose reasoning and tasks
+- `coding` — Software development, programming, code generation
+- `math` — Mathematical reasoning, calculations, proofs
+- `reasoning` — Complex logical reasoning, chain-of-thought
+- `multilingual` — CJK languages, European languages, global support
+
+**💰 Cost Tiers:**
+- `top-tier` — Premium flagship models (Claude Opus, GPT-5.2)
+- `low-cost` — Affordable older models (GPT-4o Mini, Gemini Flash, Haiku)
+- `no-cost` — Free/open-source offerings (Ollama lineup, free API tiers)
+
+**Current Gaps Identified:**
+- **cloud_direct**: Missing CJK/EU multilingual specialists, limited math models
+- **claude_cli**: Anthropic-only limits math and multilingual coverage
+- **openrouter**: Could use more dedicated math specialists
+- **ollama**: Good coverage but lacks recent flagship models (by design)
+
+**Action Items:**
+1. [ ] Verify each adapter has at least 1 model per capability dimension
+2. [ ] Verify each adapter covers all 3 cost tiers (where applicable)
+3. [ ] Add missing math models to cloud_direct (consider GPT-4o for math tasks)
+4. [ ] Research multilingual model availability for cloud_direct
+5. [ ] Document cost tier classifications in YAML comments
+
+**Status**: 📋 Pending Verification — Manual review of model_settings.yaml balance
