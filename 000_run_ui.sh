@@ -5,6 +5,6 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP="$SCRIPT_DIR/src/ui/streamlit/🌊SPL_Flow_App.py"
+APP="$SCRIPT_DIR/src/ui/streamlit/SPL_Flow🌊.py"
 streamlit cache clear
 exec streamlit run "$APP" "$@"

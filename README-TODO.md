@@ -1,6 +1,32 @@
-# SPL-Flow — Feature Log
+# SPL-Flow — The Intelligent UI for Ollama
+
+**Core Positioning**: SPL-Flow transforms Ollama from single-model chat into a multi-model orchestration platform with seamless cloud upgrade capabilities.
 
 **Medium blog title**: *"I Asked 9 AI Models the Same Question About Nobel Prize Winners — Here's What a Query Language Revealed"*
+
+---
+
+## 🚀 The Hybrid Intelligence Revolution
+
+**Traditional Tradeoffs:**
+- **Local-only** (Ollama) = Free but limited by single-model context windows
+- **Cloud-only** (ChatGPT/Claude) = Powerful but expensive for all tasks
+- **Manual switching** = Tedious context loss between different tools
+
+**✅ SPL-Flow Solution:**
+- **🏠 Start Local:** Unlimited free usage with systematic decomposition via Ollama
+- **☁️ Upgrade Selectively:** One-click switch to OpenRouter/Cloud Direct when needed
+- **🔄 Model Agnostic:** Same SPL scripts work across all adapters with auto-routing
+
+### Value Proposition Matrix
+
+| Solution | Multi-Model | Cost Model | Vendor Lock-in |
+|----------|-------------|------------|----------------|
+| **ChatGPT/Claude Web** | ❌ Single premium | $20+/month | ✅ Locked |
+| **Ollama CLI** | ❌ Single local | Free | ❌ Open |
+| **🔥 SPL-Flow** | **✅ Orchestrated** | **Free → Pay-per-upgrade** | **❌ Portable** |
+
+**Key Insight:** Why choose between free local models and expensive cloud APIs when you can have both with intelligent routing?
 
 ---
 
@@ -341,3 +367,91 @@ user identity can be injected there once and passed down to every `save_session(
 5. [ ] Document cost tier classifications in YAML comments
 
 **Status**: 📋 Pending Verification — Manual review of model_settings.yaml balance
+
+---
+
+### 🎯 Marketing Strategy — "Ollama++ Positioning"
+
+**Context**: SPL-Flow's multi-adapter architecture creates an unexpected competitive advantage as an "intelligent UI for Ollama" with seamless cloud hybrid capabilities.
+
+**Primary Market**: Ollama users seeking more than basic chat interface
+
+**Positioning Statement**:
+> "SPL-Flow transforms your free Ollama installation into a professional AI orchestration platform with one-click cloud upgrade when you need premium models."
+
+**Key Messages:**
+1. **🧠 Intelligent Decomposition**: Turn single-model limitations into multi-model strengths through systematic SPL decomposition
+2. **💰 Cost Optimization**: Start free with Ollama, pay only when complexity demands premium cloud models
+3. **🔄 Model Agnostic**: Your SPL scripts work everywhere - no vendor lock-in, maximum flexibility
+4. **⚡ Seamless Scaling**: Dropdown-switch between local → OpenRouter (100+ models) → Cloud Direct (premium APIs)
+
+**Marketing Channels:**
+- [ ] Ollama community forums and Discord
+- [ ] r/LocalLLaMA and r/MachineLearning subreddits
+- [ ] "Ollama vs ChatGPT: Why Not Both?" blog post
+- [ ] Demo video: "From Basic Ollama Chat to Professional AI Orchestration in 5 Minutes"
+
+**Success Metrics:**
+- Conversion rate: Ollama CLI users → SPL-Flow users
+- Usage pattern: Local-first with selective cloud upgrades
+- Cost efficiency: Average $ spent per complex query vs pure-cloud solutions
+
+**Status**: 🎯 New Strategic Direction — Ready for community validation
+
+---
+
+## 🚀 Next-Generation Roadmap
+
+### 📡 Real-Time Search Integration via DeepCode
+
+**Context**: The "Nobel Prize winners' papers" benchmark revealed that even Claude Opus 4.6 fails without real-time academic database access. Only GLM 5 succeeded by performing actual web searches.
+
+**Solution**: Integrate DeepCode's existing search framework with SPL-Flow's RAG infrastructure.
+
+**Implementation Approach:**
+- **DeepCode Integration**: Leverage existing search capabilities for academic databases (Google Scholar, PubMed, arXiv)
+- **SPL Search Syntax**: Extend SPL with `SEARCH()` functions for real-time data retrieval
+- **RAG Pipeline**: Search → Retrieve → Context Injection → LLM Processing
+- **Minimal Effort**: Utilize DeepCode's proven search framework rather than building from scratch
+
+**Example SPL with Search:**
+```sql
+WITH nobel_recent_papers AS (
+    SEARCH academic_papers WHERE
+        author IN (SELECT nobel_winners FROM awards WHERE year >= 2020)
+        AND publication_date >= '2020-01-01'
+    LIMIT 100 results
+)
+SELECT context.nobel_recent_papers AS papers
+GENERATE format_table(papers, "Nobel Prize Winners Recent Publications")
+```
+
+**Impact**: Solve queries that defeat 7/9 premium LLMs by combining systematic decomposition + real-time search.
+
+**Status**: 🛠️ Ready for Implementation — DeepCode integration path identified
+
+### ⚡ High-Performance Review Page with AgGrid
+
+**Context**: Current Review page loads all session results at once, causing slow performance and poor user experience.
+
+**Solution**: Implement st.aggrid for virtualized, paginated data display with advanced filtering.
+
+**Features:**
+- **Virtualized Rendering**: Load only visible rows for instant performance
+- **Advanced Filtering**: Multi-column search, date ranges, model/adapter filters
+- **Sortable Columns**: Click-to-sort by tokens, latency, cost, timestamp
+- **Export Capabilities**: CSV/Excel export of filtered results
+- **Real-Time Updates**: Live data refresh without full page reload
+
+**Technical Approach:**
+- Replace current `st.dataframe()` with `AgGrid()` component
+- Implement server-side pagination for large datasets
+- Add column-specific filter widgets
+- Maintain session state for filter persistence
+
+**Benefits:**
+- **Instant Loading**: Even with thousands of sessions
+- **Better UX**: Professional data grid experience
+- **Advanced Analytics**: Easy filtering and sorting for usage analysis
+
+**Status**: 📋 Planned — AgGrid component integration for performance optimization

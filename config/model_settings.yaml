@@ -1,0 +1,483 @@
+# SPL-Flow Model Settings Configuration
+# This file serves as the single source of truth for all model configurations.
+#
+# Schema for each model:
+#   name: Human-readable display name
+#   provider: Organization that trains the model
+#   strengths: List of task types (cjk, code, eu_lang, math, reasoning, synthesis, general, speed, long-form, multimodal)
+#   reasoning_model: true if response is in "reasoning" field, false if in "content" field
+#   is_active: true to include in Model Zoo and auto-routing, false to hide
+#   status: stable | experimental | deprecated | blocked
+#   notes: Additional information about behavior, limitations, or usage tips
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OpenRouter - Unified API access to 100+ models
+# ══════════════════════════════════════════════════════════════════════════════
+openrouter:
+
+  # Anthropic Models
+  "anthropic/claude-opus-4.6":
+    name: "Claude Opus 4.6"
+    provider: "anthropic"
+    strengths: ["synthesis", "reasoning", "long-form"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "anthropic/claude-sonnet-4.5":
+    name: "Claude Sonnet 4.5"
+    provider: "anthropic"
+    strengths: ["general", "synthesis", "code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  # OpenAI Models
+  "openai/gpt-5.2-codex":
+    name: "GPT-5.2 Codex"
+    provider: "openai"
+    strengths: ["code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "openai/gpt-4o-mini":
+    name: "GPT-4o Mini(latest)"
+    provider: "openai"
+    strengths: ["general", "reasoning", "code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "openai/gpt-5.2":
+    name: "GPT-5.2"
+    provider: "openai"
+    strengths: ["general", "reasoning", "code"]
+    reasoning_model: true
+    is_active: true
+    status: "stable"
+    notes: "Reasoning model — response may be in reasoning field."
+
+  # Google Models
+  "google/gemini-2.5-flash":
+    name: "Gemini 2.5 Flash"
+    provider: "google"
+    strengths: ["general", "speed"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "google/gemini-2.5-pro":
+    name: "Gemini 2.5 Pro"
+    provider: "google"
+    strengths: ["general", "long-form"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Verbose — correctly notes 2024 award not yet announced."
+
+  # Mistral Models
+  "mistralai/mistral-large-2512":
+    name: "Mistral Large (Dec 2025)"
+    provider: "mistral"
+    strengths: ["eu_lang", "reasoning", "general"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Best-of-breed for European languages."
+
+  "mistralai/codestral-2508":
+    name: "Codestral (Aug 2025)"
+    provider: "mistral"
+    strengths: ["code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  # Alibaba / Qwen Models
+  "qwen/qwen-2.5-7b-instruct":
+    name: "Qwen 2.5 7B"
+    provider: "alibaba"
+    strengths: ["cjk", "general"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Best-of-breed for CJK tasks. Benchmark: 1,025 tokens, 20.6s."
+
+  "qwen/qwen-2.5-coder-32b-instruct":
+    name: "Qwen 2.5 Coder 32B"
+    provider: "alibaba"
+    strengths: ["code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "qwen/qwen3-235b-a22b":
+    name: "Qwen3 235B-A22B"
+    provider: "alibaba"
+    strengths: ["general", "reasoning"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Highest token count in benchmark (9,527) but consistent output."
+
+  # DeepSeek Models
+  "deepseek/deepseek-r1-0528:free":
+    name: "DeepSeek-R1"
+    provider: "deepseek"
+    strengths: ["math", "reasoning"]
+    reasoning_model: true
+    is_active: true
+    status: "stable"
+    notes: "Reasoning model — content field may be empty; answer is in 'reasoning' field. Benchmark: 859 tokens, 89.9s."
+
+  "deepseek/deepseek-chat":
+    name: "DeepSeek-V3"
+    provider: "deepseek"
+    strengths: ["general", "eu_lang"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  # Meta / Llama Models
+  "meta-llama/llama-3.3-70b-instruct":
+    name: "Llama 3.3 70B"
+    provider: "meta"
+    strengths: ["general", "reasoning", "synthesis"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "meta-llama/llama-3.1-70b-instruct":
+    name: "Llama 3.1 70B"
+    provider: "meta"
+    strengths: ["general"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  # Z.ai / GLM Models
+  "z-ai/glm-4.7":
+    name: "GLM-4.7"
+    provider: "z-ai"
+    strengths: ["cjk"]
+    reasoning_model: true
+    is_active: true
+    status: "experimental"
+    notes: "Reasoning model — 'content' field is EMPTY; answer is in 'reasoning' field. Hits finish_reason=length during chain-of-thought (7,414 tokens, 134.7s). Web UI works fine; OpenRouter API requires reasoning-field fallback."
+
+  "z-ai/glm-5":
+    name: "GLM-5"
+    provider: "z-ai"
+    strengths: ["cjk"]
+    reasoning_model: true
+    is_active: false  # Disabled due to token loop issue
+    status: "experimental"
+    notes: "Reasoning model — 'content' field EMPTY; reasoning field populated. KNOWN BUG: token loop on structured tasks (208K tokens observed). Apply max_tokens ≤ 10000. Web UI works; API requires reasoning fallback."
+
+  "z-ai/glm-4.6":
+    name: "GLM-4.6"
+    provider: "z-ai"
+    strengths: ["cjk"]
+    reasoning_model: false
+    is_active: false  # Disabled due to JSON parse issues
+    status: "deprecated"
+    notes: "JSON parse failure — embeds raw ASCII control characters in response body. 3-pass recovery in openrouter.py helps partially but model is unreliable."
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Ollama - Local model serving
+# ══════════════════════════════════════════════════════════════════════════════
+ollama:
+
+  # Alibaba / Qwen Models
+  "qwen3":
+    name: "Qwen3 (Ollama)"
+    provider: "alibaba"
+    strengths: ["general", "reasoning", "cjk"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "qwen2.5":
+    name: "Qwen 2.5 (Ollama)"
+    provider: "alibaba"
+    strengths: ["cjk", "general"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "qwen2.5-coder":
+    name: "Qwen 2.5 Coder (Ollama)"
+    provider: "alibaba"
+    strengths: ["code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "qwen2-math":
+    name: "Qwen2 Math (Ollama)"
+    provider: "alibaba"
+    strengths: ["math", "reasoning"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  # Mistral Models
+  "mistral":
+    name: "Mistral (Ollama)"
+    provider: "mistral"
+    strengths: ["eu_lang", "general"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "mathstral":
+    name: "Mathstral (Ollama)"
+    provider: "mistral"
+    strengths: ["math", "reasoning"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Mistral specialist for mathematical reasoning."
+
+  # DeepSeek Models
+  "deepseek-coder-v2":
+    name: "DeepSeek-Coder V2 (Ollama)"
+    provider: "deepseek"
+    strengths: ["code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "deepseek-r1":
+    name: "DeepSeek-R1 (Ollama)"
+    provider: "deepseek"
+    strengths: ["math", "reasoning"]
+    reasoning_model: true
+    is_active: true
+    status: "stable"
+    notes: "Reasoning model — response structure varies by Ollama version."
+
+  # Meta / Llama Models
+  "llama3":
+    name: "Llama 3 (Ollama)"
+    provider: "meta"
+    strengths: ["general"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "llama3.1":
+    name: "Llama 3.1 (Ollama)"
+    provider: "meta"
+    strengths: ["general", "reasoning"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "llama3.2":
+    name: "Llama 3.2 (Ollama)"
+    provider: "meta"
+    strengths: ["general", "speed"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Small 3B model — fast, low memory footprint."
+
+  # Google Models
+  "gemma3":
+    name: "Gemma 3 (Ollama)"
+    provider: "google"
+    strengths: ["general", "reasoning"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "gemma3:12b":
+    name: "Gemma 3 12B (Ollama)"
+    provider: "google"
+    strengths: ["general", "reasoning", "long-form"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Larger 12B variant — better quality than gemma3 (4B) at ~2.5× memory."
+
+  "codegemma":
+    name: "CodeGemma (Ollama)"
+    provider: "google"
+    strengths: ["code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  # Microsoft Models
+  "phi4":
+    name: "Phi-4 (Ollama)"
+    provider: "microsoft"
+    strengths: ["reasoning", "general"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  # IBM Models
+  "granite-code:8b":
+    name: "Granite Code 8B (Ollama)"
+    provider: "ibm"
+    strengths: ["code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "IBM open-source code model; enterprise-oriented."
+
+  # MotherDuck Models
+  "duckdb-nsql":
+    name: "DuckDB NSQL (Ollama)"
+    provider: "motherduck"
+    strengths: ["code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Fine-tuned for DuckDB SQL generation; narrow but precise for analytics queries."
+
+  # BigCode Models
+  "starcoder2:7b":
+    name: "StarCoder2 7B (Ollama)"
+    provider: "bigcode"
+    strengths: ["code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Claude CLI - Development adapter using claude command
+# ══════════════════════════════════════════════════════════════════════════════
+claude_cli:
+
+  "claude-opus-4-6":
+    name: "Claude Opus 4.6"
+    provider: "anthropic"
+    strengths: ["synthesis", "reasoning", "long-form"]
+    reasoning_model: false
+    is_active: true  # Recently enabled
+    status: "stable"
+    notes: "Note: May return empty stdout on large outputs via claude -p command."
+
+  "claude-sonnet-4-5":
+    name: "Claude Sonnet 4.5"
+    provider: "anthropic"
+    strengths: ["general", "synthesis", "code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
+  "claude-haiku-4-5":
+    name: "Claude Haiku 4.5"
+    provider: "anthropic"
+    strengths: ["speed", "general"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Fastest and cheapest Claude model."
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Cloud Direct - Direct API access to major providers
+# ══════════════════════════════════════════════════════════════════════════════
+cloud_direct:
+
+  # Anthropic Models (direct API)
+  "claude-opus-4.6":
+    name: "Claude Opus 4.6"
+    provider: "anthropic"
+    strengths: ["synthesis", "reasoning", "long-form"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Direct API access to Claude Opus - most capable model for complex reasoning."
+
+  "claude-sonnet-4.6":
+    name: "Claude Sonnet 4.6"
+    provider: "anthropic"
+    strengths: ["general", "synthesis", "code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Direct API access to Claude Sonnet - balanced capability and speed."
+
+  "claude-haiku-4.5":
+    name: "Claude Haiku 4.5"
+    provider: "anthropic"
+    strengths: ["speed", "general"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Direct API access to Claude Haiku - fastest and most cost-effective."
+
+  # Google Models (direct API)
+  "gemini-2.5-pro":
+    name: "Gemini 2.5 Pro"
+    provider: "google"
+    strengths: ["general", "long-form", "multimodal"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Direct API access to Gemini Pro - Google's most capable model."
+
+  "gemini-2.5-flash":
+    name: "Gemini 2.5 Flash"
+    provider: "google"
+    strengths: ["general", "speed", "multimodal"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Direct API access to Gemini Flash - faster, cost-effective option."
+
+  # OpenAI Models (direct API)
+  "gpt-5.2":
+    name: "GPT-5.2"
+    provider: "openai"
+    strengths: ["general", "reasoning", "code"]
+    reasoning_model: true
+    is_active: true
+    status: "stable"
+    notes: "Direct API access to GPT-5.2 - OpenAI's most advanced reasoning model."
+
+  "gpt-4o":
+    name: "GPT-4o"
+    provider: "openai"
+    strengths: ["general", "multimodal", "code"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Direct API access to GPT-4o - multimodal capabilities with strong performance."
+
+  "gpt-4o-mini":
+    name: "GPT-4o Mini"
+    provider: "openai"
+    strengths: ["general", "speed", "cost"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: "Direct API access to GPT-4o Mini - cost-effective option with good performance."

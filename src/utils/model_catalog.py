@@ -31,12 +31,12 @@ except ImportError:
     _log.warning("dd-config not available. Install with: pip install dd-config")
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-_SETTINGS_PATH = _PROJECT_ROOT / "data" / "model_settings.yaml"
+_SETTINGS_PATH = _PROJECT_ROOT / "config" / "model_settings.yaml"
 
 # ── Model Catalog Loading ────────────────────────────────────────────────────
 
 def _load_model_catalog() -> dict[str, dict[str, dict]]:
-    """Load model catalog from data/model_settings.yaml using dd-config.
+    """Load model catalog from config/model_settings.yaml using dd-config.
 
     Returns
     -------

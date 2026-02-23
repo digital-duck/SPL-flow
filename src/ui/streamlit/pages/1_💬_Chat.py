@@ -40,6 +40,10 @@ except ImportError:
 _SAMPLE_QUERIES = [
     # ── Core Examples ──────────────────────────────────────────────────────────
     (
+        "Hello world in 3 languages",
+        """Write a "Hello, world!" program in Python, JavaScript, and Go. For each language, explain the syntax and structure of the code.""",
+    ),
+    (
         "Chinese water-radical characters",
         """List 10 Chinese characters that contain the water radical —
 show decomposition formula, pinyin, English meaning, and German translation""",
@@ -54,11 +58,11 @@ show decomposition formula, pinyin, English meaning, and German translation""",
         """ما هي أبرز إسهامات العلماء العرب في تطوير علم الرياضيات والفلك خلال العصر الذهبي الإسلامي،
 وكيف أثّرت هذه الإسهامات على العلوم الحديثة؟""",
     ),
-    (
-        "Quantum vs classical computing",
-        "Compare quantum computing and classical computing in a structured "
-        "markdown table with dimensions: speed, error rate, use cases, maturity",
-    ),
+    # (
+    #     "Quantum vs classical computing",
+    #     "Compare quantum computing and classical computing in a structured "
+    #     "markdown table with dimensions: speed, error rate, use cases, maturity",
+    # ),
 
     # ── Advanced Multi-Model Examples ───────────────────────────────────────────
     (
@@ -69,9 +73,9 @@ for explaining implications to non-scientists. Synthesize into a comprehensive r
 with timeline, key innovations, future directions, and societal impact.""",
     ),
     (
-        "Cross-language code documentation",
-        """Create comprehensive API documentation for a machine learning library. Generate
-examples in Python, JavaScript, and Go. Include installation guides, authentication
+        "API documentation",
+        """Create comprehensive API documentation for a machine learning library like pytorch. Generate
+examples in Python. Include installation guides, authentication
 setup, rate limiting considerations, error handling patterns, and performance optimization
 tips. Format as interactive documentation with code snippets and expected outputs.""",
     ),
@@ -161,96 +165,109 @@ if CHUNKER_AVAILABLE and context_text and should_chunk(context_text):
 # ── Header ────────────────────────────────────────────────────────────────────
 st.title("💬 Chat")
 st.caption("**Formalized Prompt Engineering**: SPL-Flow translates free-form queries → systematic decomposition → specialist model orchestration")
-st.divider()
+# st.divider()
 
-# ── STEP 1: Query Input — 4-column layout ─────────────────────────────────────
-st.subheader("Step 1 — Describe your query")
+# ── Fragment functions for each step ─────────────────────────────────────────
 
-col_input, col_samples_core, col_samples_advanced, col_samples_showcase = st.columns([7, 3, 3, 3])
+@st.fragment  # Commented out for troubleshooting
+def step_1_query_input():
+    """Step 1: Query input and SPL generation (fragment)"""
+    st.subheader("Step 1 — Describe your query")
 
-with col_input:
-    user_input = st.text_area(
-        "What do you want to generate?",
-        height=200,
-        placeholder=(
-            "Describe your query in plain English.\n"
-            "SPL-Flow formalizes prompt engineering by:\n"
-            "• Translating free-form queries → structured SPL scripts\n"
-            "• Breaking complex tasks → manageable CTE pipelines\n"
-            "• Orchestrating specialist models → optimal efficiency\n"
-            "• Managing token budgets → solving context limitations\n\n"
-            "Try the sample queries to see systematic decomposition →"
-        ),
-        key="user_input_area",
-    )
+    col_input, _, col_samples_core, col_samples_advanced, col_samples_showcase = st.columns([7, 0.2, 3, 3, 3])
 
-    btn_col, reset_col = st.columns([2, 1])
-    with btn_col:
-        generate_clicked = st.button("Generate SPL", type="primary", use_container_width=True)
-    with reset_col:
-        if st.button("Reset", use_container_width=True):
-            reset_pipeline_state()
-            st.rerun()
+    with col_input:
+        user_input = st.text_area(
+            "What do you want to generate?",
+            height=200,
+            placeholder=(
+                "Describe your query in plain English.\n"
+                "SPL-Flow formalizes prompt engineering by:\n"
+                "• Translating free-form queries → structured SPL scripts\n"
+                "• Breaking complex tasks → manageable CTE pipelines\n"
+                "• Orchestrating specialist models → optimal efficiency\n"
+                "• Managing token budgets → solving context limitations\n\n"
+                "Try the sample queries to see systematic decomposition →"
+            ),
+            key="user_input_area",
+        )
 
-with col_samples_core:
-    st.caption("**🎯 Core Examples** — click to load:")
-    # Display first 4 samples (core examples)
-    for label, query in _SAMPLE_QUERIES[:4]:
-        if st.button(label, key=f"sample_{label}", use_container_width=True):
-            st.session_state["_sample_pending"] = query
-            st.rerun()
+        btn_col, reset_col = st.columns([2, 1])
+        with btn_col:
+            generate_clicked = st.button("Generate SPL", type="primary", use_container_width=True)
+        with reset_col:
+            if st.button("Reset", use_container_width=True):
+                reset_pipeline_state()
+                st.rerun()
 
-with col_samples_advanced:
-    st.caption("**🚀 Multi-Model Examples** — click to load:")
-    # Display next 4 samples (advanced multi-model examples)
-    for label, query in _SAMPLE_QUERIES[4:8]:
-        if st.button(label, key=f"sample_{label}", use_container_width=True):
-            st.session_state["_sample_pending"] = query
-            st.rerun()
+    with col_samples_core:
+        st.caption("**🎯 Core Examples**:")
+        # Display first 4 samples (core examples)
+        for label, query in _SAMPLE_QUERIES[:4]:
+            if st.button(label, key=f"sample_{label}", use_container_width=True):
+                st.session_state["_sample_pending"] = query
+                st.rerun()
 
-with col_samples_showcase:
-    st.caption("**⚡ SPL-Flow Showcase** — click to load:")
-    # Display last 4 samples (architecture showcase examples)
-    for label, query in _SAMPLE_QUERIES[8:12]:
-        if st.button(label, key=f"sample_{label}", use_container_width=True):
-            st.session_state["_sample_pending"] = query
-            st.rerun()
+    with col_samples_advanced:
+        st.caption("**🚀 Multi-Model Examples**:")
+        # Display next 4 samples (advanced multi-model examples)
+        for label, query in _SAMPLE_QUERIES[4:8]:
+            if st.button(label, key=f"sample_{label}", use_container_width=True):
+                st.session_state["_sample_pending"] = query
+                st.rerun()
 
+    with col_samples_showcase:
+        st.caption("**⚡ SPL-Flow Showcase**:")
+        # Display last 4 samples (architecture showcase examples)
+        for label, query in _SAMPLE_QUERIES[8:12]:
+            if st.button(label, key=f"sample_{label}", use_container_width=True):
+                st.session_state["_sample_pending"] = query
+                st.rerun()
 
-if generate_clicked:
-    if not user_input.strip():
-        st.warning("Please enter a query before generating SPL.")
-    else:
-        with st.spinner("Translating to SPL (Text2SPL + RAG retrieval)..."):
-            result = api.generate(
-                user_input,
-                context_text=context_text,
-                adapter=adapter,
-                selected_model_id=selected_model_id,
-                selected_provider=selected_provider
-            )
-        if result["error"]:
-            st.error(f"SPL generation failed: {result['error']}")
-        elif result["spl_query"]:
-            st.session_state.spl_query = result["spl_query"]
-            # Force both panels to show the newly generated SPL.
-            # st.text_area ignores value= once its key exists in session_state,
-            # so we overwrite both keys directly before the widgets render.
-            st.session_state.spl_editor = result["spl_query"]
-            st.session_state.spl_view   = result["spl_query"]
-            st.session_state.spl_generated = True
-            st.session_state.flow_state = result
-            st.session_state.executed = False
-            st.session_state.execution_results = []
-            st.session_state.user_input_saved = user_input
-            if result["retry_count"] > 1:
-                st.info(f"Generated after {result['retry_count']} attempt(s).")
+    if generate_clicked:
+        if not user_input.strip():
+            st.warning("Please enter a query before generating SPL.")
         else:
-            st.warning("No SPL was generated — try rephrasing your query.")
+            with st.spinner("Translating to SPL (Text2SPL + RAG retrieval)..."):
+                result = api.generate(
+                    user_input,
+                    context_text=context_text,
+                    adapter=adapter,
+                    selected_model_id=selected_model_id,
+                    selected_provider=selected_provider
+                )
+            if result["error"]:
+                st.error(f"SPL generation failed: {result['error']}")
+            elif result["spl_query"]:
+                st.session_state.spl_query = result["spl_query"]
+                # Force both panels to show the newly generated SPL.
+                # st.text_area ignores value= once its key exists in session_state,
+                # so we overwrite both keys directly before the widgets render.
+                st.session_state.spl_editor = result["spl_query"]
+                st.session_state.spl_view   = result["spl_query"]
+                st.session_state.spl_generated = True
+                st.session_state.flow_state = result
+                st.session_state.executed = False
+                st.session_state.execution_results = []
+                st.session_state.user_input_saved = user_input
+                if result["retry_count"] > 1:
+                    st.info(f"Generated after {result['retry_count']} attempt(s).")
+                # Force all fragments to re-render with the new SPL
+                st.rerun()
+            else:
+                st.warning("No SPL was generated — try rephrasing your query.")
 
-# ── STEP 2: SPL Preview & Edit — 2-column layout ──────────────────────────────
-if st.session_state.spl_generated and st.session_state.spl_query:
-    st.divider()
+# ── STEP 1: Query Input (Fragment) ────────────────────────────────────────────
+step_1_query_input()
+
+@st.fragment  # Commented out for troubleshooting
+def step_2_spl_review():
+    """Step 2: SPL preview & edit with execution (fragment)"""
+    # Always render the section, but show conditional content
+    if not (st.session_state.get("spl_generated", False) and st.session_state.get("spl_query", "")):
+        return
+
+    # st.divider()
     st.subheader("Step 2 — Review & edit SPL")
 
     for w in st.session_state.flow_state.get("spl_warnings", []):
@@ -258,23 +275,31 @@ if st.session_state.spl_generated and st.session_state.spl_query:
 
     original_spl = st.session_state.spl_query or ""
 
-    col_edit, col_view = st.columns(2)
+    col_edit, _, col_tools = st.columns([4, 0.1, 2])
 
     with col_edit:
-        st.caption("Edit SPL — run your version (edits apply immediately on Execute)")
+        # st.caption("Edit SPL — run your version (edits apply immediately on Execute)")
         edited_spl = st.text_area(
             "Edit SPL",
             height=280,
             label_visibility="collapsed",
             key="spl_editor",
         )
-        btn_exec_edited, btn_dl = st.columns([3, 2])
-        with btn_exec_edited:
+
+        # Four buttons in a row under the text area
+        btn1, btn2, btn3, btn4 = st.columns(4)
+        with btn1:
             exec_edited = st.button(
-                "▶ Execute edited", key="exec_edited",
+                "▶ Execute", key="exec_edited",
                 type="primary", use_container_width=True,
             )
-        with btn_dl:
+        with btn2:
+            clear_result = st.button(
+                "🗑️ Clear Result", key="clear_result",
+                use_container_width=True,
+                help="Clear the current Step 3 results"
+            )
+        with btn3:
             # Sanitize adapter and model names for filename
             _safe_adapter = adapter.replace("/", "-").replace(":", "-").replace(" ", "-")
             _safe_model = selected_model_id.replace("/", "-").replace(":", "-").replace(" ", "-") if selected_model_id else "auto"
@@ -287,55 +312,56 @@ if st.session_state.spl_generated and st.session_state.spl_query:
                 mime="text/plain",
                 use_container_width=True,
             )
-
-    with col_view:
-        st.caption("Generated SPL — original (read-only)")
-        st.text_area(
-            "SPL view",
-            value=original_spl,
-            height=280,
-            disabled=True,
-            label_visibility="collapsed",
-            key="spl_view",
-        )
-        btn_exec_orig, btn_save = st.columns([3, 2])
-        with btn_exec_orig:
-            exec_original = st.button(
-                "▶ Execute original", key="exec_original", use_container_width=True
-            )
-        with btn_save:
+        with btn4:
             if st.button("📌 Save to Benchmark", key="save_to_bench", use_container_width=True,
                          help="Pin this SPL so you can load it on the Benchmark page"):
                 _entry = {
                     "label": st.session_state.get("user_input_saved", "")[:80] or "SPL script",
                     "query": st.session_state.get("user_input_saved", ""),
-                    "spl":   original_spl,
+                    "spl":   edited_spl or original_spl,
                     "ts":    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 }
                 if "saved_spls" not in st.session_state:
                     st.session_state.saved_spls = []
                 # avoid exact duplicates
-                if not any(e["spl"] == original_spl for e in st.session_state.saved_spls):
+                if not any(e["spl"] == (edited_spl or original_spl) for e in st.session_state.saved_spls):
                     st.session_state.saved_spls.append(_entry)
                 st.toast("SPL pinned to Benchmark session ✓", icon="📌")
+
+        # Handle Clear Result button
+        if clear_result:
+            st.session_state.executed = False
+            st.session_state.execution_results = []
+            st.session_state.flow_state = {}
+            st.toast("Results cleared ✓", icon="🗑️")
+            st.rerun()
+
+    with col_tools:
+        # Execution Plan in the right column
+        if SPL_AVAILABLE and spl_explain is not None:
+            with st.expander("Execution Plan — EXPLAIN", expanded=True):
+                try:
+                    plan_text = spl_explain(edited_spl or original_spl)
+                    st.text(plan_text)
+                except Exception as ex:
+                    st.caption(f"Could not generate EXPLAIN plan: {ex}")
+
+        # # Execute original button
+        # st.write("")  # Small gap
+        # exec_original = st.button(
+        #     "▶ Execute original", key="exec_original",
+        #     use_container_width=True, help="Run the original generated SPL"
+        # )
 
     # Determine which SPL to run and whether a button was clicked
     spl_to_run: str | None = None
     run_label = ""
-    if exec_original:
-        spl_to_run = original_spl
-        run_label  = "original"
-    elif exec_edited:
+    # if exec_original:
+    #     spl_to_run = original_spl
+    #     run_label  = "original"
+    if exec_edited:
         spl_to_run = edited_spl or original_spl
         run_label  = "edited"
-
-    if SPL_AVAILABLE and spl_explain is not None:
-        with st.expander("Execution Plan — EXPLAIN (token budget & cost estimate)"):
-            try:
-                plan_text = spl_explain(spl_to_run or original_spl)
-                st.text(plan_text)
-            except Exception as ex:
-                st.caption(f"Could not generate EXPLAIN plan: {ex}")
 
     execute_clicked = spl_to_run is not None
 
@@ -353,6 +379,7 @@ if st.session_state.spl_generated and st.session_state.spl_query:
         st.session_state.executed = True
         if exec_result.get("error"):
             st.error(f"Execution error: {exec_result['error']}")
+            st.rerun()  # Force UI update to show error
         else:
             _primary = exec_result.get("primary_result", "")
             _results = exec_result.get("execution_results", [])
@@ -372,10 +399,19 @@ if st.session_state.spl_generated and st.session_state.spl_query:
                     st.toast("Request saved to database ✓", icon="💾")
                 except Exception:
                     pass  # never break the UI on a DB write failure
+            # Force UI update to show Step 3 results immediately
+            st.rerun()
 
-# ── STEP 3: Result ────────────────────────────────────────────────────────────
-if st.session_state.executed:
-    st.divider()
+# ── STEP 2: SPL Preview & Edit (Fragment) ─────────────────────────────────────
+step_2_spl_review()
+
+@st.fragment  # Commented out for troubleshooting
+def step_3_result_display():
+    """Step 3: Result display (fragment)"""
+    if not st.session_state.get("executed", False):
+        return
+
+    # st.divider()
     st.subheader("Step 3 — Result")
 
     flow_state = st.session_state.flow_state
@@ -388,7 +424,7 @@ if st.session_state.executed:
         primary = flow_state.get("primary_result", "")
         final   = results[-1] if results else {}
 
-        col_result, _col_gap, col_metrics = st.columns([15, 1, 3])
+        col_result, _, col_metrics = st.columns([15, 0.5, 3])
 
         with col_result:
             if primary:
@@ -411,11 +447,12 @@ if st.session_state.executed:
                         c2.caption(f"Latency: {r.get('latency_ms', 0) / 1000:.1f}s")
                         _rc = r.get("cost_usd")
                         c3.caption(f"Cost: ${_rc:.5f}" if _rc is not None else "Cost: —")
-                        st.divider()
+                        # st.divider()
 
         with col_metrics:
             if final:
                 _cost = final.get("cost_usd")
+                st.metric("Adapter", adapter.title())
                 st.metric("Model",   final.get("model", "—"))
                 st.metric("Tokens",  f"{final.get('total_tokens', 0):,}")
                 st.metric("Latency", f"{final.get('latency_ms', 0) / 1000:.1f}s")
@@ -457,5 +494,8 @@ if st.session_state.executed:
                     type="primary",
                     use_container_width=True,
                 )
+
+# ── STEP 3: Result Display (Fragment) ─────────────────────────────────────────
+step_3_result_display()
 
 render_footer()
