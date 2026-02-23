@@ -455,3 +455,29 @@ GENERATE format_table(papers, "Nobel Prize Winners Recent Publications")
 - **Advanced Analytics**: Easy filtering and sorting for usage analysis
 
 **Status**: 📋 Planned — AgGrid component integration for performance optimization
+
+### 🧠 Liquid AI LFM Model Integration
+
+**Context**: Current local models (Qwen, Gemma) show varying quality and hardware constraints. Liquid AI's LFM (Liquid Foundation Model) offers potentially superior local performance with more efficient architecture.
+
+**Solution**: Explore Liquid AI's LFM model for local Ollama integration to enhance SPL-Flow's free tier capabilities.
+
+**Research Areas:**
+- **Model Architecture**: Liquid neural networks vs traditional transformers for efficiency
+- **Local Performance**: Memory usage, inference speed, and quality compared to current Ollama models
+- **SPL Compatibility**: Text2SPL generation capabilities and structured reasoning performance
+- **Hardware Requirements**: Optimal GPU/CPU configurations for LFM deployment
+
+**Integration Approach:**
+- **Ollama Support**: Verify/enable LFM model availability through Ollama
+- **Model Zoo Addition**: Add LFM variants to `model_settings.yaml` with appropriate strength classifications
+- **Benchmark Testing**: Run "Nobel Prize papers" and other complex queries for quality assessment
+- **Performance Profiling**: Compare resource utilization vs existing local models
+
+**Expected Benefits:**
+- **Better local model quality** without hardware upgrades
+- **More efficient resource usage** than current 12B+ parameter models
+- **Enhanced Text2SPL generation** for complex query decomposition
+- **Stronger free tier** to compete with premium cloud models
+
+**Status**: 🔬 Research Phase — Evaluate LFM capabilities for local SPL-Flow deployment
