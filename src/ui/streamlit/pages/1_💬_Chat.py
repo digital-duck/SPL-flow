@@ -281,7 +281,7 @@ def step_2_spl_review():
         # st.caption("Edit SPL — run your version (edits apply immediately on Execute)")
         edited_spl = st.text_area(
             "Edit SPL",
-            height=280,
+            height=400,
             label_visibility="collapsed",
             key="spl_editor",
         )

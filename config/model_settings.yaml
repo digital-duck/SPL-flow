@@ -209,6 +209,15 @@ ollama:
     status: "stable"
     notes: ""
 
+  "qwen3:4b":
+    name: "Qwen3 4B (Ollama)"
+    provider: "alibaba"
+    strengths: ["general", "reasoning", "cjk"]
+    reasoning_model: false
+    is_active: true
+    status: "stable"
+    notes: ""
+
   "qwen2.5":
     name: "Qwen 2.5 (Ollama)"
     provider: "alibaba"

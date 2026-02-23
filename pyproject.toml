@@ -30,6 +30,7 @@ dependencies = [
     "click>=8.0",
     "httpx>=0.25",
     "dd-logging>=0.1.0",
+    "dd-config>=0.1.0",
 ]
 
 [project.optional-dependencies]
