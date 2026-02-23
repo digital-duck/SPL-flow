@@ -319,6 +319,7 @@ _FOOTER_HTML = """
 <div class="splflow-footer">
   <strong>SPL-Flow</strong> &mdash;
   <a href="https://github.com/digital-duck/SPL" target="_blank">SPL engine</a> &middot;
+  <a href="https://github.com/digital-duck/SPL-flow" target="_blank">SPL-Flow</a> &middot;
   <a href="https://github.com/The-Pocket/PocketFlow" target="_blank">PocketFlow</a> &middot;
   Apache 2.0 &mdash; Built with ❤️ by
   <a href="https://github.com/digital-duck" target="_blank">Digital-Duck</a> and
