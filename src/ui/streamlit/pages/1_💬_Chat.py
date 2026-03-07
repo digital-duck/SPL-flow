@@ -6,7 +6,7 @@ Step 3: Execute and view result
 """
 import sys
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-flow")
 
 from datetime import datetime
 
@@ -250,6 +250,20 @@ def step_1_query_input():
                 st.session_state.executed = False
                 st.session_state.execution_results = []
                 st.session_state.user_input_saved = user_input
+
+                # Auto-save generated SPL to logs
+                try:
+                    from pathlib import Path
+                    save_dir = Path.home() / "projects/digital-duck/SPL-flow/logs/streamlit/spl"
+                    save_dir.mkdir(parents=True, exist_ok=True)
+                    _ts = datetime.now().strftime('%Y%m%d-%H%M%S')
+                    _safe_adapter = adapter.replace("/", "-").replace(":", "-").replace(" ", "-")
+                    _safe_model = selected_model_id.replace("/", "-").replace(":", "-").replace(" ", "-") if selected_model_id else "auto"
+                    _filename = f"generated-{_safe_adapter}-{_safe_model}-{_ts}.spl"
+                    (save_dir / _filename).write_text(result["spl_query"], encoding="utf-8")
+                except Exception:
+                    pass
+
                 if result["retry_count"] > 1:
                     st.info(f"Generated after {result['retry_count']} attempt(s).")
                 # Force all fragments to re-render with the new SPL

@@ -1,0 +1,32 @@
+PROMPT protein_folding_breakthroughs_analysis
+WITH BUDGET 6000 tokens
+USING MODEL "auto"
+
+SELECT
+    system_role("You are a computational biology expert specializing in protein folding, machine learning applications, and the AlphaFold series of models with deep knowledge of their technical advancements and implications.")
+
+GENERATE
+    analyze_technical_breakthroughs("Explain the recent breakthroughs in protein folding prediction using the AlphaFold series, covering: 1) The initial release of AlphaFold by DeepMind in 2018, which achieved unprecedented accuracy in predicting protein structures from amino acid sequences, 2) The significant improvements and updates to AlphaFold over subsequent years including AlphaFold 2.0 in 2021, which further refined prediction accuracy and expanded coverage, 3) The use of deep learning techniques such as neural networks and attention mechanisms to model complex protein interactions and structural dynamics, 4) The integration of multiple data sources including experimental structures from X-ray crystallography and cryo-EM, sequence homology, and physical chemistry principles, 5) The development of novel algorithms for efficient and scalable protein structure prediction, 6) The validation of AlphaFold's predictions through comparison with experimental data, showing high accuracy in both known and novel protein structures, 7) The impact on the field of structural biology by providing rapid and accurate structure determination without the need for time-consuming experimental methods, 8) The role of AlphaFold in accelerating drug discovery and understanding disease mechanisms, 9) The ongoing research to improve prediction speed and reduce computational requirements while maintaining or enhancing accuracy.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;
+
+PROMPT protein_folding_medical_applications
+WITH BUDGET 6000 tokens
+USING MODEL "auto"
+
+SELECT
+    system_role("You are a medical bioinformatics expert specializing in the application of computational methods to understand and treat diseases, with deep knowledge of how protein folding predictions impact drug discovery and disease diagnosis.")
+
+GENERATE
+    analyze_medical_implications("Explain the recent breakthroughs in protein folding prediction using the AlphaFold series from a medical perspective, covering: 1) The potential for faster and more accurate drug design by predicting protein structures that are key targets or involved in disease pathways, 2) Improved understanding of protein misfolding diseases such as Alzheimer's, Parkinson's, and prion disorders, which can lead to new therapeutic strategies, 3) Enhanced diagnostics through the ability to predict and analyze protein structures associated with various conditions, 4) The role of AlphaFold in identifying novel drug targets by predicting the structure-function relationships of proteins involved in disease processes, 5) The integration of AlphaFold predictions into clinical workflows for personalized medicine approaches, 6) The challenges and limitations in translating computational models to practical medical applications, including validation against experimental data and regulatory approval processes.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;
+
+PROMPT protein_folding_non_scientist_implications
+WITH BUDGET 6000 tokens
+USING MODEL "auto"
+
+SELECT
+    system_role("You are a science communication expert specializing in explaining complex scientific concepts to non-specialist audiences, with deep knowledge of how to make technical advancements accessible and engaging for the general public.")
+
+GENERATE
+    explain_implications_to_non_scientists("Explain the recent breakthroughs in protein folding prediction using the AlphaFold series from an accessible perspective for non-scientists, covering: 1) The significance of understanding protein structures in everyday life, including its impact on health and disease, 2) How AlphaFold has revolutionized our ability to predict protein shapes without experimental methods, making it faster and more accurate than ever before, 3) The potential benefits for drug discovery by identifying new targets and improving existing treatments, 4) The implications for diagnosing diseases based on protein misfolding, such as Alzheimer's or Parkinson's, which could lead to earlier detection and better management strategies, 5) How AlphaFold can help in developing personalized medicine approaches tailored to individual patients' needs, 6) The challenges of translating complex scientific advancements into practical applications that benefit society, including the need for further research and validation, 7) The role of public engagement in understanding and supporting scientific progress, especially in areas like protein folding and its medical implications.")
+WITH OUTPUT BUDGET 2000 tokens, TEMPERATURE 0.1, FORMAT markdown;

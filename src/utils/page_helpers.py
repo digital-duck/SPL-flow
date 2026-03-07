@@ -6,7 +6,7 @@ level so all pages share the same ChromaDB client.
 """
 import sys
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-flow")
 
 import re
 

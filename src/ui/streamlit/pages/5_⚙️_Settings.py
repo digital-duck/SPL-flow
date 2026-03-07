@@ -13,7 +13,7 @@ can re-enable them at any time.
 import os
 import sys
 sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-Flow")
+sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-flow")
 
 import streamlit as st
 
