@@ -48,8 +48,9 @@ import hashlib
 import warnings
 from datetime import datetime, timezone
 
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-flow")
+from pathlib import Path
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL")
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL-flow")
 
 from src.flows.spl_flow import generate_spl_only
 from src.flows.chunking_flow import run_chunking_flow

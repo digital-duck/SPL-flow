@@ -5,8 +5,9 @@ are shown side by side.  Use the RAG Context tab to curate the ChromaDB
 pairs that power Text2SPL few-shot retrieval.
 """
 import sys
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-flow")
+from pathlib import Path
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL")
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL-flow")
 
 import streamlit as st
 

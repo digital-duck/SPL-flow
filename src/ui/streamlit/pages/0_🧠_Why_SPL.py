@@ -4,8 +4,9 @@ Demonstrates why SPL-Flow is needed by showcasing a challenging benchmark query
 that defeated 7 out of 9 top-tier LLM providers.
 """
 import sys
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-flow")
+from pathlib import Path
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL")
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL-flow")
 
 import streamlit as st
 

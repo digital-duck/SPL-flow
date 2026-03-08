@@ -1,7 +1,8 @@
 """Benchmark flow: single-node PocketFlow graph for BENCHMARK execution."""
 import sys
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-flow")
+from pathlib import Path
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL")
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL-flow")
 
 from pocketflow import Flow
 from src.nodes.benchmark import BenchmarkNode

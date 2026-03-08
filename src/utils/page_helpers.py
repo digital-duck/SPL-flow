@@ -5,8 +5,9 @@ consistent settings dict.  get_rag_store() is cached at the process
 level so all pages share the same ChromaDB client.
 """
 import sys
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-flow")
+from pathlib import Path
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL")
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL-flow")
 
 import re
 

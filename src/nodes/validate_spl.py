@@ -1,6 +1,7 @@
 """ValidateSPL Node: parse and validate generated SPL, retry on error."""
 import sys
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
+from pathlib import Path
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL")
 
 from pocketflow import Node
 from spl import parse

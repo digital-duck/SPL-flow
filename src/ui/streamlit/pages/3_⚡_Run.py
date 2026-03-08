@@ -5,8 +5,9 @@ No NL→SPL generation step — useful for pre-written scripts,
 experiments, and direct SPL testing.
 """
 import sys
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL")
-sys.path.insert(0, "/home/papagame/projects/digital-duck/SPL-flow")
+from pathlib import Path
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL")
+sys.path.insert(0, Path.home() / "projects/digital-duck/SPL-flow")
 
 from datetime import datetime
 
