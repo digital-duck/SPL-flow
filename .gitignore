@@ -1,3 +1,11 @@
+.spl/
+CLAUDE.md
+GEMINI.md
+logs/
+README-TODO.md
+claude-vs-gemini.md
+experiments/claude-*.html
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
