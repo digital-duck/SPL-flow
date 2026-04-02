@@ -152,17 +152,30 @@ execute  - "error"   >> sync_deliver
 ### 1. Install dependencies
 
 ```bash
-cd /home/papagame/projects/digital-duck/SPL-Flow
-pip install -r requirements.txt
+conda create -n spl python=3.11
+conda activate spl
+
 # For local dev against the sibling SPL engine repo:
-pip install -e /home/papagame/projects/digital-duck/SPL
+pip install -e ~/projects/digital-duck/SPL
+
+cd ~/projects/digital-duck/SPL-flow
+pip install -e .
 ```
 
 ### 2. Run the Streamlit UI
 
 ```bash
-streamlit run src/ui/streamlit/app.py
+streamlit run src/ui/streamlit/SPL_Flow🌊.py
 ```
+
+#### Make it public via Pinggy
+
+```bash
+ssh -p 443 -R0:localhost:8501 a.pinggy.io
+```
+
+see `readme-pinggy.md`
+
 
 ### 3. Use the CLI
 
